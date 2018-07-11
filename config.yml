@@ -1,0 +1,3 @@
+modules:
+    - aprs
+    - command_ingest
