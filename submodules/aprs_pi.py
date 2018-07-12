@@ -20,9 +20,10 @@ def send(msg):
 def listen():
     while(True):
         zz = ser.inWaiting()
-        rr = b''
+        rr = ser.read(size = zz)
         if zz > 0:
             time.sleep(.5)
+            zz = ser.inWaiting()
             rr += ser.read(size = zz)
             ci.piprint(rr)
             #return (rr)

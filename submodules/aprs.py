@@ -15,10 +15,13 @@ def send(msg):
     ser.write(bytes(msg,encoding="utf-8"))
 def listen():
     while(True):
+        #
         zz = ser.inWaiting()
-        rr = b''
+        rr = ser.read(size = zz)
+
         if zz > 0:
             time.sleep(.5)
+            zz = ser.inWaiting()
             rr += ser.read(size = zz)
             ci.dispatch_command(rr)
             #return (rr)

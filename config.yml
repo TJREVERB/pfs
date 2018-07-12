@@ -1,6 +1,7 @@
 modules:
-    # - aprs
+    - aprs
     - command_ingest
 
 aprs:
-    serial_port: /dev/ttyUSB0
+    #serial_port: /dev/ttyUSB0
+    serial_port: COM3
