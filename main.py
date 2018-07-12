@@ -1,15 +1,11 @@
-import importlib
-from core import config
+import core
+import logging
+import sys
 
 
-def main():
-    print("Config:")
-    print(config)
-    print()
-    # Load all the modules
-    for module in config['modules']:
-        pass
-
+logger = logging.getLogger()
+if '--debug' in sys.argv or '-d' in sys.argv:
+    logger.setLevel(logging.DEBUG)
 
 if __name__ == '__main__':
-    main()
+    core.startup()

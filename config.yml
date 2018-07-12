@@ -1,3 +1,6 @@
 modules:
     - aprs
     - command_ingest
+
+aprs:
+    serial_port: /dev/ttyUSB0
