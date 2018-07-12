@@ -11,9 +11,12 @@ from threading import Thread
 
 #open port
 def send(msg):
-    msg += "\n"
+    msg = msg + "\n"
     #logging.debug("Hidylan")
-    ser.write(bytes(msg,encoding="utf-8"))
+    print(msg)
+    #print(bytes(msg,encoding="utf-8"))
+    #ser.write(bytes(msg,encoding="utf-8"))
+    ser.write(msg.encode("utf-8"))
 def listen():
     while(True):
         zz = ser.inWaiting()
@@ -21,14 +24,14 @@ def listen():
         if zz > 0:
             time.sleep(.5)
             rr += ser.read(size = zz)
-            ci.dispatch_command(rr)
+            ci.piprint(rr)
             #return (rr)
             #return rr
 
 
 def keyin():
     while(True):
-        in1 = input("Type command: ")
+        in1 = raw_input("Type command: ")
         send(in1)
 
 
