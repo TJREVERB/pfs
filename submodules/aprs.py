@@ -49,6 +49,10 @@ def on_startup():
     t1 = Thread(target=listen, args=())
     t1.daemon = True
     t1.start()
+    #IM ALIVE BEACON RIGHT HERE MY DUDE
+    #t2 = Thread(target=beacon, args=())
+    #t2.daemon = True
+    #t2.start()
     #logging.debug("Test")
 def enter_normal_mode():
     global bperiod

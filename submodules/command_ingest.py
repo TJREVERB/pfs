@@ -10,7 +10,12 @@ def dispatch_command(packet):
         return
     header = rawpacket[:headerfindresult]
     logging.info("HEADER: "+header)
-    datacontent = rawpacket[headerfindresult:]
+    datacontent = rawpacket[headerfindresult+1:]
+
+    if len(datacontent) == 0:
+        logging.info("EMPTY BODY")
+        return
+        
     logging.info("BODY: "+datacontent)
 
 def piprint(packet):
