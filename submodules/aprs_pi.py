@@ -3,10 +3,11 @@ import time
 import sys
 import logging
 
-import submodules.command_ingest as ci
+#import submodules.command_ingest as ci
+import command_ingest as ci
 
 from threading import Thread
-from core import config
+#from core import config
 
 #open port
 def send(msg):
@@ -41,7 +42,8 @@ def beacon():
 def on_startup():
     global bperiod, t1, ser
     bperiod = 60
-    serialPort = config['aprs']['serial_port']
+    #serialPort = config['aprs']['serial_port']
+    serialPort = "/dev/ttyUSB0"
     ser = serial.Serial(serialPort, 19200)
     t1 = Thread(target=listen, args=())
     t1.daemon = True
@@ -61,9 +63,9 @@ def enter_emergency_mode():
 
 
 if __name__ == '__main__':
-    startup()
-    serialPort = sys.argv[1]
-    ser = serial.Serial(serialPort, 19200)
+    on_startup()
+    #serialPort = sys.argv[1]
+    #ser = serial.Serial(serialPort, 19200)
     t2 = Thread(target=keyin, args=())
     t2.daemon = True
     t2.start()

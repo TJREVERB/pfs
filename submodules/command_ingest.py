@@ -1,2 +1,4 @@
+import logging
+
 def dispatch_command(packet):
-    print("I DID IT: "+str(packet))
+    logging.info("FROM APRS: "+str(packet))
