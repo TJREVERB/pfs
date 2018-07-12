@@ -1,5 +1,5 @@
 modules:
-    - aprs
+    # - aprs
     - command_ingest
 
 aprs:
