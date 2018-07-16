@@ -20,7 +20,7 @@ def dispatch_command(packet):
     logging.info("BODY: "+datacontent)
     decode(datacontent)
 def checksum(body):
-    sum = sum([int(x) for x in body[0:-6]])
+    sum = sum([ord(x) for x in body[0:-6]])
     sum %= 256
     return sum == body[-6]
 
