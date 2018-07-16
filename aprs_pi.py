@@ -40,8 +40,8 @@ def keyin():
         in1 = raw_input("Type command: ")
         sum1 = 0
         if(user):
-            sum1 = sum([int(x) for x in "TJ"+in1])
-            send("TJ"+in1+chr(sum1%256))
+            sum1 = sum([ord(x) for x in "TJ"+in1])
+            send("TJ"+in1+chr(sum1%128))
         else:
             send(in1)
 
