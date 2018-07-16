@@ -41,7 +41,7 @@ def keyin():
         sum1 = 0
         if(user):
             sum1 = sum([int(x) for x in "TJ"+in1])
-            send("TJ"+in1+str(sum1%256))
+            send("TJ"+in1+chr(sum1%256))
         else:
             send(in1)
 
