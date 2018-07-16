@@ -21,10 +21,11 @@ def dispatch_command(packet):
     decode(datacontent)
 def checksum(body):
     global sum1
-    logging.debug(body[-6:-1])
-    sum1 = sum([ord(x) for x in body[-6:-1]])
+    logging.debug(body[0:-7])
+    sum1 = sum([ord(x) for x in body[0:-7]])
     sum1 %= 128
-    return sum1 == body[-6]
+    logging.debug('CHECKOUT :'+chr(sum1)+";")
+    return chr(sum1) == body[-7]
 
 
 def decode(body):
