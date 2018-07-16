@@ -23,7 +23,7 @@ def checksum(body):
     global sum1
     logging.debug(body[-6:-1])
     sum1 = sum([ord(x) for x in body[-6:-1]])
-    sum1 %= 256
+    sum1 %= 128
     return sum1 == body[-6]
 
 
