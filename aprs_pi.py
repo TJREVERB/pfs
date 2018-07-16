@@ -5,7 +5,7 @@ import logging
 
 #import submodules.command_ingest as ci
 from submodules import *
-import command_ingest as ci
+#import command_ingest as ci
 
 from threading import Thread
 #from core import config
