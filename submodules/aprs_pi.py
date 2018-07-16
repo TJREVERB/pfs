@@ -11,7 +11,7 @@ from threading import Thread
 
 #open port
 def send(msg):
-    msg = msg + "\r"
+    msg = msg + "\r\n"
     #logging.debug("Hidylan")
     #print(msg)
     #print(bytes(msg,encoding="utf-8"))
