@@ -4,6 +4,7 @@ import sys
 import logging
 
 #import submodules.command_ingest as ci
+from submodules import *
 import command_ingest as ci
 
 from threading import Thread
@@ -37,9 +38,10 @@ def listen():
 def keyin():
     while(True):
         in1 = raw_input("Type command: ")
+        sum1 = 0
         if(user):
-            sum = sum([int(x) for x in "TJ"+in1])
-            send("TJ"+in1+str(sum%256))
+            sum1 = sum([int(x) for x in "TJ"+in1])
+            send("TJ"+in1+str(sum1%256))
         else:
             send(in1)
 

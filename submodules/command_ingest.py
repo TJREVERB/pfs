@@ -1,5 +1,5 @@
 import logging
-from submodules import aprs
+from . import aprs
 
 def dispatch_command(packet):
     logging.debug("DISPATCH CALLED")
