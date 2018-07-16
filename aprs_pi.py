@@ -4,8 +4,10 @@ import sys
 import logging
 
 #import submodules.command_ingest as ci
-from submodules import *
+#from submodules.command_ingest import piprint
 #import command_ingest as ci
+#from submodules import command_ingest as ci
+from submodules import *
 
 from threading import Thread
 #from core import config
@@ -30,7 +32,7 @@ def listen():
             time.sleep(.5)
             zz = ser.inWaiting()
             rr += ser.read(size = zz)
-            ci.piprint(rr)
+            print(rr)
             #return (rr)
             #return rr
 
