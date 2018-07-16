@@ -38,13 +38,8 @@ def keyin():
     while(True):
         in1 = raw_input("Type command: ")
         if(user):
-            in1 = "TJ" + in1
-            sum = 0
-            for i in in1:
-                sum++;
-            sum = sum%256
-            in1 = in1 + str(sum)
-        send(in1)
+            global sum = sum([int(x) for x in "TJ"+in1])
+        send("TJ"+in1+str(sum%256))
 
 
 def beacon():
