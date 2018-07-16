@@ -8,6 +8,10 @@ import command_ingest as ci
 
 from threading import Thread
 #from core import config
+user = False
+if len(sys.argv) > 1:
+    if sys.argv[1] == 'user':
+        user = True
 
 #open port
 def send(msg):
@@ -33,6 +37,13 @@ def listen():
 def keyin():
     while(True):
         in1 = raw_input("Type command: ")
+        if(user):
+            in1 = "TJ" + in1
+            sum = 0
+            for i in in1:
+                sum++;
+            sum = sum%256
+            in1 = in1 + str(sum)
         send(in1)
 
 
