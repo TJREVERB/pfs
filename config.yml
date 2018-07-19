@@ -4,4 +4,4 @@ modules:
 
 aprs:
     #serial_port: /dev/ttyUSB0
-    serial_port: COM4
+    serial_port: COM3

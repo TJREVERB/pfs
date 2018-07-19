@@ -32,9 +32,9 @@ def decode(body):
     logging.debug(body[-5:-1])
     logging.debug(body[0:2])
     if body[0:2] == 'TJ' and body[-5:-1] == '\\r\\n' and checksum(body):
-
         logging.debug('VALID MESSAGE')
-        modules[body[2]][body[3]](body[4])
+        logging.debug(body[4:-7])
+        modules[body[2]][body[3]](body[4:-7])
     else:
         logging.debug('INVALID MESSAGE')
 def piprint(packet):

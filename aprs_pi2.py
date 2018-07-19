@@ -39,11 +39,12 @@ def listen():
 
 def keyin():
     while(True):
-        in1 = raw_input("Type Command: ")
+        in1 = "Bappp"
         if(user):
             send("TJ" + in1 + chr(sum([ord(x) for x in "TJ"+in1])%128))
         else:
             send(in1)
+		sleep(20)
 
 def beacon():
     while(True):
