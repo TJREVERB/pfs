@@ -1,13 +1,11 @@
-import serial
+sum1 = sum([int(x) for x in "TJ"+in1])sum1 = sum([int(x) for x in "TJ"+in1])import serial
 import time
 import sys
 import logging
 
 #import submodules.command_ingest as ci
-#from submodules.command_ingest import piprint
-#import command_ingest as ci
-#from submodules import command_ingest as ci
 from submodules import *
+#import submodules.command_ingest as ci
 
 from threading import Thread
 #from core import config
@@ -26,38 +24,28 @@ def send(msg):
     ser.write(msg.encode("utf-8"))
 def listen():
     while(True):
-	f = open("aprs_log.txt", "w")
         zz = ser.inWaiting()
         rr = ser.read(size = zz)
         if zz > 0:
             time.sleep(.5)
-	    try:
-            	zz = ser.inWaiting()
-	   	print(zz)
-           	rr += ser.read(size = zz)
-	    	f.write("DOWNLINK: " + rr)
-	    except serial.SeriaException as e:
-		print("It Failed")
+            zz = ser.inWaiting()
+            rr += ser.read(size = zz)
+            ci.piprint(rr)
             #return (rr)
             #return rr
 
 
 def keyin():
-    counter = 1
     while(True):
-	print("sending...")
-        in1 = "Ba_this_is_a_test_of_the_CubeSat_comms_system"
-	in1 = in1+str(time.time())
-	logging.debug("BYTE COUNT: " + str(len(in1)))
-	f = open("aprs_log.txt", "w")
-	f.write("UPLINK No. " + str(counter) + " : " + in1)
+        in1 = raw_input("Type command: ")
+        sum1 = 0
         if(user):
-            send("TJ" + in1 + chr(sum([ord(x) for x in "TJ"+in1])%128))
+	    in1 = "TJ" + in1
+            for i in in1:
+		sum1 += int(i)
+            send(in1+str(sum1%256))
         else:
             send(in1)
-	time.sleep(20)
-	f.close()
-	counter = counter+1
 
 def beacon():
     while(True):
