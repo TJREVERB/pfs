@@ -1,7 +1,7 @@
 modules:
     - aprs
     - command_ingest
-
+    - gps
 aprs:
     #serial_port: /dev/ttyUSB0
     serial_port: COM3
