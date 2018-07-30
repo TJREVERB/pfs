@@ -78,7 +78,7 @@ def beacon():
 def on_startup():
     #GLOBAL VARIABLES ARE NEEDED IF YOU "CREATE" VARIABLES WITHIN THIS METHOD
     #AND ACCESS THEM ELSEWHERE
-    global bperiod, t1, ser
+    global bperiod, t1, ser, logfile
     bperiod = 60
     #serialPort = config['aprs']['serial_port']
     #REPLACE WITH COMx IF ON WINDOWS
@@ -91,7 +91,9 @@ def on_startup():
     t1.daemon = True
     t1.start()
     #logging.debug("Test")
-
+    logging.debug(time.localtime())
+    filename = 'TEMP'
+    logfile = open('logs/'+filename+'.txt')
 #HAVE THE 3 BELOW METHODS. SAY PASS IF YOU DONT KNOW WHAT TO PUT THERE YET
 #THESE ARE IN REFERENCE TO POWER LEVELS. SHUT STUFF DOWN IF WE NEED TO GO TO
 #EMERGYENCY MODE OR LOW POWER. ENTERING NORMAL MODE SHOULD TURN THEM BACK ON
@@ -105,6 +107,10 @@ def enter_low_power_mode():
 
 def enter_emergency_mode():
     pass
+
+def log(msg):
+    global logfile
+    logfile.write()
 
 #ANYTHING IN HERE WILL EXECUTE IF YOU RUN python aprs_pi.py
 #IT IS THE SAME AS MAIN IN JAVA
