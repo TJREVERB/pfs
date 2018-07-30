@@ -97,8 +97,11 @@ def on_startup():
     #print(time.localtime()[0])
     #TEMP LOCAL TIME FOR REFERENCING LATER TO CREATE NAME
     tlt = time.localtime()
+    #SET FILENAME WITH YEAR-MONTH-DAY
     filename = 'aprs'+'-'.join([str(x) for x in tlt[0:3]])
+    #OPEN FILE
     logfile = open('/home/pi/TJREVERB/pFS/submodules/logs/aprs/'+filename+'.txt','a+')
+    #USE LOG FUNCTION TO MARK START
     log('RUN@'+'-'.join([str(x) for x in tlt[3:5]]))
 #HAVE THE 3 BELOW METHODS. SAY PASS IF YOU DONT KNOW WHAT TO PUT THERE YET
 #THESE ARE IN REFERENCE TO POWER LEVELS. SHUT STUFF DOWN IF WE NEED TO GO TO
@@ -116,7 +119,9 @@ def enter_emergency_mode():
 
 def log(msg):
     global logfile
+    #WRITE TO FILE
     logfile.write(msg+'\n')
+    #SAVE CHANGES TO FILE
     logfile.flush()
 #ANYTHING IN HERE WILL EXECUTE IF YOU RUN python aprs_pi.py
 #IT IS THE SAME AS MAIN IN JAVA

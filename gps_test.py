@@ -29,6 +29,11 @@ def enter_low_power_mode():
 def enter_emergency_mode():
     pass
 
+#USE THIS LOG FUNCTION
+def log(msg):
+    global logfile
+    logfile.write(msg+'\n')
+    logfile.flush()
 
 if __name__ == '__main__':
     startup()
