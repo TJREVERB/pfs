@@ -52,6 +52,7 @@ def listen():
             zz = ser.inWaiting()
             rr += ser.read(size = zz)
             print(rr)
+            log('GOT: '+rr)
             #return (rr)
             #return rr
 
@@ -64,6 +65,7 @@ def keyin():
             send("TJ" + in1 + chr(sum([ord(x) for x in "TJ"+in1])%128))
         else:
             send(in1)
+            log('SENT: '+in1)
         #FOR ANY NON APRS MODULES THE ABOVE "IF" LOGIC IS UN-NEEDED.
         #JUST USE SEND
 
@@ -91,9 +93,13 @@ def on_startup():
     t1.daemon = True
     t1.start()
     #logging.debug("Test")
-    logging.debug(time.localtime())
-    filename = 'TEMP'
-    logfile = open('logs/'+filename+'.txt')
+    #logging.debug(time.localtime())
+    #print(time.localtime()[0])
+    #TEMP LOCAL TIME FOR REFERENCING LATER TO CREATE NAME
+    tlt = time.localtime()
+    filename = 'aprs'+'-'.join([str(x) for x in tlt[0:3]])
+    logfile = open('/home/pi/TJREVERB/pFS/submodules/logs/aprs/'+filename+'.txt','a+')
+    log('RUN@'+'-'.join([str(x) for x in tlt[3:5]]))
 #HAVE THE 3 BELOW METHODS. SAY PASS IF YOU DONT KNOW WHAT TO PUT THERE YET
 #THESE ARE IN REFERENCE TO POWER LEVELS. SHUT STUFF DOWN IF WE NEED TO GO TO
 #EMERGYENCY MODE OR LOW POWER. ENTERING NORMAL MODE SHOULD TURN THEM BACK ON
@@ -110,8 +116,8 @@ def enter_emergency_mode():
 
 def log(msg):
     global logfile
-    logfile.write()
-
+    logfile.write(msg+'\n')
+    logfile.flush()
 #ANYTHING IN HERE WILL EXECUTE IF YOU RUN python aprs_pi.py
 #IT IS THE SAME AS MAIN IN JAVA
 if __name__ == '__main__':
