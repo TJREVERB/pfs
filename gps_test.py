@@ -19,7 +19,6 @@ def on_startup():
     t1.start()
 
 def send(msg):
-    #Simple Message Sending with serial
     msg += "\n"
     ser.write(msg.encode("utf-8"))
 def listen():
@@ -58,6 +57,7 @@ def on_startup():
     logfile = open('/home/pi/TJREVERB/pFS/submodules/logs/gps/'+filename+'.txt','a+')
     log('RUN@'+'-'.join([str(x) for x in tlt[3:5]]))
 
+# I NEED TO KNOW WHAT NEEDS TO BE DONE IN NORMAL, LOW POWER, AND EMERGENCY MODES
 def enter_normal_mode():
     global bperiod
     bperiod = 60
