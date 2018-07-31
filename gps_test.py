@@ -17,7 +17,17 @@ def on_startup():
     t1 = Thread(target=listen, args=())
     t1.daemon = True
     t1.start()
-
+def getsinglegps():
+    #EXAMPLE METHOD THAT STILL NEEDS TO BE FLESHED OUT
+    #AS YOU CAN SEE THERRE'S STILL A TON TO DO
+    send("rxantenna on")
+    #pseudo
+    checkifgpslock()
+    gpsdata = recordgps()
+    log(gpsdata)
+    send("rxantenna off")
+    return gpsdata
+    #end pseudo
 def send(msg):
     msg += "\n"
     ser.write(msg.encode("utf-8"))
@@ -40,7 +50,7 @@ def keyin():
 def on_startup():
     #GLOBAL VARIABLES ARE NEEDED IF YOU "CREATE" VARIABLES WITHIN THIS METHOD
     #AND ACCESS THEM ELSEWHERE
-    global bperiod, t1, ser, logfile
+    global bperiod, t1, ser, logfile, tlt
     bperiod = 60
     #serialPort = config['aprs']['serial_port']
     #REPLACE WITH COMx IF ON WINDOWS
