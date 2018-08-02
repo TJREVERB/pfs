@@ -17,6 +17,21 @@ def on_startup():
     t1 = Thread(target=listen, args=())
     t1.daemon = True
     t1.start()
+def querygps():
+    global cachedgps
+
+    return cachedgps
+def querypastgps(index):
+    #RETURN A PAST GPS COORDINATE BY INDEX
+    #REFERENCE OWN GPS LOGS
+    return
+def passivegps():
+    #PASSIVELY UPDATE cachedgps According to gps period
+    global cachedgps, gpsperiod
+    while True:
+        time.sleep(gpsperiod)
+        getsinglegps()
+        
 def getsinglegps():
     #EXAMPLE METHOD THAT STILL NEEDS TO BE FLESHED OUT
     #AS YOU CAN SEE THERRE'S STILL A TON TO DO
@@ -50,8 +65,8 @@ def keyin():
 def on_startup():
     #GLOBAL VARIABLES ARE NEEDED IF YOU "CREATE" VARIABLES WITHIN THIS METHOD
     #AND ACCESS THEM ELSEWHERE
-    global bperiod, t1, ser, logfile, tlt
-    bperiod = 60
+    global gpsperiod, t1, ser, logfile, tlt
+    gpsperiod = 60
     #serialPort = config['aprs']['serial_port']
     #REPLACE WITH COMx IF ON WINDOWS
     #REPLACE WITH /dev/ttyUSBx if 1 DOESNT WORK
@@ -69,15 +84,18 @@ def on_startup():
 
 # I NEED TO KNOW WHAT NEEDS TO BE DONE IN NORMAL, LOW POWER, AND EMERGENCY MODES
 def enter_normal_mode():
-    global bperiod
-    bperiod = 60
+    #UPDATE GPS MODULE INTERNAL COORDINATES EVERY 10 MINUTES
+    global gpsperiod
+    gpsperiod = 60
 
 
 def enter_low_power_mode():
-    global bperiod
-    bperiod = 120
+    #UPDATE GPS MODULE INTERNAL COORDINATES EVERY HOUR
+    global gpsperiod
+    gpsperiod = 120
 
 def enter_emergency_mode():
+    #ALL GPS FUNCTIONS OFF. LOWEST POWER POSSIBLE
     pass
 
 #USE THIS LOG FUNCTION

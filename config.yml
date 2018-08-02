@@ -4,8 +4,9 @@ modules:
     - gps
 aprs:
     #serial_port: /dev/ttyUSB0
-    serial_port: /dev/ttyS0
-
+    serial_port: /dev/ttyS1
+gps:
+    serial_port: /dev/ttyS2
 #telemetry:
 #    data_functions:
 #        - aprs.get_voltage
