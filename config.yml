@@ -1,10 +1,11 @@
 modules:
     - aprs
     - command_ingest
-    - gps
+    #- gps
 aprs:
     #serial_port: /dev/ttyUSB0
     serial_port: /dev/ttyS1
+    loglocation: /root/TJREVERB/pFS/submodules/logs/aprs/
 gps:
     serial_port: /dev/ttyS2
 #telemetry:
