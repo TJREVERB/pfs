@@ -37,18 +37,23 @@ def send(msg):
 #THIS METHOD THREAD RUNS FOREVER ONCE STARTED
 #AND PRINTS ANYTHING IT RECIEVES OVER THE SERIAL LINE
 def listen():
+    print("START LISTENING")
     while(True):
         #IF I GET SOMETHING OVER THE SERIAL LINE
         zz = ser.inWaiting()
         #READ THAT MANY BYTES
+        #print(zz)
         rr = ser.read(size = zz)
+        #print(rr)
         if zz > 0:
+            #print('presleep')
             time.sleep(.5)
+            #print('postsleep')
             #CHECK AFTER .5 SECONDS, AND READ ANYTHING THAT GOT LEFT BEHIND
             zz = ser.inWaiting()
             rr += ser.read(size = zz)
             print(rr)
-            log('GOT: '+rr)
+            #log('GOT: '+rr)
             #return (rr)
             #return rr
 

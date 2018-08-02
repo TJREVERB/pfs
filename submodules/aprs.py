@@ -34,8 +34,9 @@ def listen():
             #CHECK AFTER .5 SECONDS, AND READ ANYTHING THAT GOT LEFT BEHIND
             zz = ser.inWaiting()
             rr += ser.read(size = zz)
-            print(rr)
-            log('GOT: '+rr)
+            ci.dispatch_command(rr)
+            #print(rr)
+            #log('GOT: '+rr)
             #return (rr)
             #return rr
 
