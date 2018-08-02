@@ -6,18 +6,9 @@ from threading import Thread
 from core import config
 from subprocess import call
 
-Module_Internal_Coordinates = (None, None) #Initialization of of internal coordinates
+
 
 #EDIT THIS TO WORK WITH GPS
-
-def on_startup():
-    global bperiod, t1, ser
-    bperiod = 60
-    serialPort = config['aprs']['serial_port']
-    ser = serial.Serial(serialPort, 19200)
-    t1 = Thread(target=listen, args=())
-    t1.daemon = True
-    t1.start()
 def querygps():
     global cachedgps
 
@@ -31,19 +22,21 @@ def passivegps():
     global cachedgps, gpsperiod
     while True:
         time.sleep(gpsperiod)
-        getsinglegps()
-        
+        cachedgps = getsinglegps()
+
 def getsinglegps():
     #EXAMPLE METHOD THAT STILL NEEDS TO BE FLESHED OUT
     #AS YOU CAN SEE THERRE'S STILL A TON TO DO
     send("rxantenna on")
     #pseudo
-    checkifgpslock()
+    #checkifgpslock()
     gpsdata = recordgps()
     log(gpsdata)
     send("rxantenna off")
     return gpsdata
     #end pseudo
+def parsegps(bytes):
+    str(bytes)
 def send(msg):
     msg += "\n"
     ser.write(msg.encode("utf-8"))
@@ -56,36 +49,37 @@ def listen():
             zz = ser.inWaiting()
             rr += ser.read(size = zz)
             print(rr)
-            log('GOT: '+rr)
+            #log('GOT: '+rr)
 def keyin():
     while(True):
         #GET INPUT FROM YOUR OWN TERMINAL
         #TRY input("shihaoiscoolforcommentingstuff") IF raw_input() doesn't work
         in1 = input("Type Command: ")
-        send("TJ" + in1 + chr(sum([ord(x) for x in "TJ" + in1]) % 128))
+        send(in1)
+        #send("TJ" + in1 + chr(sum([ord(x) for x in "TJ" + in1]) % 128))
 def on_startup():
     #GLOBAL VARIABLES ARE NEEDED IF YOU "CREATE" VARIABLES WITHIN THIS METHOD
     #AND ACCESS THEM ELSEWHERE
-    global gpsperiod, t1, ser, logfile, tlt
+    global gpsperiod, t1, ser, logfile, tlt, cachedgps
+    #cachedgps = (None,None)
+    cachedgps = None
     gpsperiod = 60
     #serialPort = config['aprs']['serial_port']
     #REPLACE WITH COMx IF ON WINDOWS
     #REPLACE WITH /dev/ttyUSBx if 1 DOESNT WORK
-    serialPort = "/dev/ttyUSB0"
+    serialPort = "/dev/ttyS3"
     #OPENS THE SERIAL PORT FOR ALL METHODS TO USE WITH 19200 BAUD
-    ser = serial.Serial(serialPort, 19200)
+    ser = serial.Serial(serialPort, 9600)
     #CREATES A THREAD THAT RUNS THE LISTEN METHOD
     t1 = Thread(target=listen, args=())
     t1.daemon = True
     t1.start()
     tlt = time.localtime()
     filename = 'gps'+'-'.join([str(x) for x in tlt[0:3]])
-    logfile = open('/home/pi/TJREVERB/pFS/submodules/logs/gps/'+filename+'.txt','a+')
+    logfile = open('/root/TJREVERB/pFS/submodules/logs/gps/'+filename+'.txt','a+')
     log('RUN@'+'-'.join([str(x) for x in tlt[3:5]]))
-def update_internal_coords():
-    coords = call('BESTPOS') #I don't know for sure what type BESTPOS returns, but I'm assuming tuple
-    Module_Internal_Coordinates = coords
 
+    send("rxantenna off")
 # I NEED TO KNOW WHAT NEEDS TO BE DONE IN NORMAL, LOW POWER, AND EMERGENCY MODES
 def enter_normal_mode():
     #UPDATE GPS MODULE INTERNAL COORDINATES EVERY 10 MINUTES
@@ -109,9 +103,7 @@ def log(msg):
     logfile.flush()
 
 if __name__ == '__main__':
-    startup()
-    serialPort = sys.argv[1]
-    ser = serial.Serial(serialPort, 19200)
+    
     t2 = Thread(target=keyin, args=())
     t2.daemon = True
     t2.start()
