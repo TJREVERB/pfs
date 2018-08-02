@@ -59,7 +59,7 @@ def beacon():
     global bperiod
     while(True):
         logging.info("SENT BEACON")
-        btext = "HELLO WORLD I AM FROMETH TJ"
+        btext = "HW"
         send(btext)
         log('BEACON: '+btext)
         time.sleep(bperiod)
@@ -96,7 +96,7 @@ def on_startup():
     log('RUN@'+'-'.join([str(x) for x in tlt[3:5]]))
     t3 = Thread(target=beacon, args=())
     t3.daemon = True
-    t3.start()
+    #t3.start()
 #HAVE THE 3 BELOW METHODS. SAY PASS IF YOU DONT KNOW WHAT TO PUT THERE YET
 #THESE ARE IN REFERENCE TO POWER LEVELS. SHUT STUFF DOWN IF WE NEED TO GO TO
 #EMERGYENCY MODE OR LOW POWER. ENTERING NORMAL MODE SHOULD TURN THEM BACK ON

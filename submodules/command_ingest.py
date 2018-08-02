@@ -1,6 +1,6 @@
 import logging
 from . import aprs
-
+from . import gps
 def dispatch_command(packet):
     logging.debug("DISPATCH CALLED")
     rawpacket = str(packet)
@@ -41,8 +41,9 @@ def piprint(packet):
     print("FROM APRS: "+str(packet))
 
 def on_startup():
-    global modules, m_aprs
+    global modules, m_aprs, m_gps
     #modules = {'A':core,'B':m_aprs,'C':'iridium','D':'housekeeping','E':'log','F':'GPS'}
     m_aprs = {'a':aprs.send}
-    modules = {'B':m_aprs}
+    m_gps = {'a':gps.sendgpsthruaprs}
+    modules = {'B':m_aprs,'F':m_gps}
     #core = {}
