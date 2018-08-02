@@ -20,10 +20,6 @@ from threading import Thread
 #from core import config
 
 #THIS IS FOR APRS ONLY:
-user = False
-if len(sys.argv) > 1:
-    if sys.argv[1] == 'user':
-        user = True
 
 #THIS WILL SEND A MESSAGE TO THE DEVICE
 #IT IS EQUIVALENT TO TYPING IN PUTTY
@@ -57,6 +53,7 @@ def listen():
             #return rr
 
 def keyin():
+    global user
     while(True):
         #GET INPUT FROM YOUR OWN TERMINAL
         #TRY input("shihaoiscoolforcommentingstuff") IF raw_input() doesn't work
@@ -84,7 +81,8 @@ def beacon():
 def on_startup():
     #GLOBAL VARIABLES ARE NEEDED IF YOU "CREATE" VARIABLES WITHIN THIS METHOD
     #AND ACCESS THEM ELSEWHERE
-    global bperiod, t1, ser, logfile
+    global bperiod, t1, ser, logfile, user
+    user = False
     bperiod = 60
     #serialPort = config['aprs']['serial_port']
     #REPLACE WITH COMx IF ON WINDOWS
