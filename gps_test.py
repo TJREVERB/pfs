@@ -4,8 +4,9 @@ import sys
 from submodules import *
 from threading import Thread
 from core import config
-import logging
+from subprocess import call
 
+Module_Internal_Coordinates = (None, None) #Initialization of of internal coordinates
 
 #EDIT THIS TO WORK WITH GPS
 
@@ -81,22 +82,25 @@ def on_startup():
     filename = 'gps'+'-'.join([str(x) for x in tlt[0:3]])
     logfile = open('/home/pi/TJREVERB/pFS/submodules/logs/gps/'+filename+'.txt','a+')
     log('RUN@'+'-'.join([str(x) for x in tlt[3:5]]))
+def update_internal_coords():
+    coords = call('BESTPOS') #I don't know for sure what type BESTPOS returns, but I'm assuming tuple
+    Module_Internal_Coordinates = coords
 
 # I NEED TO KNOW WHAT NEEDS TO BE DONE IN NORMAL, LOW POWER, AND EMERGENCY MODES
 def enter_normal_mode():
     #UPDATE GPS MODULE INTERNAL COORDINATES EVERY 10 MINUTES
-    global gpsperiod
-    gpsperiod = 60
+    update_internal_coords()
+    time.sleep(600)
 
 
 def enter_low_power_mode():
     #UPDATE GPS MODULE INTERNAL COORDINATES EVERY HOUR
-    global gpsperiod
-    gpsperiod = 120
+    update_internal_coords()
+    time.sleep(3600)
 
 def enter_emergency_mode():
     #ALL GPS FUNCTIONS OFF. LOWEST POWER POSSIBLE
-    pass
+    call("unlog") #I don't know any other off functions - comment some here or message me (Rishabh) some on slack
 
 #USE THIS LOG FUNCTION
 def log(msg):
