@@ -34,12 +34,12 @@ def passivegps():
 def getsinglegps():
     #EXAMPLE METHOD THAT STILL NEEDS TO BE FLESHED OUT
     #AS YOU CAN SEE THERRE'S STILL A TON TO DO
-    send("rxantenna on")
+    send("ANTENNAPOWER ON")
     #pseudo
     #checkifgpslock()
     gpsdata = recordgps()
     log(gpsdata)
-    send("rxantenna off")
+    send("ANTENNAPOWER OFF")
     return gpsdata
     #end pseudo
 def parsegps(bytes):
@@ -72,10 +72,10 @@ def on_startup():
     #cachedgps = (None,None)
     cachedgps = None
     gpsperiod = 60
-    #serialPort = config['aprs']['serial_port']
+    serialPort = config['gps']['serial_port']
     #REPLACE WITH COMx IF ON WINDOWS
     #REPLACE WITH /dev/ttyUSBx if 1 DOESNT WORK
-    serialPort = "/dev/ttyS3"
+    #serialPort = "/dev/ttyS3"
     #OPENS THE SERIAL PORT FOR ALL METHODS TO USE WITH 19200 BAUD
     ser = serial.Serial(serialPort, 9600)
     #CREATES A THREAD THAT RUNS THE LISTEN METHOD
@@ -87,7 +87,7 @@ def on_startup():
     logfile = open('/root/TJREVERB/pFS/submodules/logs/gps/'+filename+'.txt','a+')
     log('RUN@'+'-'.join([str(x) for x in tlt[3:5]]))
 
-    send("rxantenna off")
+    send("ANTENNAPOWER OFF")
 # I NEED TO KNOW WHAT NEEDS TO BE DONE IN NORMAL, LOW POWER, AND EMERGENCY MODES
 def enter_normal_mode():
     #UPDATE GPS MODULE INTERNAL COORDINATES EVERY 10 MINUTES

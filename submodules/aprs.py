@@ -72,10 +72,10 @@ def on_startup():
     global bperiod, t1, ser, logfile, user
     user = False
     bperiod = 60
-    #serialPort = config['aprs']['serial_port']
+    serialPort = config['aprs']['serial_port']
     #REPLACE WITH COMx IF ON WINDOWS
     #REPLACE WITH /dev/ttyUSBx if 1 DOESNT WORK
-    serialPort = "/dev/ttyS1"
+    #serialPort = "/dev/ttyS1"
     #OPENS THE SERIAL PORT FOR ALL METHODS TO USE WITH 19200 BAUD
     ser = serial.Serial(serialPort, 19200)
     #CREATES A THREAD THAT RUNS THE LISTEN METHOD
