@@ -30,13 +30,12 @@ if len(sys.argv) > 1:
 def send(msg):
     global sendbuffer
     msg = msg + "\r\n"
-    sendbuffer = sendbuffer += [msg]
+    sendbuffer = sendbuffer + [msg]
 def sendloop():
     global sendbuffer
     #THIS LINE IS NEEDED
     #IT IS THE EQUIVALENT OF PRESSING ENTER IN PUTTY
-    msg = msg + "\r\n"
-    sendbuffer = sendbuffer + [msg]
+    
     #logging.debug("Hidylan")
     #print(msg)
     #print(bytes(msg,encoding="utf-8"))
