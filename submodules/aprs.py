@@ -23,6 +23,8 @@ def send(msg):
     ser.write(msg.encode("utf-8"))
 #THIS METHOD THREAD RUNS FOREVER ONCE STARTED
 #AND PRINTS ANYTHING IT RECIEVES OVER THE SERIAL LINE
+def dump():
+    pass
 def listen():
     while(True):
         #IF I GET SOMETHING OVER THE SERIAL LINE
