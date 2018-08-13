@@ -42,7 +42,7 @@ def on_startup():
     t1= Thread(target = acc_gyr,args=())
     t1.daemon=True
     t1.start()
-    t2 = Thread(target = imubeacon, args=())
+    t2 = Thread(target = imu_beacon, args=())
     t2.daemon = True
     t2.start()
 
