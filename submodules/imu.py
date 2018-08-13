@@ -47,7 +47,7 @@ def on_startup():
 
 def enter_normal_mode():
 	global speriod
-	speriod =1
+	speriod =2
 def enter_low_power_mode():
 	global speriod
 	speriod =20
@@ -59,4 +59,3 @@ if __name__=='__main__':
 	on_startup()
 	while True:
 		time.sleep(1)
-
