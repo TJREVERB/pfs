@@ -1,6 +1,7 @@
 import serial
 import time
 import sys
+import pynmea2
 from submodules import *
 from threading import Thread
 from core import config
@@ -8,10 +9,10 @@ from subprocess import call
 
 
 
+
 #EDIT THIS TO WORK WITH GPS
 def querygps():
     global cachedgps
-
     return cachedgps
 def querypastgps(index):
     #RETURN A PAST GPS COORDINATE BY INDEX
@@ -27,12 +28,12 @@ def passivegps():
 def getsinglegps():
     #EXAMPLE METHOD THAT STILL NEEDS TO BE FLESHED OUT
     #AS YOU CAN SEE THERRE'S STILL A TON TO DO
-    send("rxantenna on")
+    send("ANTENNAPOWER on")
     #pseudo
     #checkifgpslock()
     gpsdata = recordgps()
     log(gpsdata)
-    send("rxantenna off")
+    send("ANTENNAPOWER off")
     return gpsdata
     #end pseudo
 def parsegps(bytes):
@@ -41,6 +42,7 @@ def send(msg):
     msg += "\n"
     ser.write(msg.encode("utf-8"))
 def listen():
+	global gpsdatain
     while(True):
         zz = ser.inWaiting()
         rr = ser.read(size = zz)
@@ -48,7 +50,8 @@ def listen():
             time.sleep(.5)
             zz = ser.inWaiting()
             rr += ser.read(size = zz)
-            print(rr)
+			gpsdatain += [rr]
+			print(rr)
             #log('GOT: '+rr)
 def keyin():
     while(True):
@@ -103,7 +106,7 @@ def log(msg):
     logfile.flush()
 
 if __name__ == '__main__':
-    
+
     t2 = Thread(target=keyin, args=())
     t2.daemon = True
     t2.start()
