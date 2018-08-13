@@ -8,19 +8,35 @@ import submodules.command_ingest as ci
 from threading import Thread
 from core import config
 
-#open port
+#THIS WILL SEND A MESSAGE TO THE DEVICE
+#IT IS EQUIVALENT TO TYPING IN PUTTY
 def send(msg):
+    global sendbuffer
+    msg = msg + "\r\n"
+    sendbuffer = sendbuffer + [msg]
+     #ADD THE MESSAGE TO THE END OF SENDBUFFER
+def sendloop():
+    global sendbuffer
     #THIS LINE IS NEEDED
     #IT IS THE EQUIVALENT OF PRESSING ENTER IN PUTTY
-    msg = msg + "\r\n"
+
     #logging.debug("Hidylan")
     #print(msg)
     #print(bytes(msg,encoding="utf-8"))
     #ser.write(bytes(msg,encoding="utf-8"))
     #TURNS YOUR STRING INTO BYTES
     #NEEDED TO PROPERLY SEND OVER SERIAL
-    logging.info("APRS SENT: "+str(msg))
-    ser.write(msg.encode("utf-8"))
+    while True:
+        while len(sendbuffer) > 0:
+        #CHECK IF THERE IS SOMETHING IN SENDBUFFER
+            ser.write(sendbuffer[0].encode("utf-8"))
+            #WRITE FIRST ELEMENT IN SENDBUFFER TO SERIAL
+            sendbuffer = sendbuffer[1:]
+            #DELETE FIRST ELEMENT IN SENDBUFFER
+            time.sleep(1)
+#THIS METHOD THREAD RUNS FOREVER ONCE STARTED
+#AND PRINTS ANYTHING IT RECIEVES OVER THE SERIAL LINE
+def listen():
 #THIS METHOD THREAD RUNS FOREVER ONCE STARTED
 #AND PRINTS ANYTHING IT RECIEVES OVER THE SERIAL LINE
 def dump():
@@ -71,10 +87,11 @@ def beacon():
 def on_startup():
     #GLOBAL VARIABLES ARE NEEDED IF YOU "CREATE" VARIABLES WITHIN THIS METHOD
     #AND ACCESS THEM ELSEWHERE
-    global bperiod, t1, ser, logfile, user
+    global bperiod, t1, ser, logfile, user, sendbuffer
     user = False
     bperiod = 60
     serialPort = config['aprs']['serial_port']
+    sendbuffer = []
     #REPLACE WITH COMx IF ON WINDOWS
     #REPLACE WITH /dev/ttyUSBx if 1 DOESNT WORK
     #serialPort = "/dev/ttyS1"
@@ -85,6 +102,9 @@ def on_startup():
     t1.daemon = True
     t1.start()
 
+    t4 = Thread(target=sendloop, args=())
+    t4.daemon = True
+    t4.start()
     #logging.debug("Test")
     #logging.debug(time.localtime())
     #print(time.localtime()[0])
