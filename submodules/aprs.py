@@ -30,6 +30,7 @@ def sendloop():
         while len(sendbuffer) > 0:
         #CHECK IF THERE IS SOMETHING IN SENDBUFFER
             ser.write(sendbuffer[0].encode("utf-8"))
+            logging.debug('SENT MESSAGE')
             #WRITE FIRST ELEMENT IN SENDBUFFER TO SERIAL
             sendbuffer = sendbuffer[1:]
             #DELETE FIRST ELEMENT IN SENDBUFFER
