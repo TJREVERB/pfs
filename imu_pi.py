@@ -9,14 +9,14 @@ def acc():
         ax=bus.read_byte_data(address, 0x3B)
         ay=bus.read_byte_data(address, 0x3D)
         az=bus.read_byte_data(address, 0x3F)
-        print "acc", ax, ay, az
+        # print("acc", ax, ay, az)
 
 def gyr():
 	global gx, gy, gz
         gx=bus.read_byte_data(address, 0x43)
         gy=bus.read_byte_data(address, 0x45)
         gz=bus.read_byte_data(address, 0x47)
-        print "gyr", gx, gy, gz
+        # print("gyr", gx, gy, gz)
 
 
 def acc_gyr():
@@ -35,7 +35,7 @@ def on_startup():
 
 def enter_normal_mode():
 	global speriod
-	speriod = .25
+	speriod =1
 def enter_low_power_mode():
 	global speriod
 	speriod =20
