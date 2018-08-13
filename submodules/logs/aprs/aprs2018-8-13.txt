@@ -1,0 +1,41 @@
+RUN@10-46
+SENT: get
+SENT: TJBap
+SENT: TJNB
+SENT: TJBap
+SENT: TJBatt
+SENT: TJBak
+RUN@10-48
+RUN@10-48
+GOT: KN4DTQ>SATT4,ARISS:
+p 
+
+RUN@10-51
+GOT: KN4DTQ>SATT4,ARISS:
+12347337---zzz 
+
+GOT: KN4DTQ>ARISS,WIDE2-2,WIDE2-1:
+ hey 
+
+RUN@11-12
+GOT: ?
+GOT: 
+Press ESC 3 times to enter TT4 Options Menu
+
+RUN@11-48
+RUN@11-48
+RUN@11-48
+GOT: ND
+RUN@12-16
+RUN@12-41
+RUN@12-42
+SENT: tes
+SENT: ttes
+SENT: ttes
+SENT: t
+SENT: 
+SENT: f
+SENT: d
+SENT: test
+SENT: test
+SENT: test
