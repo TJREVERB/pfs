@@ -34,6 +34,7 @@ def sendloop():
             sendbuffer = sendbuffer[1:]
             #DELETE FIRST ELEMENT IN SENDBUFFER
             time.sleep(1)
+        time.sleep(1)
 #THIS METHOD THREAD RUNS FOREVER ONCE STARTED
 #AND PRINTS ANYTHING IT RECIEVES OVER THE SERIAL LINE
 def dump():
