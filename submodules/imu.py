@@ -10,7 +10,8 @@ def imu_beacon():
         if len(datasave) > 9:
             for x in datasave:
                 aprs.send(x)
-        datasave = []
+        	datasave = []
+			logging.debug('IMU DATASAVE CLEAR')
         time.sleep(1)
 def acc():
     global ax, ay, az, datasave
@@ -34,6 +35,7 @@ def acc_gyr():
         gyr()
         datapoint = ':'.join([str(x) for x in [ax,ay,az,gx,gy,gz]])
         datasave += [datapoint]
+		logging.debug('IMU ADD DATA POINT')
         time.sleep(speriod)
 
 def on_startup():
