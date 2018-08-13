@@ -87,7 +87,7 @@ def on_startup():
     logfile = open('/root/TJREVERB/pFS/submodules/logs/gps/'+filename+'.txt','a+')
     log('RUN@'+'-'.join([str(x) for x in tlt[3:5]]))
 
-    send("ANTENNAPOWER OFF")
+    #send("ANTENNAPOWER OFF")
 # I NEED TO KNOW WHAT NEEDS TO BE DONE IN NORMAL, LOW POWER, AND EMERGENCY MODES
 def enter_normal_mode():
     #UPDATE GPS MODULE INTERNAL COORDINATES EVERY 10 MINUTES

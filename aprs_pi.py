@@ -31,21 +31,26 @@ def send(msg):
     global sendbuffer
     msg = msg + "\r\n"
     sendbuffer = sendbuffer + [msg]
+     #ADD THE MESSAGE TO THE END OF SENDBUFFER
 def sendloop():
     global sendbuffer
     #THIS LINE IS NEEDED
     #IT IS THE EQUIVALENT OF PRESSING ENTER IN PUTTY
-    
+
     #logging.debug("Hidylan")
     #print(msg)
     #print(bytes(msg,encoding="utf-8"))
     #ser.write(bytes(msg,encoding="utf-8"))
     #TURNS YOUR STRING INTO BYTES
     #NEEDED TO PROPERLY SEND OVER SERIAL
-    while len(sendbuffer) > 0:
-        ser.write(sendbuffer[0].encode("utf-8"))
-        sendbuffer = sendbuffer[1:]
-        time.sleep(1)
+    while True:
+        while len(sendbuffer) > 0:
+        #CHECK IF THERE IS SOMETHING IN SENDBUFFER
+            ser.write(sendbuffer[0].encode("utf-8"))
+            #WRITE FIRST ELEMENT IN SENDBUFFER TO SERIAL
+            sendbuffer = sendbuffer[1:]
+            #DELETE FIRST ELEMENT IN SENDBUFFER
+            time.sleep(1)
 #THIS METHOD THREAD RUNS FOREVER ONCE STARTED
 #AND PRINTS ANYTHING IT RECIEVES OVER THE SERIAL LINE
 def listen():
