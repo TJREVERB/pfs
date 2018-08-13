@@ -28,16 +28,25 @@ if len(sys.argv) > 1:
 #THIS WILL SEND A MESSAGE TO THE DEVICE
 #IT IS EQUIVALENT TO TYPING IN PUTTY
 def send(msg):
+    global sendbuffer
+    msg = msg + "\r\n"
+    sendbuffer = sendbuffer += [msg]
+def sendloop():
+    global sendbuffer
     #THIS LINE IS NEEDED
     #IT IS THE EQUIVALENT OF PRESSING ENTER IN PUTTY
     msg = msg + "\r\n"
+    sendbuffer = sendbuffer += [msg]
     #logging.debug("Hidylan")
     #print(msg)
     #print(bytes(msg,encoding="utf-8"))
     #ser.write(bytes(msg,encoding="utf-8"))
     #TURNS YOUR STRING INTO BYTES
     #NEEDED TO PROPERLY SEND OVER SERIAL
-    ser.write(msg.encode("utf-8"))
+    while len(sendbuffer) > 0:
+        ser.write(sendbuffer[0].encode("utf-8"))
+        sendbuffer = sendbuffer[1:]
+        time.sleep(1)
 #THIS METHOD THREAD RUNS FOREVER ONCE STARTED
 #AND PRINTS ANYTHING IT RECIEVES OVER THE SERIAL LINE
 def listen():
@@ -82,6 +91,7 @@ def on_startup():
     #AND ACCESS THEM ELSEWHERE
     global bperiod, t1, ser, logfile
     bperiod = 60
+    sendbuffer = []
     #serialPort = config['aprs']['serial_port']
     #REPLACE WITH COMx IF ON WINDOWS
     #REPLACE WITH /dev/ttyUSBx if 1 DOESNT WORK
@@ -92,6 +102,10 @@ def on_startup():
     t1 = Thread(target=listen, args=())
     t1.daemon = True
     t1.start()
+
+    t4 = Thread(target=sendloop, args=())
+    t4.daemon = True
+    t4.start()
     #logging.debug("Test")
     #logging.debug(time.localtime())
     #print(time.localtime()[0])

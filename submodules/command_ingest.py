@@ -43,7 +43,7 @@ def piprint(packet):
 def on_startup():
     global modules, m_aprs, m_gps
     #modules = {'A':core,'B':m_aprs,'C':'iridium','D':'housekeeping','E':'log','F':'GPS'}
-    m_aprs = {'a':aprs.send}
+    m_aprs = {'a':aprs.send,'b':aprs.dump}
     m_gps = {'a':gps.sendgpsthruaprs}
     modules = {'B':m_aprs,'F':m_gps}
     #core = {}
