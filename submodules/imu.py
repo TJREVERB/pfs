@@ -2,6 +2,7 @@ import smbus
 import time
 from . import aprs
 from threading import Thread
+import logging
 bus = smbus.SMBus(0)
 address = 0x68
 def imu_beacon():
