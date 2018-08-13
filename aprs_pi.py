@@ -36,7 +36,7 @@ def sendloop():
     #THIS LINE IS NEEDED
     #IT IS THE EQUIVALENT OF PRESSING ENTER IN PUTTY
     msg = msg + "\r\n"
-    sendbuffer = sendbuffer += [msg]
+    sendbuffer = sendbuffer + [msg]
     #logging.debug("Hidylan")
     #print(msg)
     #print(bytes(msg,encoding="utf-8"))
