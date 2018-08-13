@@ -2,6 +2,7 @@ modules:
     - aprs
     - command_ingest
     - gps
+    - imu
 aprs:
     #serial_port: /dev/ttyUSB0
     serial_port: /dev/ttyS1

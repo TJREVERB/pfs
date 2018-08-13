@@ -11,6 +11,7 @@ def imu_beacon():
 			for x in datasave:
 				aprs.send(x)
 		datasave = []
+		time.sleep(1)
 def acc():
         global ax, ay, az, datasave
         ax=bus.read_byte_data(address, 0x3B)
