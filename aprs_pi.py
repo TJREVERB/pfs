@@ -93,7 +93,7 @@ def beacon():
 def on_startup():
     #GLOBAL VARIABLES ARE NEEDED IF YOU "CREATE" VARIABLES WITHIN THIS METHOD
     #AND ACCESS THEM ELSEWHERE
-    global bperiod, t1, ser, logfile
+    global bperiod, t1, ser, logfile,sendbuffer
     bperiod = 60
     sendbuffer = []
     #serialPort = config['aprs']['serial_port']

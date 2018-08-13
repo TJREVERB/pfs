@@ -5,14 +5,14 @@ bus = smbus.SMBus(1)
 address = 0x68
 
 def acc():
-	global ax, ay, az
+        global ax, ay, az, datasave
         ax=bus.read_byte_data(address, 0x3B)
         ay=bus.read_byte_data(address, 0x3D)
         az=bus.read_byte_data(address, 0x3F)
         # print("acc", ax, ay, az)
 
 def gyr():
-	global gx, gy, gz
+	global gx, gy, gz, datasave
         gx=bus.read_byte_data(address, 0x43)
         gy=bus.read_byte_data(address, 0x45)
         gz=bus.read_byte_data(address, 0x47)
@@ -20,14 +20,16 @@ def gyr():
 
 
 def acc_gyr():
-	global speriod
+	global speriod, datasave
 	while True:
         	acc()
         	gyr()
-        	time.sleep(speriod)
+		datapoint = ':'.join([ax,ay,az,gx,gy,gz])
+        	datasave += [datapoint]
+		time.sleep(speriod)
 
 def on_startup():
-	global speriod
+	global speriod, datasave
 	enter_normal_mode()
 	t1= Thread(target = acc_gyr,args=())
 	t1.daemon=True
