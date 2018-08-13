@@ -35,7 +35,7 @@ def acc_gyr():
         gyr()
         datapoint = ':'.join([str(x) for x in [ax,ay,az,gx,gy,gz]])
         datasave += [datapoint]
-            logging.debug('IMU ADD DATA POINT')
+        logging.debug('IMU ADD DATA POINT')
         time.sleep(speriod)
 
 def on_startup():
