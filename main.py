@@ -1,7 +1,7 @@
-import core
 import logging
 import sys
 
+import core
 
 logger = logging.getLogger()
 if '--debug' in sys.argv or '-d' in sys.argv:
