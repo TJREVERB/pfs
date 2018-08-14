@@ -17,7 +17,7 @@ def send(msg):
 
 
 def sendloop():
-    global sendbuffer
+    global sendbuffer, pausesend
     # THIS LINE IS NEEDED
     # IT IS THE EQUIVALENT OF PRESSING ENTER IN PUTTY
 
@@ -29,6 +29,9 @@ def sendloop():
     # NEEDED TO PROPERLY SEND OVER SERIAL
     while True:
         while len(sendbuffer) > 0:
+            if pausesend:
+                time.sleep(1)
+                pausesend = False
             # CHECK IF THERE IS SOMETHING IN SENDBUFFER
             ser.write(sendbuffer[0].encode("utf-8"))
             logging.debug('SENT MESSAGE')
@@ -44,7 +47,15 @@ def sendloop():
 def dump():
     pass
 
-
+def telemwatchdog():
+    global didigettelem
+    while True:
+        time.sleep(70)
+        if not didigettelem:
+            logging.info("APRS IS DEAD DO SOMETHING")
+        else:
+            logging.debug("WATCHDOG PASS APRS")
+        didigettelem = False
 def listen():
     while (True):
         # IF I GET SOMETHING OVER THE SERIAL LINE
@@ -94,6 +105,9 @@ def on_startup():
     # GLOBAL VARIABLES ARE NEEDED IF YOU "CREATE" VARIABLES WITHIN THIS METHOD
     # AND ACCESS THEM ELSEWHERE
     global bperiod, t1, ser, logfile, user, sendbuffer
+    global didigettelem
+    didigettelem = False
+    pausesend = False
     user = False
     bperiod = 60
     serialPort = config['aprs']['serial_port']
@@ -111,6 +125,10 @@ def on_startup():
     t4 = Thread(target=sendloop, args=())
     t4.daemon = True
     t4.start()
+
+    t5 = Thread(target=telemwatchdog, args=())
+    t5.daemon = True
+    t5.start()
     # logging.debug("Test")
     # logging.debug(time.localtime())
     # print(time.localtime()[0])

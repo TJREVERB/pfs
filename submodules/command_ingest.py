@@ -40,6 +40,10 @@ def decode(body):
         logging.debug('VALID MESSAGE')
         logging.debug(body[4:-7])
         modules[body[2]][body[3]](body[4:-7])
+    elif body[0:2] == 'T#':
+        aprs.didigettelem = True
+        aprs.pausesend = True
+        logging.debug('TELEM HEARTBEAT RECEIVED')
     else:
         logging.debug('INVALID MESSAGE')
 

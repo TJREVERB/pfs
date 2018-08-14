@@ -61,7 +61,7 @@ def on_startup():
 
 def enter_normal_mode():
     global speriod
-    speriod = 2
+    speriod = 10
 
 
 def enter_low_power_mode():
