@@ -3,49 +3,51 @@ import logging
 from . import aprs
 from . import gps
 
+logger = logging.getLogger("CI")
+
 
 def dispatch_command(packet):
-    logging.debug("DISPATCH CALLED")
+    logger.debug("dispatch called")
     rawpacket = str(packet)
-    logging.info("FROM APRS: " + rawpacket)
+    logger.info("From APRS: " + RAWPACKET)
     headerfindresult = rawpacket.find(':')
     if headerfindresult == -1:
-        logging.info("INCOMPLETE HEADER")
+        logger.info("Incomplete header")
         return
     header = rawpacket[:headerfindresult]
-    logging.info("HEADER: " + header)
+    logger.info("header: " + HEADER)
     datacontent = rawpacket[headerfindresult + 1:]
 
     if len(datacontent) == 0:
-        logging.info("EMPTY BODY")
+        logger.info("Empty body")
         return
 
-    logging.info("BODY: " + datacontent)
+    logger.info("Body: " + datacontent)
     decode(datacontent)
 
 
 def checksum(body):
     global sum1
-    logging.debug(body[0:-7])
+    logger.debug(body[0:-7])
     sum1 = sum([ord(x) for x in body[0:-7]])
     sum1 %= 128
-    logging.debug('CHECKOUT :' + chr(sum1) + ";")
+    logger.debug('CHECKOUT :' + chr(sum1) + ";")
     return chr(sum1) == body[-7]
 
 
 def decode(body):
-    logging.debug(body[-5:-1])
-    logging.debug(body[0:2])
+    logger.debug(body[-5:-1])
+    logger.debug(body[0:2])
     if body[0:2] == 'TJ' and body[-5:-1] == '\\r\\n' and checksum(body):
-        logging.debug('VALID MESSAGE')
-        logging.debug(body[4:-7])
+        logger.debug('Valid message')
+        logger.debug(body[4:-7])
         modules[body[2]][body[3]](body[4:-7])
     elif body[0:2] == 'T#':
         aprs.didigettelem = True
         aprs.pausesend = True
-        logging.debug('TELEM HEARTBEAT RECEIVED')
+        logger.debug('Telem heartbeat received')
     else:
-        logging.debug('INVALID MESSAGE')
+        logger.debug('Invalid message')
 
 
 def piprint(packet):

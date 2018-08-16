@@ -1,19 +1,28 @@
 import logging
-import serial
+import os
 import time
 from threading import Thread
+
+import serial
 
 import submodules.command_ingest as ci
 from core import config
 
+logger = logging.getLogger("APRS")
+pausesend = False
+sendbuffer = []
+didigettelem = False
+user = False
+bperiod = 60
 
-# THIS WILL SEND A MESSAGE TO THE DEVICE
-# IT IS EQUIVALENT TO TYPING IN PUTTY
+
+# This will send a message to the device
+# It is equivalent to typing in putty
 def send(msg):
     global sendbuffer
     msg = msg + "\r\n"
     sendbuffer = sendbuffer + [msg]
-    # ADD THE MESSAGE TO THE END OF SENDBUFFER
+    # add the message to the end of sendbuffer
 
 
 def sendloop():
@@ -21,7 +30,7 @@ def sendloop():
     # THIS LINE IS NEEDED
     # IT IS THE EQUIVALENT OF PRESSING ENTER IN PUTTY
 
-    # logging.debug("Hidylan")
+    # logger.debug("Hidylan")
     # print(msg)
     # print(bytes(msg,encoding="utf-8"))
     # ser.write(bytes(msg,encoding="utf-8"))
@@ -34,7 +43,7 @@ def sendloop():
                 pausesend = False
             # CHECK IF THERE IS SOMETHING IN SENDBUFFER
             ser.write(sendbuffer[0].encode("utf-8"))
-            logging.debug('SENT MESSAGE')
+            logger.debug('SENT MESSAGE')
             # WRITE FIRST ELEMENT IN SENDBUFFER TO SERIAL
             sendbuffer = sendbuffer[1:]
             # DELETE FIRST ELEMENT IN SENDBUFFER
@@ -47,17 +56,20 @@ def sendloop():
 def dump():
     pass
 
+
 def telemwatchdog():
     global didigettelem
     while True:
         time.sleep(70)
         if not didigettelem:
-            logging.info("APRS IS DEAD DO SOMETHING")
+            logger.info("APRS IS DEAD DO SOMETHING")
         else:
-            logging.debug("WATCHDOG PASS APRS")
+            logger.debug("WATCHDOG PASS APRS")
         didigettelem = False
+
+
 def listen():
-    while (True):
+    while True:
         # IF I GET SOMETHING OVER THE SERIAL LINE
         zz = ser.inWaiting()
         # READ THAT MANY BYTES
@@ -76,73 +88,57 @@ def listen():
 
 def keyin():
     global user
-    while (True):
+    while True:
         # GET INPUT FROM YOUR OWN TERMINAL
         # TRY input("shihaoiscoolforcommentingstuff") IF raw_input() doesn't work
         in1 = input("Type Command: ")
-        if (user):
+        if user:
             send("TJ" + in1 + chr(sum([ord(x) for x in "TJ" + in1]) % 128))
         else:
             send(in1)
-            log('SENT: ' + in1)
+            log_message('SENT: ' + in1)
         # FOR ANY NON APRS MODULES THE ABOVE "IF" LOGIC IS UN-NEEDED.
         # JUST USE SEND
 
 
 # APRS ONLY
 def beacon():
-    global bperiod
-    while (True):
-        logging.info("SENT BEACON")
+    while True:
+        logger.info("SENT BEACON")
         btext = "HW"
         send(btext)
-        log('BEACON: ' + btext)
+        log_message('BEACON: ' + btext)
         time.sleep(bperiod)
 
 
 # ANYTHING IN HERE WILL BE EXECUTED ON STARTUP
 def on_startup():
-    # GLOBAL VARIABLES ARE NEEDED IF YOU "CREATE" VARIABLES WITHIN THIS METHOD
-    # AND ACCESS THEM ELSEWHERE
-    global bperiod, t1, ser, logfile, user, sendbuffer
-    global didigettelem
-    didigettelem = False
-    pausesend = False
-    user = False
-    bperiod = 60
-    serialPort = config['aprs']['serial_port']
-    sendbuffer = []
-    # REPLACE WITH COMx IF ON WINDOWS
-    # REPLACE WITH /dev/ttyUSBx if 1 DOESNT WORK
-    # serialPort = "/dev/ttyS1"
-    # OPENS THE SERIAL PORT FOR ALL METHODS TO USE WITH 19200 BAUD
-    ser = serial.Serial(serialPort, 19200)
-    # CREATES A THREAD THAT RUNS THE LISTEN METHOD
-    t1 = Thread(target=listen, args=())
-    t1.daemon = True
-    t1.start()
+    global ser, logfile
+    # Opens the serial port for all methods to use with 19200 baud
+    ser = serial.Serial(config['aprs']['serial_port'], 19200)
 
-    t4 = Thread(target=sendloop, args=())
-    t4.daemon = True
-    t4.start()
+    # Create all the background threads
+    t1 = Thread(target=listen, args=(), daemon=True)
+    t2 = Thread(target=sendloop, args=(), daemon=True)
+    t3 = Thread(target=telemwatchdog, args=(), daemon=True)
+    t4 = Thread(target=beacon, args=(), daemon=True)
 
-    t5 = Thread(target=telemwatchdog, args=())
-    t5.daemon = True
-    t5.start()
-    # logging.debug("Test")
-    # logging.debug(time.localtime())
-    # print(time.localtime()[0])
-    # TEMP LOCAL TIME FOR REFERENCING LATER TO CREATE NAME
-    tlt = time.localtime()
-    # SET FILENAME WITH YEAR-MONTH-DAY
-    filename = 'aprs' + '-'.join([str(x) for x in tlt[0:3]])
-    # OPEN FILE
-    logfile = open('/root/TJREVERB/pFS/submodules/logs/aprs/' + filename + '.txt', 'a+')
-    # USE LOG FUNCTION TO MARK START
-    log('RUN@' + '-'.join([str(x) for x in tlt[3:5]]))
-    t3 = Thread(target=beacon, args=())
+    # Open the log file
+    log_dir = os.path.join(config['core']['log_dir'], 'aprs')
+    filename = 'aprs' + '-'.join([str(x) for x in time.localtime()[0:3]])
+    if not os.path.exists(log_dir):
+        os.mkdir(log_dir)
+    logfile = open(os.path.join(log_dir, filename + '.txt'), 'a+')
+
+    # Mark the start of the log
+    log_message('RUN@' + '-'.join([str(x) for x in time.localtime()[3:5]]))
     t3.daemon = True
-    # t3.start()
+
+    # Start the background threads
+    t1.start()
+    t2.start()
+    t3.start()
+    t4.start()
 
 
 # HAVE THE 3 BELOW METHODS. SAY PASS IF YOU DONT KNOW WHAT TO PUT THERE YET
@@ -162,25 +158,21 @@ def enter_emergency_mode():
     pass
 
 
-def log(msg):
+def log_message(msg):
     global logfile
-    # WRITE TO FILE
+    # Write to file
     logfile.write(msg + '\n')
-    # SAVE CHANGES TO FILE
     logfile.flush()
 
 
-# ANYTHING IN HERE WILL EXECUTE IF YOU RUN python aprs_pi.py
-# IT IS THE SAME AS MAIN IN JAVA
+# Anything in here will execute if you run `python aprs_pi.py'
+# it is the same as main in java
 if __name__ == '__main__':
-    # CALLS THE STUFF TO HAPPEN ON STARTUP
+    # Calls the stuff to happen on startup
     on_startup()
-    # serialPort = sys.argv[1]
-    # ser = serial.Serial(serialPort, 19200)
-    # THIS STARTS YOUR THREAD TO LISTEN FOR KEYBOARD INPUT
-    t2 = Thread(target=keyin, args=())
-    t2.daemon = True
-    t2.start()
-    # THIS LOOP IS NEEDED TO KEEP YOUR THREADS ALIVE
+    # This starts your thread to listen for keyboard input
+    t5 = Thread(target=keyin, args=(), daemon=True)
+    t5.start()
+    # This loop is needed to keep your threads alive
     while True:
         time.sleep(1)

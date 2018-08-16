@@ -1,11 +1,15 @@
 import logging
-import serial
+import os
 import time
 from subprocess import call
 from threading import Thread
 
+import serial
+
 from core import config
 from . import aprs
+
+logger = logging.getLogger("GPS")
 
 
 # EDIT THIS TO WORK WITH GPS
@@ -65,7 +69,7 @@ def listen():
             time.sleep(.5)
             zz = ser.inWaiting()
             rr += ser.read(size=zz)
-            logging.info('FROM GPS: ' + str(rr))
+            logger.info('FROM GPS: ' + str(rr))
             # print(rr)
             # log('GOT: '+rr)
 
@@ -97,8 +101,15 @@ def on_startup():
     t1.daemon = True
     t1.start()
     tlt = time.localtime()
-    filename = 'gps' + '-'.join([str(x) for x in tlt[0:3]])
-    logfile = open('/root/TJREVERB/pFS/submodules/logs/gps/' + filename + '.txt', 'a+')
+
+    # Open the log file
+    log_dir = os.path.join(config['core']['log_dir'], 'aprs')
+    filename = 'gps' + '-'.join([str(x) for x in time.localtime()[0:3]])
+    # ensure that the GPS log directory exists
+    if not os.path.exists(log_dir):
+        os.mkdir(log_dir)
+    logfile = open(os.path.join(log_dir, filename + '.txt'), 'a+')
+
     log('RUN@' + '-'.join([str(x) for x in tlt[3:5]]))
 
     # send("ANTENNAPOWER OFF")
