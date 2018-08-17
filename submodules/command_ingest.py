@@ -10,13 +10,13 @@ logger = logging.getLogger("CI")
 def parse_aprs_packet(packet):
     raw_packet = str(packet)
     logger.info("From APRS: " + raw_packet)
-    header = raw_packet.find(':')
-    if header == -1:
+    header_index = raw_packet.find(':')
+    if header_index == -1:
         logger.info("Incomplete header")
         return
-    header = raw_packet[:header]
+    header = raw_packet[:header_index]
     logger.info("header: " + header)
-    data = raw_packet[header + 1:]
+    data = raw_packet[header_index + 1:]
 
     if len(data) == 0:
         logger.debug("Empty body")
@@ -46,7 +46,7 @@ def decode(body):
         except KeyError:
             # Invalid command format was send
             logger.warning("Invalid command with correct checksum")
-    elif body[0:2] == 'T#':  # Telemetry Packet: APRS special case
+    elif body[0:2] == 'T#': # Telemetry Packet: APRS special case
         aprs.last_telem_time = time.time()
         aprs.beacon_seen = True
         aprs.pause_sending = True
@@ -62,7 +62,7 @@ def piprint(packet):
 def on_startup():
     global modules, m_aprs, m_gps
     # modules = {'A':core,'B':m_aprs,'C':'iridium','D':'housekeeping','E':'log','F':'GPS'}
-    m_aprs = {'a': aprs.send, 'b': aprs.dump}
+    m_aprs = {'a': aprs.send}
     m_gps = {'a': gps.sendgpsthruaprs}
     modules = {'B': m_aprs, 'F': m_gps}
     # core = {}

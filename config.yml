@@ -8,6 +8,7 @@ aprs:
     #s1
     serial_port: /dev/ttyUSB0
     telem_timeout: 70
+    message_spacing: 1
 gps:
     #s3
     serial_port: /dev/ttyUSB1
