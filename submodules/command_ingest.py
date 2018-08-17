@@ -42,7 +42,9 @@ def decode(body):
         logger.debug('Valid message')
         logger.debug(body[4:-7])
         try:
+            # execute command
             modules[body[2]][body[3]](body[4:-7])
+            aprs.last_message_time = time.time() # Update the last command time
         except KeyError:
             # Invalid command format was send
             logger.warning("Invalid command with correct checksum")
