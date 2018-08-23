@@ -5,6 +5,7 @@ from subprocess import call
 from threading import Thread
 
 import serial
+import pynmea2
 
 from core import config
 from . import aprs
@@ -14,15 +15,17 @@ logger = logging.getLogger("GPS")
 
 # EDIT THIS TO WORK WITH GPS
 def sendgpsthruaprs(givenarg):
-    global fakegps
-    fakegps = 12347337
-    aprs.enqueue(str(fakegps) + '---' + str(givenarg))
+    global cached_nmea_obj
+    if cached_nmea_obj is not None:
+        aprs.enqueue(str(cached_nmea_obj.altitude)+str(cached_nmea_obj.altitude_units)+str(cached_nmea_obj.lat)+str(cached_nmea_obj.lat_dir)+str(cached_nmea_obj.lon)+str(cached_nmea_obj.lon_dir))
 
+def queryfield(field):
+    send("log "+str(field))
 
 def querygps():
-    global cachedgps
+    global cached_nmea_obj
 
-    return cachedgps
+    return cached_nmea_obj
 
 
 def querypastgps(index):
@@ -32,11 +35,11 @@ def querypastgps(index):
 
 
 def passivegps():
-    # PASSIVELY UPDATE cachedgps According to gps period
-    global cachedgps, gpsperiod
+    # PASSIVELY UPDATE cached_nmea_obj According to gps period
+    global cached_nmea_obj, gpsperiod
     while True:
         time.sleep(gpsperiod)
-        cachedgps = getsinglegps()
+        cached_nmea_obj = getsinglegps()
 
 
 def getsinglegps():
@@ -62,17 +65,33 @@ def send(msg):
 
 
 def listen():
-    while (True):
-        zz = ser.inWaiting()
-        rr = ser.read(size=zz)
-        if zz > 0:
-            time.sleep(.5)
-            zz = ser.inWaiting()
-            rr += ser.read(size=zz)
-            logger.info('FROM GPS: ' + str(rr))
+    while True:
+        # Read in a full message from serial
+        line = ser.readline()
+        # Dispatch command
+        parse_gps_packet(line)
+        #logger.info(line)
             # print(rr)
             # log('GOT: '+rr)
 
+def parse_gps_packet(packet):
+    global cached_nmea_obj
+    packet = str(packet)[2:-5]
+    logger.info(packet)
+    #packet = packet[]
+    logger.debug(packet[0:6])
+    if packet[0:6] == '$GPGGA':
+        #logger.info('POS UPDATE')
+        nmea_obj = pynmea2.parse(packet)
+        cached_nmea_obj = nmea_obj
+
+def gpsbeacon():
+    global cached_nmea_obj
+    while True:
+        time.sleep(gpsperiod)
+        if cached_nmea_obj is not None:
+            aprs.enqueue(str(cached_nmea_obj.altitude)+str(cached_nmea_obj.altitude_units)+str(cached_nmea_obj.lat)+str(cached_nmea_obj.lat_dir)+str(cached_nmea_obj.lon)+str(cached_nmea_obj.lon_dir))
+    #if packet[]
 
 def keyin():
     while (True):
@@ -86,10 +105,10 @@ def keyin():
 def on_startup():
     # GLOBAL VARIABLES ARE NEEDED IF YOU "CREATE" VARIABLES WITHIN THIS METHOD
     # AND ACCESS THEM ELSEWHERE
-    global gpsperiod, t1, ser, logfile, tlt, cachedgps
-    # cachedgps = (None,None)
-    cachedgps = None
-    gpsperiod = 60
+    global gpsperiod, t1, ser, logfile, tlt, cached_nmea_obj
+    # cached_nmea_obj = (None,None)
+    cached_nmea_obj = None
+    gpsperiod = 10
     serialPort = config['gps']['serial_port']
     # REPLACE WITH COMx IF ON WINDOWS
     # REPLACE WITH /dev/ttyUSBx if 1 DOESNT WORK
@@ -97,9 +116,12 @@ def on_startup():
     # OPENS THE SERIAL PORT FOR ALL METHODS TO USE WITH 19200 BAUD
     ser = serial.Serial(serialPort, 9600)
     # CREATES A THREAD THAT RUNS THE LISTEN METHOD
-    t1 = Thread(target=listen, args=())
-    t1.daemon = True
+    t1 = Thread(target=listen, args=(), daemon=True)
     t1.start()
+
+    t3 = Thread(target=gpsbeacon, args=(), daemon=True)
+    t3.start()
+
     tlt = time.localtime()
 
     # Open the log file
@@ -112,6 +134,10 @@ def on_startup():
 
     log('RUN@' + '-'.join([str(x) for x in tlt[3:5]]))
 
+    send('echo off')
+    send('unlogall')
+    send('antennapower on')
+    send('log gpgga ontime 8')
     # send("ANTENNAPOWER OFF")
 
 
