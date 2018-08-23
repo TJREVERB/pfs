@@ -7,25 +7,6 @@ from . import gps
 logger = logging.getLogger("CI")
 
 
-def parse_aprs_packet(packet):
-    raw_packet = str(packet)
-    logger.info("From APRS: " + raw_packet)
-    header_index = raw_packet.find(':')
-    if header_index == -1:
-        logger.info("Incomplete header")
-        return
-    header = raw_packet[:header_index]
-    logger.info("header: " + header)
-    data = raw_packet[header_index + 1:]
-
-    if len(data) == 0:
-        logger.debug("Empty body")
-        return
-
-    logger.debug("Body: " + data)
-    decode(data)
-
-
 def checksum(body):
     global sum1
     logger.debug(body[0:-7])
