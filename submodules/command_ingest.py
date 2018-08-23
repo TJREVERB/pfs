@@ -16,7 +16,7 @@ def checksum(body):
     return chr(sum1) == body[-7]
 
 
-def decode(body):
+def dispatch(body):
     logger.debug(body[-5:-1])
     logger.debug(body[0:2])
     if body[0:2] == 'TJ' and body[-5:-1] == '\\r\\n' and checksum(body):
@@ -37,15 +37,10 @@ def decode(body):
     else:
         logger.debug('Invalid message')
 
-
-def piprint(packet):
-    print("FROM APRS: " + str(packet))
-
-
 def on_startup():
     global modules, m_aprs, m_gps
     # modules = {'A':core,'B':m_aprs,'C':'iridium','D':'housekeeping','E':'log','F':'GPS'}
-    m_aprs = {'a': aprs.send}
+    m_aprs = {'a': aprs.enqueue}
     m_gps = {'a': gps.sendgpsthruaprs}
     modules = {'B': m_aprs, 'F': m_gps}
     # core = {}

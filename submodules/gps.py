@@ -16,7 +16,7 @@ logger = logging.getLogger("GPS")
 def sendgpsthruaprs(givenarg):
     global fakegps
     fakegps = 12347337
-    aprs.send(str(fakegps) + '---' + str(givenarg))
+    aprs.enqueue(str(fakegps) + '---' + str(givenarg))
 
 
 def querygps():
