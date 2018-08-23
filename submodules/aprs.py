@@ -9,6 +9,7 @@ import serial
 import submodules.command_ingest as ci
 from core import config
 # Initalize global variables
+from submodules import command_ingest
 from submodules.command_ingest import logger, decode
 
 logger = logging.getLogger("APRS")
@@ -80,7 +81,7 @@ def parse_aprs_packet(packet):
         return
 
     logger.debug("Body: " + data)
-    decode(data)
+    command_ingest.decode(data)
 
 
 # Method that is called upon application startup.

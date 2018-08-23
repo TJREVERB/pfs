@@ -103,7 +103,7 @@ def on_startup():
     tlt = time.localtime()
 
     # Open the log file
-    log_dir = os.path.join(config['core']['log_dir'], 'aprs')
+    log_dir = os.path.join(config['core']['log_dir'], 'gps')
     filename = 'gps' + '-'.join([str(x) for x in time.localtime()[0:3]])
     # ensure that the GPS log directory exists
     if not os.path.exists(log_dir):
