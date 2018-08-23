@@ -2,3 +2,5 @@
 
 
 # IRIDIUM PLACEHOLDER UNTIL JACOB DOES HIS JOB
+def enqueue(message):
+    pass

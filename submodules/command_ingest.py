@@ -7,7 +7,7 @@ from . import gps
 logger = logging.getLogger("CI")
 
 
-def checksum(body):
+def checksum(body: str):
     global sum1
     logger.debug(body[0:-7])
     sum1 = sum([ord(x) for x in body[0:-7]])
@@ -16,7 +16,7 @@ def checksum(body):
     return chr(sum1) == body[-7]
 
 
-def dispatch(body):
+def dispatch(body: str):
     logger.debug(body[-5:-1])
     logger.debug(body[0:2])
     if body[0:2] == 'TJ' and body[-5:-1] == '\\r\\n' and checksum(body):
