@@ -116,12 +116,10 @@ def on_startup():
     # OPENS THE SERIAL PORT FOR ALL METHODS TO USE WITH 19200 BAUD
     ser = serial.Serial(serialPort, 9600)
     # CREATES A THREAD THAT RUNS THE LISTEN METHOD
-    t1 = Thread(target=listen, args=())
-    t1.daemon = True
+    t1 = Thread(target=listen, args=(), daemon=True)
     t1.start()
 
-    t3 = Thread(target=gpsbeacon, args=())
-    t3.deamon = True
+    t3 = Thread(target=gpsbeacon, args=(), daemon=True)
     t3.start()
 
     tlt = time.localtime()
@@ -137,6 +135,7 @@ def on_startup():
     log('RUN@' + '-'.join([str(x) for x in tlt[3:5]]))
 
     send('echo off')
+    send('unlogall')
     send('antennapower on')
     send('log gpgga ontime 8')
     # send("ANTENNAPOWER OFF")
