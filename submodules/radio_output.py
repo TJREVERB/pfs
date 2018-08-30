@@ -2,7 +2,7 @@
 from . import aprs as aprs_mod
 from . import iridium as iridium_mod
 
-default_radio: str = "APRS"
+default_radio: str = "aprs"
 aprs = "aprs"
 iridium = "iridium"
 

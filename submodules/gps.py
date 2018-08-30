@@ -13,6 +13,11 @@ from . import aprs
 logger = logging.getLogger("GPS")
 
 
+lat = -1.0
+lon = -1.0
+alt = -1.0
+
+
 # EDIT THIS TO WORK WITH GPS
 def sendgpsthruaprs(givenarg):
     global cached_nmea_obj
@@ -145,13 +150,13 @@ def on_startup():
 def enter_normal_mode():
     # UPDATE GPS MODULE INTERNAL COORDINATES EVERY 10 MINUTES
     update_internal_coords()
-    time.sleep(600)
+    # time.sleep(600)
 
 
 def enter_low_power_mode():
     # UPDATE GPS MODULE INTERNAL COORDINATES EVERY HOUR
     update_internal_coords()
-    time.sleep(3600)
+    # time.sleep(3600)
 
 
 def enter_emergency_mode():
