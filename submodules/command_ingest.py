@@ -28,7 +28,8 @@ def checksum(body):
     global sum1
     logging.debug(body[0:-7])
     sum1 = sum([ord(x) for x in body[0:-7]])
-    sum1 %= 128
+    sum1 %= 26
+    sum1 += 65
     logging.debug('CHECKOUT :' + chr(sum1) + ";")
     return chr(sum1) == body[-7]
 

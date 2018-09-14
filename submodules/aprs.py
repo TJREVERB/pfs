@@ -81,7 +81,7 @@ def keyin():
         # TRY input("shihaoiscoolforcommentingstuff") IF raw_input() doesn't work
         in1 = input("Type Command: ")
         if (user):
-            send("TJ" + in1 + chr(sum([ord(x) for x in "TJ" + in1]) % 128))
+            send("TJ" + in1 + chr(sum([ord(x) for x in "TJ" + in1]) % 26+65))
         else:
             send(in1)
             log('SENT: ' + in1)
