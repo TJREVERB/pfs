@@ -2,6 +2,7 @@ import importlib
 import logging
 import time
 import yaml
+import os
 
 from . import mode
 from . import power
@@ -44,9 +45,12 @@ def startup():
     global submodules
     logging.debug("Config:")
     logging.debug(config)
+    # Ensure that logs directory exists
+    if not os.path.exists(config['core']['log_dir']):
+        os.mkdir(config['core']['log_dir'])
     # Load all the modules
     submodules = []
-    for module in config['modules']:
+    for module in config['core']['modules']:
         logging.debug(f'Loading module {module}')
         submodules.append(importlib.import_module(f'submodules.{module}'))
     # Trigger module startup
