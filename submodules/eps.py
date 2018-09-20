@@ -1,6 +1,7 @@
 import logging
 import os
 import time
+import smbus
 from threading import Thread
 from typing import Union
 
@@ -12,7 +13,7 @@ from core import config
 from submodules import command_ingest
 from submodules.command_ingest import logger, dispatch
 
-logger = logging.getLogger("APRS")
+logger = logging.getLogger("EPS")
 pause_sending = False
 send_buffer = []
 beacon_seen = False
@@ -23,38 +24,8 @@ user = False
 bperiod = 60
 ser: Union[serial.Serial, None] = None
 
-
-# Enqueue a message to be sent
-def enqueue(msg):
-    global send_buffer
-    msg = msg + "\r\n"
-    send_buffer += [msg]
-
-
-# Send all messages in the queue
-def send_loop():
-    global send_buffer
-    while True:
-        while len(send_buffer) > 0:
-            # This waits until `message_spacing` seconds after the last recieved message
-            while time.time() - last_message_time < config['aprs']['message_spacing']:
-                time.sleep(1)
-            # Send the message
-            ser.write(send_buffer[0].encode("utf-8"))
-            # Remove message from queue
-            send_buffer = send_buffer[1:]
-            time.sleep(1)
-        time.sleep(1)
-
-
-def telemetry_watchdog():
-    while True:
-        time.sleep(config['aprs']['telem_timeout'])
-        if time.time() - last_telem_time > config['aprs']['telem_timeout']:
-            logger.error("APRS IS DEAD DO SOMETHING")
-            # TODO: do reset via EPS
-        else:
-            logger.debug("Watchdog pass APRS")
+address = 43
+b = smbus.SMBus(1)
 
 
 def listen():
@@ -63,37 +34,41 @@ def listen():
         line = ser.readline()
         # Dispatch command
         parse_aprs_packet(line)
-
-
-def parse_aprs_packet(packet):
-    raw_packet = str(packet)
-    logger.info("From APRS: " + raw_packet)
-    header_index = raw_packet.find(':')
-    if header_index == -1:
-        logger.info("Incomplete header")
-        return
-    header = raw_packet[:header_index]
-    logger.info("header: " + header)
-    data = raw_packet[header_index + 1:]
-
-    if len(data) == 0:
-        logger.debug("Empty body")
-        return
-
-    logger.debug("Body: " + data)
-    command_ingest.dispatch(data)
-
+def pin_on(PDM_val):
+    b.write_i2c_block_data(address, 0x12, PDM_val)
+def pin_off(PDM_val):
+    b.write_i2c_block_data(address, 0x13, PDM_val)
+def get_board_status():
+    return b.read_i2c_block_data(address, 0x01)
+def set_system_watchdog_timeout(timeout):
+    b.write_i2c_block_data(address, 0x06, timeout)
+def get_BCR1_volts():
+    b.write_i2c_block_data(address, 0x10, 0x00)
+    return b.read_byte(address)
+def get_BCR1_amps_A():
+    b.write_i2c_block_data(address, 0x10, 0x01)
+    return b.read_byte(address)
+def get_BCR1_amps_B():
+    b.write_i2c_block_data(address, 0x10, 0x02)
+    return b.read_byte(address)
+def led_on_off():
+    while true:
+        turn_PDM_on(SW0)
+        time.sleep(2)
+        turn_PDM_off(SW0)
+        time.sleep(2)
 
 # Method that is called upon application startup.
 def on_startup():
     global ser, logfile
+    global address, b
+
     # Opens the serial port for all methods to use with 19200 baud
-    ser = serial.Serial(config['eps']['serial_port'], 19200)
+    #ser = serial.Serial(config['eps']['serial_port'], 19200)
+
 
     # Create all the background threads
-    t1 = Thread(target=listen, args=(), daemon=True)
-    t2 = Thread(target=send_loop, args=(), daemon=True)
-    t3 = Thread(target=telemetry_watchdog, args=(), daemon=True)
+    t1 = Thread(target=led_on_off, args=(), daemon=True)
 
     # Open the log file
     log_dir = os.path.join(config['core']['log_dir'], 'eps')
