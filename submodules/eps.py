@@ -53,9 +53,9 @@ def get_BCR1_amps_B():
     return b.read_byte(address)
 def led_on_off():
     while true:
-        turn_PDM_on(SW0)
+        pin_on(SW0)
         time.sleep(2)
-        turn_PDM_off(SW0)
+        pin_off(SW0)
         time.sleep(2)
 
 # Method that is called upon application startup.
