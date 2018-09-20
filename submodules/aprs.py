@@ -58,44 +58,11 @@ def telemetry_watchdog():
 
 
 def listen():
-<<<<<<< HEAD
-    while (True):
-        # IF I GET SOMETHING OVER THE SERIAL LINE
-        zz = ser.inWaiting()
-        # READ THAT MANY BYTES
-        rr = ser.read(size=zz)
-        if zz > 0:
-            time.sleep(.5)
-            # CHECK AFTER .5 SECONDS, AND READ ANYTHING THAT GOT LEFT BEHIND
-            zz = ser.inWaiting()
-            rr += ser.read(size=zz)
-            ci.dispatch_command(rr)
-            # print(rr)
-            # log('GOT: '+rr)
-            # return (rr)
-            # return rr
-
-
-def keyin():
-    global user
-    while (True):
-        # GET INPUT FROM YOUR OWN TERMINAL
-        # TRY input("shihaoiscoolforcommentingstuff") IF raw_input() doesn't work
-        in1 = input("Type Command: ")
-        if (user):
-            send("TJ" + in1 + chr(sum([ord(x) for x in "TJ" + in1]) % 26+65))
-        else:
-            send(in1)
-            log('SENT: ' + in1)
-        # FOR ANY NON APRS MODULES THE ABOVE "IF" LOGIC IS UN-NEEDED.
-        # JUST USE SEND
-=======
     while True:
         # Read in a full message from serial
         line = ser.readline()
         # Dispatch command
         parse_aprs_packet(line)
->>>>>>> c076dd50ad18ab9d1eec25c1caea4fc41ec715e6
 
 
 def parse_aprs_packet(packet):
