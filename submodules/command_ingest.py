@@ -10,20 +10,21 @@ total_recieved: int = 0
 total_errors: int = 0
 total_success: int = 0
 
-def checksum(body: str):
+def generate_checksum(body: str):
     global sum1
     logger.debug(body[0:-7])
     sum1 = sum([ord(x) for x in body[0:-7]])
-    sum1 %= 128
+    sum1 %= 26
+    sum1 += 65
     logger.debug('CHECKOUT :' + chr(sum1) + ";")
-    return chr(sum1) == body[-7]
+    return chr(sum1)
 
 
 def dispatch(body: str):
     global total_errors, total_recieved, total_success
     logger.debug(body[-5:-1])
     logger.debug(body[0:2])
-    if body[0:2] == 'TJ' and body[-5:-1] == '\\r\\n' and checksum(body):
+    if body[0:2] == 'TJ' and body[-5:-1] == '\\r\\n' and generate_checksum(body) == body[-7]:
         total_recieved += 1
         logger.debug('Valid message')
         logger.debug(body[4:-7])

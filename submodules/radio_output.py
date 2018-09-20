@@ -15,3 +15,7 @@ def send(message: str, radio=None):
         aprs_mod.enqueue(message)
     if radio == "iridium":
         iridium_mod.enqueue(message)
+
+
+def send_immediate_raw(packet):
+    return None

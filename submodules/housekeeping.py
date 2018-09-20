@@ -32,7 +32,7 @@ def enter_emergency_mode():
 def send_heartbeat():
     while True:
         # Packet header
-        packet = "TJHK"
+        packet = "HK"
         # Time, mode, TLM rate
         f1 = struct.pack("f", time.time())
         f1 += bytes(core.current_mode)
@@ -48,5 +48,5 @@ def send_heartbeat():
         enc = struct.pack('HHH', command_ingest.total_recieved, command_ingest.total_errors,
                           command_ingest.total_success)
         packet += base64.b64encode(enc)
-        radio_output.send(packet)
+        radio_output.send_immediate_raw(packet)
         time.sleep(config['housekeeping']['beacon_interval'])
