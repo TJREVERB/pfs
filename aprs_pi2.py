@@ -1,8 +1,9 @@
 import logging
-import serial
 import sys
 import time
 from threading import Thread
+
+import serial
 
 # import submodules.command_ingest as ci
 # from submodules.command_ingest import piprint

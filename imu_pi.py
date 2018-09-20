@@ -1,6 +1,7 @@
-import smbus
 import time
 from threading import Thread
+
+import smbus
 
 bus = smbus.SMBus(1)
 address = 0x68

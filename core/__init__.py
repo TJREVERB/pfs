@@ -1,8 +1,9 @@
 import importlib
 import logging
-import time
-import yaml
 import os
+import time
+
+import yaml
 
 from . import mode
 from . import power

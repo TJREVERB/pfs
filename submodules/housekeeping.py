@@ -8,9 +8,9 @@ import time
 import core
 from core import config
 from . import command_ingest
-from . import radio_output
 from . import eps
 from . import gps
+from . import radio_output
 
 
 def on_startup():

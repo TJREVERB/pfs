@@ -9,6 +9,7 @@ import serial
 from core import config
 # Initalize global variables
 from submodules import command_ingest
+
 # from submodules.command_ingest import logger, dispatch
 
 logger = logging.getLogger("APRS")
@@ -135,4 +136,3 @@ def log_message(msg):
     # Write to file
     logfile.write(msg + '\n')
     logfile.flush()
-

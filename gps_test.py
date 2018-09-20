@@ -1,7 +1,8 @@
-import serial
 import time
 from subprocess import call
 from threading import Thread
+
+import serial
 
 
 # EDIT THIS TO WORK WITH GPS

@@ -3,17 +3,19 @@
 # CONTACT SHIHAO OR DYLAN IF YOU HAVE questions
 # DO NOT MODIFY THIS FILE, main.py or config.yaml WITHOUT MY PERMISSION
 
-import serial
 import time
+# THIS IMPORTS ALL SUBMODULES
+# IMPORT THREADING
+from threading import Thread
+
+import serial
+
+
 # from core import config
 # import submodules.command_ingest as ci
 # from submodules.command_ingest import piprint
 # import command_ingest as ci
 # from submodules import command_ingest as ci
-
-# THIS IMPORTS ALL SUBMODULES
-# IMPORT THREADING
-from threading import Thread
 
 
 # from core import config

@@ -4,14 +4,13 @@ import time
 from subprocess import call
 from threading import Thread
 
-import serial
 import pynmea2
+import serial
 
 from core import config
 from . import aprs
 
 logger = logging.getLogger("GPS")
-
 
 lat = -1.0
 lon = -1.0
@@ -22,10 +21,14 @@ alt = -1.0
 def sendgpsthruaprs(givenarg):
     global cached_nmea_obj
     if cached_nmea_obj is not None:
-        aprs.enqueue(str(cached_nmea_obj.altitude)+str(cached_nmea_obj.altitude_units)+str(cached_nmea_obj.lat)+str(cached_nmea_obj.lat_dir)+str(cached_nmea_obj.lon)+str(cached_nmea_obj.lon_dir))
+        aprs.enqueue(
+            str(cached_nmea_obj.altitude) + str(cached_nmea_obj.altitude_units) + str(cached_nmea_obj.lat) + str(
+                cached_nmea_obj.lat_dir) + str(cached_nmea_obj.lon) + str(cached_nmea_obj.lon_dir))
+
 
 def queryfield(field):
-    send("log "+str(field))
+    send("log " + str(field))
+
 
 def querygps():
     global cached_nmea_obj
@@ -75,28 +78,33 @@ def listen():
         line = ser.readline()
         # Dispatch command
         parse_gps_packet(line)
-        #logger.info(line)
-            # print(rr)
-            # log('GOT: '+rr)
+        # logger.info(line)
+        # print(rr)
+        # log('GOT: '+rr)
+
 
 def parse_gps_packet(packet):
     global cached_nmea_obj
     packet = str(packet)[2:-5]
     logger.info(packet)
-    #packet = packet[]
+    # packet = packet[]
     logger.debug(packet[0:6])
     if packet[0:6] == '$GPGGA':
-        #logger.info('POS UPDATE')
+        # logger.info('POS UPDATE')
         nmea_obj = pynmea2.parse(packet)
         cached_nmea_obj = nmea_obj
+
 
 def gpsbeacon():
     global cached_nmea_obj
     while True:
         time.sleep(gpsperiod)
         if cached_nmea_obj is not None:
-            aprs.enqueue(str(cached_nmea_obj.altitude)+str(cached_nmea_obj.altitude_units)+str(cached_nmea_obj.lat)+str(cached_nmea_obj.lat_dir)+str(cached_nmea_obj.lon)+str(cached_nmea_obj.lon_dir))
-    #if packet[]
+            aprs.enqueue(
+                str(cached_nmea_obj.altitude) + str(cached_nmea_obj.altitude_units) + str(cached_nmea_obj.lat) + str(
+                    cached_nmea_obj.lat_dir) + str(cached_nmea_obj.lon) + str(cached_nmea_obj.lon_dir))
+    # if packet[]
+
 
 def keyin():
     while (True):

@@ -1,7 +1,8 @@
 import logging
-import smbus
 import time
 from threading import Thread
+
+import smbus
 
 from . import aprs
 
