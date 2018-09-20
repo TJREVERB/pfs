@@ -1,4 +1,5 @@
-# Collects data for housekeeping packets
+# Collects data for housekeeping packets.  This is a special case; all other
+# telemetry should be collected in telemetry.py
 import base64
 import struct
 import threading

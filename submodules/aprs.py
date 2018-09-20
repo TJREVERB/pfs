@@ -6,11 +6,10 @@ from typing import Union
 
 import serial
 
-import submodules.command_ingest as ci
 from core import config
 # Initalize global variables
 from submodules import command_ingest
-from submodules.command_ingest import logger, dispatch
+# from submodules.command_ingest import logger, dispatch
 
 logger = logging.getLogger("APRS")
 pause_sending = False
@@ -24,7 +23,9 @@ bperiod = 60
 ser: Union[serial.Serial, None] = None
 
 
-# Enqueue a message to be sent
+# Put a packet in the APRS queue.  The APRS queue exists
+# only to make sure that we don't send and receive at the
+# same time.
 def enqueue(msg):
     global send_buffer
     msg = msg + "\r\n"
