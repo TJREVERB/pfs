@@ -27,23 +27,24 @@ ser: Union[serial.Serial, None] = None
 
 address = 43
 bus = smbus.SMBus(1)
-SW0 = 2 # Is this necessary? Is SW0 just for the fake eps?
 
-epsdict = {'gps':0}
+epsdict = {'gps':0, 'magnetorquer':1, 'aprs':2, \
+'iridium':3, 'antenna':4}
+
 def listen():
     while True:
         # Read in a full message from serial
         line = ser.readline()
         # Dispatch command
         parse_aprs_packet(line)
-def pin_on(PDM_val):
+def pin_on(device_name):
     with SMBusWrapper(1) as bus:
-        PDM_val = [epsdict['gps']]
+        PDM_val = [epsdict[device_name]]
         bus.write_i2c_block_data(address, 0x12, PDM_val)
         #Logging function to say if pin was already on or successful
-def pin_off(PDM_val):
+def pin_off(device_name):
     with SMBusWrapper(1) as bus:
-        PDM_val = [PDM_val]
+        PDM_val = [epsdict[device_name]]
         bus.write_i2c_block_data(address, 0x13, PDM_val)
 def get_board_status():
     with SMBusWrapper(1) as bus:
@@ -66,15 +67,15 @@ def get_BCR1_amps_B():
         return bus.read_byte(address)
 def led_on_off():
     while true:
-        pin_on(SW0)
+        pin_on('aprs')
         time.sleep(1)
-        pin_off(SW0)
+        pin_off('aprs')
         time.sleep(1)
 
 # Method that is called upon application startup.
 def on_startup():
     global ser, logfile
-    global address, bus, SW0
+    global address, bus
 
     # Opens the serial port for all methods to use with 19200 baud
     #ser = serial.Serial(config['eps']['serial_port'], 19200)
@@ -92,12 +93,11 @@ def on_startup():
 
     # Mark the start of the log
     log_message('RUN@' + '-'.join([str(x) for x in time.localtime()[3:5]]))
-    t3.daemon = True
+
 
     # Start the background threads
     t1.start()
-    t2.start()
-    t3.start()
+    t1.daemon = True
 
 
 # Have the 3 below methods. Say pass if you dont know what to put there yet
