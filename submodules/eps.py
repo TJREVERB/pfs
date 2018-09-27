@@ -29,7 +29,7 @@ address = 43
 bus = smbus.SMBus(1)
 SW0 = 2 # Is this necessary? Is SW0 just for the fake eps?
 
-
+epsdict = {'gps':0}
 def listen():
     while True:
         # Read in a full message from serial
@@ -38,8 +38,9 @@ def listen():
         parse_aprs_packet(line)
 def pin_on(PDM_val):
     with SMBusWrapper(1) as bus:
-        PDM_val = [PDM_val]
+        PDM_val = [epsdict['gps']]
         bus.write_i2c_block_data(address, 0x12, PDM_val)
+        #Logging function to say if pin was already on or successful
 def pin_off(PDM_val):
     with SMBusWrapper(1) as bus:
         PDM_val = [PDM_val]
