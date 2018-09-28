@@ -41,11 +41,25 @@ def pin_on(device_name):
     with SMBusWrapper(1) as bus:
         PDM_val = [epsdict[device_name]]
         bus.write_i2c_block_data(address, 0x12, PDM_val)
-        #Logging function to say if pin was already on or successful
+        if get_PDM_status(device_name) == 1: # PDM is ON
+            logger.error("Pin is already ON.")
+        else
+            logger.debug("Pin communication successful. \
+            Pin is now ON.")
 def pin_off(device_name):
     with SMBusWrapper(1) as bus:
         PDM_val = [epsdict[device_name]]
         bus.write_i2c_block_data(address, 0x13, PDM_val)
+        if get_PDM_status(device_name) == 0: # PDM is OFF
+            logger.error("Pin is already OFF.")
+        else
+            logger.debug("Pin communication successful. \
+            Pin is now OFF.")
+def get_PDM_status(device_name):
+    with SMBusWrapper(1) as bus:
+        PDM_val = [epsdict[device_name]]
+        bus.write_i2c_block_data(address, 0x0E, PDM_val)
+        return bus.read_byte(address) #RETURNS A BYTE, NOT A BIT. OK?     
 def get_board_status():
     with SMBusWrapper(1) as bus:
         return bus.read_i2c_block_data(address, 0x01)
