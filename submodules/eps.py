@@ -29,7 +29,7 @@ address = 43
 bus = smbus.SMBus(1)
 
 epsdict = {'gps':0, 'magnetorquer':1, 'aprs':2, \
-'iridium':3, 'antenna':4}
+'iridium':3, 'antenna':4, 'a':5, 'b':6, 'c':7, 'd':8, 'e':9, 'f':10}
 
 def listen():
     while True:
@@ -80,7 +80,7 @@ def get_BCR1_amps_B():
         bus.write_i2c_block_data(address, 0x10, 0x02)
         return bus.read_byte(address)
 def led_on_off():
-    while true:
+    while True:
         pin_on('aprs')
         time.sleep(1)
         pin_off('aprs')
@@ -94,7 +94,12 @@ def on_startup():
     # Opens the serial port for all methods to use with 19200 baud
     #ser = serial.Serial(config['eps']['serial_port'], 19200)
 
-
+    for key,val in epsdict.items():
+        if val > 0:
+            pin_on(key)
+            time.sleep(1)
+            pin_off(key)
+            time.sleep(1)
     # Create all the background threads
     t1 = Thread(target=led_on_off, args=(), daemon=True)
 
@@ -108,10 +113,10 @@ def on_startup():
     # Mark the start of the log
     log_message('RUN@' + '-'.join([str(x) for x in time.localtime()[3:5]]))
 
-
+    t1.daemon = True
     # Start the background threads
     t1.start()
-    t1.daemon = True
+    #t1.daemon = True
 
 
 # Have the 3 below methods. Say pass if you dont know what to put there yet
