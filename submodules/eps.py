@@ -11,7 +11,7 @@ import serial
 import submodules.command_ingest as ci
 from core import config
 # Initalize global variables
-from submodules import command_ingest
+import submodules.command_ingest
 from submodules.command_ingest import logger, dispatch
 
 logger = logging.getLogger("EPS")
@@ -79,13 +79,20 @@ def get_BCR1_amps_B():
     with SMBusWrapper(1) as bus:
         bus.write_i2c_block_data(address, 0x10, 0x02)
         return bus.read_byte(address)
+def get_board_telem(data):
+    with SMBusWrapper(1) as bus:
+        bus.write_i2c_block_data(address, 0x10, 0x23)
+        return bus.read_byte(address)
 def led_on_off():
     while True:
         pin_on('aprs')
         time.sleep(1)
         pin_off('aprs')
         time.sleep(1)
-
+def board_check():
+    while True:
+        print(get_board_telem(0x23))
+        time.sleep(1)
 # Method that is called upon application startup.
 def on_startup():
     global ser, logfile
@@ -102,7 +109,7 @@ def on_startup():
             time.sleep(1)
     # Create all the background threads
     t1 = Thread(target=led_on_off, args=(), daemon=True)
-
+    t2 = Thread(target=board_check, args=(), daemon=True)
     # Open the log file
     log_dir = os.path.join(config['core']['log_dir'], 'eps')
     filename = 'eps' + '-'.join([str(x) for x in time.localtime()[0:3]])
@@ -117,7 +124,8 @@ def on_startup():
     # Start the background threads
     t1.start()
     #t1.daemon = True
-
+    t2.daemon = True
+    t2.start()
     # Turn on the APRS led
     pin_on('aprs')
 

@@ -1,6 +1,5 @@
 import logging
 import time
-
 from . import aprs
 from . import gps
 
