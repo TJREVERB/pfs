@@ -9,7 +9,7 @@ global ser
 
 #!/usr/bin/env python3
 
-sys.path.append(os.path.abspath("C:/users/will kohn/documents/TJREVERB/iridium-jacob"))
+sys.path.append(os.path.abspath("/home/TJREVERB/iridium-jacob"))
 from iridiumNotTest import *
 
 
