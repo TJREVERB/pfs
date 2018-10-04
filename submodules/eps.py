@@ -118,6 +118,9 @@ def on_startup():
     t1.start()
     #t1.daemon = True
 
+    # Turn on the APRS led
+    pin_on('aprs')
+
 
 # Have the 3 below methods. Say pass if you dont know what to put there yet
 # these are in reference to power levels. Shut stuff down if we need to go to
