@@ -1,2 +1,4 @@
 .idea
 venv
+config.yml
+__pycache__/
