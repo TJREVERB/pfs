@@ -8,11 +8,8 @@ from typing import Union
 
 import serial
 
-import submodules.command_ingest as ci
 from core import config
 # Initalize global variables
-import submodules.command_ingest
-from submodules.command_ingest import logger, dispatch
 
 logger = logging.getLogger("EPS")
 pause_sending = False
