@@ -2,3 +2,4 @@
 venv
 config.yml
 __pycache__/
+*.pyc
