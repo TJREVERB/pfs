@@ -26,7 +26,6 @@ bperiod = 60
 ser: Union[serial.Serial, None] = None
 
 address = 43
-bus = smbus.SMBus(1)
 
 epsdict = {'gps':0, 'magnetorquer':1, 'aprs':2, \
 'iridium':3, 'antenna':4, 'a':5, 'b':6, 'c':7, 'd':8, 'e':9, 'f':10}
@@ -98,8 +97,7 @@ def on_startup():
     global ser, logfile
     global address, bus
 
-    # Opens the serial port for all methods to use with 19200 baud
-    #ser = serial.Serial(config['eps']['serial_port'], 19200)
+    bus = smbus.SMBus(1)
 
     for key,val in epsdict.items():
         if val > 0:
