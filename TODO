@@ -1,5 +1,0 @@
-- Update clock from GPS once/minute
-- implement bursted telemetry
-- implement commands # sort of?
-- implement telemetry # DONE
-- implement automatic process restarting
