@@ -11,13 +11,6 @@ from core import config
 from submodules import command_ingest
 from submodules import eps
 
-#PLACEHOLDER VALUES FOR TELEMETRY.PY
-total_received_ph = 100
-success_checksum_ph = 60
-fail_checksum_ph = 40
-sent_messages_ph = 50
-
-
 # from submodules.command_ingest import logger, dispatch
 
 logger = logging.getLogger("APRS")
@@ -71,7 +64,7 @@ def telemetry_watchdog():
             logger.debug("Watchdog pass APRS")
 
         ## TEST CODE - IF STATEMENT
-        if (telem_fail_count == telem_fail_count):
+        if (telem_fail_count == 2):
             # turn APRS off/on
             eps.pin_off('aprs')
             time.sleep(3)
@@ -136,8 +129,6 @@ def on_startup():
     t2.start()
     t3.start()
 
-    # remove this!
-#    eps.pin_on('aprs')
 
 # Have the 3 below methods. Say pass if you dont know what to put there yet
 # these are in reference to power levels. Shut stuff down if we need to go to

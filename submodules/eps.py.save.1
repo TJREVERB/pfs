@@ -8,8 +8,11 @@ from typing import Union
 
 import serial
 
+import scommand_ingest as ci
 from core import config
 # Initalize global variables
+import submodules.command_ingest
+from submodules.command_ingest import logger, dispatch
 
 logger = logging.getLogger("EPS")
 pause_sending = False
@@ -23,9 +26,10 @@ bperiod = 60
 ser: Union[serial.Serial, None] = None
 
 address = 43
+bus = smbus.SMBus(1)
 
-epsdict = {'gps':1, 'magnetorquer':2, 'aprs':3, \
-'iridium':4, 'antenna':5, 'a':6, 'b':7, 'e': 8, 'd':9, 'e':10}
+epsdict = {'gps':0, 'magnetorquer':1, 'aprs':2, \
+'iridium':3, 'antenna':4, 'a':5, 'b':6, 'c':7, 'd':8, 'e':9, 'f':10}
 
 def listen():
     while True:
@@ -75,35 +79,34 @@ def get_BCR1_amps_B():
     with SMBusWrapper(1) as bus:
         bus.write_i2c_block_data(address, 0x10, 0x02)
         return bus.read_byte(address)
-
 def get_board_telem(data):
     with SMBusWrapper(1) as bus:
-        bus.write_byte_data(address, 0x10, 0x23)
+        bus.write_i2c_block_data(address, 0x10, 0x23)
         return bus.read_byte(address)
 def led_on_off():
-    looptime = 20
     while True:
         pin_on('aprs')
-        time.sleep(looptime)
+        time.sleep(1)
         pin_off('aprs')
-        time.sleep(looptime)
+        time.sleep(1)
 def board_check():
     while True:
-        logger.debug(get_board_telem(0x23))
-        time.sleep(7)
+        print(get_board_telem(0x23))
+        time.sleep(1)
 # Method that is called upon application startup.
 def on_startup():
     global ser, logfile
     global address, bus
 
-    bus = smbus.SMBus(1)
+    # Opens the serial port for all methods to use with 19200 baud
+    #ser = serial.Serial(config['eps']['serial_port'], 19200)
 
-    #for key,val in epsdict.items():
-    #    if val > 0:
-    #        pin_on(key)
-    #        time.sleep(1)
-    #        pin_off(key)
-    #        time.sleep(1)
+    for key,val in epsdict.items():
+        if val > 0:
+            pin_on(key)
+            time.sleep(1)
+            pin_off(key)
+            time.sleep(1)
     # Create all the background threads
     t1 = Thread(target=led_on_off, args=(), daemon=True)
     t2 = Thread(target=board_check, args=(), daemon=True)

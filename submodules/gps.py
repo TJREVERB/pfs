@@ -16,7 +16,7 @@ lat = -1.0
 lon = -1.0
 alt = -1.0
 
-time = datetime.time(0, 0, 0)   # 
+#time = datetime.time(0, 0, 0)   # 
 
 
 # EDIT THIS TO WORK WITH GPS
