@@ -15,11 +15,20 @@ from . import aprs
 from . import adcs
 from . import iridium
 
+import time
 
 def telemetry_collection():
     while True:
         # Collect subpackets, aggregate, and prioritize
-        pass
+		#GPS
+		if(time.time()%config['telemetry']['subpackets']['gps']['interval'] == 0):
+
+		if(time.time()%config['telemetry']['subpackets']['comms']['interval'] == 0):
+
+		if(time.time()%config['telemetry']['subpackets']['adcs']['interval'] == 0):
+
+
+        sleep(1)
 
 
 def gps_subpacket():
@@ -29,7 +38,8 @@ def gps_subpacket():
 	packet+=base64.b64encode(struct.pack('f',time.time()))
 	#GPS coords
 	packet+=base64.b64encode(struct.pack('fff',gps.lat,gps.lon,gps.alt))
-	radio_output.send_immediate_raw(packet)
+	#radio_output.send_immediate_raw(packet)
+	return packet
 
 
 def adcs_subpacket():
@@ -46,8 +56,8 @@ def adcs_subpacket():
 	#mag x,y,z
 	magx,magy,magz = adcs.get_mag()
 	packet+=base64.b64encode(struct.pack("ddd",magx,magy,magz))
-	radio_output.send_immediate_raw(packet)
-
+	#radio_output.send_immediate_raw(packet)
+	return packet
 
 def comms_subpacket():
 	#packet header
@@ -64,8 +74,8 @@ def comms_subpacket():
 	packet+=base64.b64encode(struct.pack('d',iridium.success_checksum_ph))
 	packet+=base64.b64encode(struct.pack('d',iridium.fail_checksum_ph))
 	packet+=base64.b64encode(struct.pack('d',iridium.sent_messages_ph))
-	radio_output.send_immediate_raw(packet)
-
+	#radio_output.send_immediate_raw(packet)
+	return packet
 
 def system_subpacket():
     pass
