@@ -16,6 +16,8 @@ lat = -1.0
 lon = -1.0
 alt = -1.0
 
+time = datetime.time(0, 0, 0)   # 
+
 
 # EDIT THIS TO WORK WITH GPS
 def sendgpsthruaprs(givenarg):
@@ -105,6 +107,10 @@ def gpsbeacon():
                     cached_nmea_obj.lat_dir) + str(cached_nmea_obj.lon) + str(cached_nmea_obj.lon_dir))
     # if packet[]
 
+# Update system time based on the given time
+# time is a time object in UTC time
+def updateTime(time):
+    os.system('date -s "' + str(time.hour) + ':' + str(time.minute) + ':' + str(time.second) + ' UTC"')
 
 def keyin():
     while (True):
