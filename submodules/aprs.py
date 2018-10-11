@@ -11,6 +11,13 @@ from core import config
 from submodules import command_ingest
 from submodules import eps
 
+#PLACEHOLDER VALUES FOR TELEMETRY.PY
+total_received_ph = 100
+success_checksum_ph = 60
+fail_checksum_ph = 40
+sent_messages_ph = 50
+
+
 # from submodules.command_ingest import logger, dispatch
 
 logger = logging.getLogger("APRS")
