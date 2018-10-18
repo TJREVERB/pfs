@@ -72,15 +72,30 @@ def on_startup():
 def enter_normal_mode():
     # UPDATE GPS MODULE INTERNAL COORDINATES EVERY 10 MINUTES
     # time.sleep(600)
+    pass
 
 
 def enter_low_power_mode():
     # UPDATE GPS MODULE INTERNAL COORDINATES EVERY HOUR
     # time.sleep(3600)
+    pass
 
 
 def enter_emergency_mode():
+    pass
 
+# TODO fix this
+def get_pry():
+    return (-1,-1,-1)
+
+def get_mag():
+    return (-1,-1,-1)
+
+def get_abs():
+    return (-1,-1,-1)
+
+def can_TJ_be_seen():
+    return True # fix me!
 
 # USE THIS LOG FUNCTION
 def log(msg):
