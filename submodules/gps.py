@@ -16,7 +16,7 @@ lat = -1.0
 lon = -1.0
 alt = -1.0
 
-#time = datetime.time(0, 0, 0)   # 
+#time = datetime.time(0, 0, 0)
 
 
 # EDIT THIS TO WORK WITH GPS
@@ -95,6 +95,11 @@ def parse_gps_packet(packet):
         # logger.info('POS UPDATE')
         nmea_obj = pynmea2.parse(packet)
         cached_nmea_obj = nmea_obj
+        lat = pynmea2.lat
+        lon = pynmea2.lon
+        alt = pynmea2.altitude
+        time = pynmea2.time
+        updateTime(time)
 
 
 def gpsbeacon():
