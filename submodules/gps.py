@@ -98,8 +98,7 @@ def parse_gps_packet(packet):
         lat = pynmea2.lat
         lon = pynmea2.lon
         alt = pynmea2.altitude
-        time = pynmea2.time
-        updateTime(time)
+        updateTime(pynmea2.time)
 
 
 def gpsbeacon():
