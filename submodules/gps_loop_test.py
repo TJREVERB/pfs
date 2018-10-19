@@ -4,6 +4,8 @@ import time
 from subprocess import call
 from threading import Thread
 
+import sys
+import queue
 import pynmea2
 import serial
 
