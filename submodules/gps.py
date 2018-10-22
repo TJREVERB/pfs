@@ -95,11 +95,10 @@ def parse_gps_packet(packet):
         # logger.info('POS UPDATE')
         nmea_obj = pynmea2.parse(packet)
         cached_nmea_obj = nmea_obj
-        # ANUP FIX THE 3 LINES BELOW. cached_nmea_obj.lat instead?? - Shihao
-        # lat = pynmea2.lat
-        # lon = pynmea2.lon
-        # alt = pynmea2.altitude
-        # updateTime(pynmea2.time)
+         lat = cached_nmea_obj.lat
+         lon = cached_nmea_obj.lon
+         alt = cached_nmea_obj.altitude
+         updateTime(cached_nmea_obj.time)
 
 
 def gpsbeacon():
