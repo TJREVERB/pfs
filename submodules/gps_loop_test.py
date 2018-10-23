@@ -1,5 +1,6 @@
 import logging
 import os
+import threading
 import time
 from subprocess import call
 from threading import Thread
@@ -19,7 +20,6 @@ lon = -1.0
 alt = -1.0
 
 #time = datetime.time(0, 0, 0)
-
 
 # EDIT THIS TO WORK WITH GPS
 def sendgpsthruaprs(givenarg):
@@ -78,6 +78,8 @@ def send(msg):
 
 def listen():
     while True:
+        # time.sleep(3)
+        # raise Exception("'listen' function error")
         # Read in a full message from serial
         line = ser.readline()
         # Dispatch command
@@ -85,6 +87,7 @@ def listen():
         # logger.info(line)
         # print(rr)
         # log('GOT: '+rr)
+
 
 
 def parse_gps_packet(packet):
@@ -105,6 +108,8 @@ def parse_gps_packet(packet):
 
 
 def gpsbeacon():
+    logger.info("'gpsbeacon()' thread started")
+
     global cached_nmea_obj
     while True:
         time.sleep(gpsperiod)
@@ -127,16 +132,41 @@ def keyin():
         send(in1)
         # send("TJ" + in1 + chr(sum([ord(x) for x in "TJ" + in1]) % 128))
 
-def thread(args1, stop_event, queue_obj):
-    print("starting thread")
-    stop_event.wait(10)
-    if not stop_event.is_set():
-        try:
-            raise Exception("signal!")
-        except Exception:
-            queue_obj.put(sys.exc_info())
-    pass
+def stop(self):
+    self.stopped = True
 
+# def threadHandler(*args):
+#     logger.info("Starting threads")
+#
+#     threads = []
+#
+#     error = ""
+#
+#
+#     while True:
+#         try:
+#             # logger.info(error)
+#             for f in args:
+#                 Thread(target=f, args=(), daemon=True).start()
+#
+#         except Exception as e:
+#             print("ERROR")
+#             continue
+#         time.sleep(5)
+
+def threadhandler(func):
+    def start():
+        while True:
+            logger.info("'%s' thread started" % func.__name__)
+            try:
+                func()
+            except BaseException as e:
+                logger.exception(str(e) + ", restarting '%s'" % func.__name__)
+            else:
+                logger.info("Bad thread, restarting '%s'" % func.__name__)
+            time.sleep(1)
+
+    return start
 
 def on_startup():
     # GLOBAL VARIABLES ARE NEEDED IF YOU "CREATE" VARIABLES WITHIN THIS METHOD
@@ -151,15 +181,13 @@ def on_startup():
     # serialPort = "/dev/ttyS3"
     # OPENS THE SERIAL PORT FOR ALL METHODS TO USE WITH 19200 BAUD
     ser = serial.Serial(serialPort, 9600)
-    # CREATES A THREAD THAT RUNS THE LISTEN METHOD
-    t1 = Thread(target=listen, args=(), daemon=True)
-    t1.start()
 
-    t3 = Thread(target=gpsbeacon, args=(), daemon=True)
-    t3.start()
+    # thThread = Thread(target=threadHandler, args=(listen, gpsbeacon), daemon=True)
+    # thThread.start()
+
+    Thread(target=threadhandler(listen), name="listen").start()
 
     tlt = time.localtime()
-
     # Open the log file
     log_dir = os.path.join(config['core']['log_dir'], 'gps')
     filename = 'gps' + '-'.join([str(x) for x in time.localtime()[0:3]])
