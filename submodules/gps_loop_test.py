@@ -133,25 +133,6 @@ def keyin():
 def stop(self):
     self.stopped = True
 
-# def threadHandler(*args):
-#     logger.info("Starting threads")
-#
-#     threads = []
-#
-#     error = ""
-#
-#
-#     while True:
-#         try:
-#             # logger.info(error)
-#             for f in args:
-#                 Thread(target=f, args=(), daemon=True).start()
-#
-#         except Exception as e:
-#             print("ERROR")
-#             continue
-#         time.sleep(5)
-
 def on_startup():
     # GLOBAL VARIABLES ARE NEEDED IF YOU "CREATE" VARIABLES WITHIN THIS METHOD
     # AND ACCESS THEM ELSEWHERE
@@ -166,13 +147,10 @@ def on_startup():
     # OPENS THE SERIAL PORT FOR ALL METHODS TO USE WITH 19200 BAUD
     ser = serial.Serial(serialPort, 9600)
 
-    # thThread = Thread(target=threadHandler, args=(listen, gpsbeacon), daemon=True)
-    # thThread.start()
-
     # Start threads using threadhandler
-    listenT = Thread(target=threadhandler(listen, parentLogger=logger), name="listen")
+    listenT = Thread(target=threadhandler(listen, parent_logger=logger), name="listen", daemon=True)
     listenT.start()
-    gpsbeaconT = Thread(target=threadhandler(gpsbeacon, parentLogger=logger), name="gpsbeacon")
+    gpsbeaconT = Thread(target=threadhandler(gpsbeacon, parent_logger=logger), name="gpsbeacon", daemon=True)
     gpsbeaconT.start()
 
     tlt = time.localtime()
