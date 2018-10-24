@@ -154,12 +154,15 @@ def stop(self):
 #             continue
 #         time.sleep(5)
 
-def threadhandler(func):
+def threadhandler(func, *funcParams):
     def start():
         while True:
             logger.info("'%s' thread started" % func.__name__)
             try:
-                func()
+                if len(funcParams) > 0:
+                    func(funcParams)
+                else:
+                    func()
             except BaseException as e:
                 logger.exception(str(e) + ", restarting '%s'" % func.__name__)
             else:
