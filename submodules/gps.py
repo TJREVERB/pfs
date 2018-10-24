@@ -86,7 +86,7 @@ def listen():
 
 
 def parse_gps_packet(packet):
-    global cached_nmea_obj
+    global cached_nmea_obj, lat, lon, alt
     packet = str(packet)[2:-5]
     logger.info(packet)
     # packet = packet[]
@@ -95,10 +95,10 @@ def parse_gps_packet(packet):
         # logger.info('POS UPDATE')
         nmea_obj = pynmea2.parse(packet)
         cached_nmea_obj = nmea_obj
-         lat = cached_nmea_obj.lat
-         lon = cached_nmea_obj.lon
-         alt = cached_nmea_obj.altitude
-         updateTime(cached_nmea_obj.time)
+        lat = cached_nmea_obj.lat
+        lon = cached_nmea_obj.lon
+        alt = cached_nmea_obj.altitude
+        updateTime(cached_nmea_obj.time)
 
 
 def gpsbeacon():
