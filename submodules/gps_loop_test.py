@@ -13,6 +13,8 @@ import serial
 from core import config
 from . import aprs
 
+from .threadhandler import threadhandler
+
 logger = logging.getLogger("GPS")
 
 lat = -1.0
@@ -78,8 +80,6 @@ def send(msg):
 
 def listen():
     while True:
-        # time.sleep(3)
-        # raise Exception("'listen' function error")
         # Read in a full message from serial
         line = ser.readline()
         # Dispatch command
@@ -108,8 +108,6 @@ def parse_gps_packet(packet):
 
 
 def gpsbeacon():
-    logger.info("'gpsbeacon()' thread started")
-
     global cached_nmea_obj
     while True:
         time.sleep(gpsperiod)
@@ -154,23 +152,6 @@ def stop(self):
 #             continue
 #         time.sleep(5)
 
-def threadhandler(func, *funcParams):
-    def start():
-        while True:
-            logger.info("'%s' thread started" % func.__name__)
-            try:
-                if len(funcParams) > 0:
-                    func(funcParams)
-                else:
-                    func()
-            except BaseException as e:
-                logger.exception(str(e) + ", restarting '%s'" % func.__name__)
-            else:
-                logger.info("Bad thread, restarting '%s'" % func.__name__)
-            time.sleep(1)
-
-    return start
-
 def on_startup():
     # GLOBAL VARIABLES ARE NEEDED IF YOU "CREATE" VARIABLES WITHIN THIS METHOD
     # AND ACCESS THEM ELSEWHERE
@@ -188,7 +169,11 @@ def on_startup():
     # thThread = Thread(target=threadHandler, args=(listen, gpsbeacon), daemon=True)
     # thThread.start()
 
-    Thread(target=threadhandler(listen), name="listen").start()
+    # Start threads using threadhandler
+    listenT = Thread(target=threadhandler(listen, parentLogger=logger), name="listen")
+    listenT.start()
+    gpsbeaconT = Thread(target=threadhandler(gpsbeacon, parentLogger=logger), name="gpsbeacon")
+    gpsbeaconT.start()
 
     tlt = time.localtime()
     # Open the log file
