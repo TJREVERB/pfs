@@ -1,5 +1,6 @@
 import logging
 import os
+import sys
 import time
 from subprocess import call
 from threading import Thread
@@ -167,29 +168,34 @@ def on_startup():
 
     log('RUN@' + '-'.join([str(x) for x in tlt[3:5]]))
 
-    send('echo off')
-    send('unlogall')
-    send('antennapower on')
-    send('log gpgga ontime 8')
+    send('ECHO OFF')
+    send('UNLOGALL')
+    send('ANTENNAPOWER ON')
+    send('LOG GPGGA ONTIME 8')
     # send("ANTENNAPOWER OFF")
 
 
 # I NEED TO KNOW WHAT NEEDS TO BE DONE IN NORMAL, LOW POWER, AND EMERGENCY MODES
 def enter_normal_mode():
     # UPDATE GPS MODULE INTERNAL COORDINATES EVERY 10 MINUTES
-    update_internal_coords()
+    #update_internal_coords() IF THIS METHOD IS NECESSARY MESSAGE ME(Anup)
     # time.sleep(600)
+    pass #dw its for now
 
 
 def enter_low_power_mode():
-    # UPDATE GPS MODULE INTERNAL COORDINATES EVERY HOUR
-    update_internal_coords()
+    #UPDATE GPS MODULE INTERNAL COORDINATES EVERY HOUR
+    #update_internal_coords() IF THIS METHOD IS NECESSARY MESSAGE ME(Anup)
     # time.sleep(3600)
+    pass #dw its for now
 
 
 def enter_emergency_mode():
     # ALL GPS FUNCTIONS OFF. LOWEST POWER POSSIBLE
-    call("unlog")  # I don't know any other off functions - comment some here or message me (Rishabh) some on slack
+    send('UNLOGALL')
+    send('ANTENNAPOWER OFF')
+    send('ASSIGNALL IDLE')
+
 
 
 # USE THIS LOG FUNCTION
