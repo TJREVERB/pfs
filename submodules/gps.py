@@ -99,7 +99,7 @@ def parse_gps_packet(packet):
         lat = cached_nmea_obj.lat
         lon = cached_nmea_obj.lon
         alt = cached_nmea_obj.altitude
-        updateTime(cached_nmea_obj.time)
+        updateTime(cached_nmea_obj.timestamp)
 
 
 def gpsbeacon():
@@ -180,7 +180,10 @@ def enter_normal_mode():
     # UPDATE GPS MODULE INTERNAL COORDINATES EVERY 10 MINUTES
     #update_internal_coords() IF THIS METHOD IS NECESSARY MESSAGE ME(Anup)
     # time.sleep(600)
-    pass #dw its for now
+    send('ECHO OFF')
+    send('ASSIGNALL AUTO')
+    send('ANTENNAPOWER ON')
+    send('log gpgga ontime 600')
 
 
 def enter_low_power_mode():
