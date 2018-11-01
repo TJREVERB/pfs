@@ -26,7 +26,6 @@ send_buffer = []
 beacon_seen = False
 last_telem_time = time.time()
 last_message_time = time.time()
-telem_fail_count = 0   # number of failures of telemetry
 
 user = False
 bperiod = 60
@@ -59,27 +58,16 @@ def send_loop():
 
 
 def telemetry_watchdog():
-    global telem_fail_count
     while True:
         time.sleep(config['aprs']['telem_timeout'])
         if time.time() - last_telem_time > config['aprs']['telem_timeout']:
-            logger.error("APRS IS DEAD DO SOMETHING")
-
-            ## THE LINE BELOW IS TEST CODE
-            telem_fail_count += 1
-        else:
-            logger.debug("Watchdog pass APRS")
-
-        ## TEST CODE - IF STATEMENT
-        if (telem_fail_count == telem_fail_count):
-            # turn APRS off/on
+            logger.error("APRS IS DEAD - RESTART APRS")
             eps.pin_off('aprs')
             time.sleep(3)
             eps.pin_on('aprs')
             time.sleep(3)
-
-            # Reset telem_fail_count
-            telem_fail_count = 0
+        else:
+            logger.debug("Watchdog pass APRS")
 
 
 def listen():
@@ -136,8 +124,7 @@ def on_startup():
     t2.start()
     t3.start()
 
-    # remove this!
-#    eps.pin_on('aprs')
+    eps.pin_on('aprs')
 
 # Have the 3 below methods. Say pass if you dont know what to put there yet
 # these are in reference to power levels. Shut stuff down if we need to go to

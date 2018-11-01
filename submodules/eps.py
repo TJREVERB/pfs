@@ -24,8 +24,8 @@ ser: Union[serial.Serial, None] = None
 
 address = 43
 
-epsdict = {'gps':1, 'magnetorquer':2, 'aprs':3, \
-'iridium':4, 'antenna':5, 'a':6, 'b':7, 'e': 8, 'd':9, 'e':10}
+epsdict = {'gps':1, 'magnetorquer':2, 'aprs':4, \
+'iridium':3, 'antenna':5, 'a':6, 'b':7, 'e': 8, 'd':9, 'e':10}
 
 def listen():
     while True:
@@ -46,7 +46,7 @@ def pin_off(device_name):
     with SMBusWrapper(1) as bus:
         PDM_val = [epsdict[device_name]]
         bus.write_i2c_block_data(address, 0x13, PDM_val)
-        if get_PDM_status(device_name) == 0: # PDM is OFF
+        if get_PDM_status(device_name) == 1: # PDM is OFF
             logger.error("Pin is already OFF.")
         else:
             logger.debug("Pin communication successful. \
@@ -81,7 +81,7 @@ def get_board_telem(data):
         bus.write_byte_data(address, 0x10, 0x23)
         return bus.read_byte(address)
 def led_on_off():
-    looptime = 20
+    looptime = 20 #change me - was 30
     while True:
         pin_on('aprs')
         time.sleep(looptime)
@@ -100,8 +100,6 @@ def on_startup():
 
     #for key,val in epsdict.items():
     #    if val > 0:
-    #        pin_on(key)
-    #        time.sleep(1)
     #        pin_off(key)
     #        time.sleep(1)
     # Create all the background threads
@@ -119,12 +117,16 @@ def on_startup():
 
     t1.daemon = True
     # Start the background threads
-    t1.start()
+    #t1.start()
     #t1.daemon = True
     t2.daemon = True
     t2.start()
-    # Turn on the APRS led
-    pin_on('aprs')
+
+    # TESTING PURPOSES ONLY
+    # test the LEDs - turn them all on
+    #for key in epsdict.keys():
+     #   pin_on(key)
+    
 
 
 # Have the 3 below methods. Say pass if you dont know what to put there yet
