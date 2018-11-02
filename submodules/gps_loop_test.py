@@ -1,15 +1,19 @@
 import logging
 import os
-import sys
+import threading
 import time
 from subprocess import call
 from threading import Thread
 
+import sys
+import queue
 import pynmea2
 import serial
 
 from core import config
 from . import aprs
+
+from .threadhandler import threadhandler
 
 logger = logging.getLogger("GPS")
 
@@ -18,7 +22,6 @@ lon = -1.0
 alt = -1.0
 
 #time = datetime.time(0, 0, 0)
-
 
 # EDIT THIS TO WORK WITH GPS
 def sendgpsthruaprs(givenarg):
@@ -86,8 +89,9 @@ def listen():
         # log('GOT: '+rr)
 
 
+
 def parse_gps_packet(packet):
-    global cached_nmea_obj, lat, lon, alt
+    global cached_nmea_obj
     packet = str(packet)[2:-5]
     logger.info(packet)
     # packet = packet[]
@@ -96,10 +100,11 @@ def parse_gps_packet(packet):
         # logger.info('POS UPDATE')
         nmea_obj = pynmea2.parse(packet)
         cached_nmea_obj = nmea_obj
-        lat = cached_nmea_obj.lat
-        lon = cached_nmea_obj.lon
-        alt = cached_nmea_obj.altitude
-        updateTime(cached_nmea_obj.timestamp)
+        # ANUP FIX THE 3 LINES BELOW. cached_nmea_obj.lat instead?? - Shihao
+        # lat = pynmea2.lat
+        # lon = pynmea2.lon
+        # alt = pynmea2.altitude
+        # updateTime(pynmea2.time)
 
 
 def gpsbeacon():
@@ -125,16 +130,8 @@ def keyin():
         send(in1)
         # send("TJ" + in1 + chr(sum([ord(x) for x in "TJ" + in1]) % 128))
 
-def thread(args1, stop_event, queue_obj):
-    print("starting thread")
-    stop_event.wait(10)
-    if not stop_event.is_set():
-        try:
-            raise Exception("signal!")
-        except Exception:
-            queue_obj.put(sys.exc_info())
-    pass
-
+def stop(self):
+    self.stopped = True
 
 def on_startup():
     # GLOBAL VARIABLES ARE NEEDED IF YOU "CREATE" VARIABLES WITHIN THIS METHOD
@@ -149,15 +146,14 @@ def on_startup():
     # serialPort = "/dev/ttyS3"
     # OPENS THE SERIAL PORT FOR ALL METHODS TO USE WITH 19200 BAUD
     ser = serial.Serial(serialPort, 9600)
-    # CREATES A THREAD THAT RUNS THE LISTEN METHOD
-    t1 = Thread(target=listen, args=(), daemon=True)
-    t1.start()
 
-    t3 = Thread(target=gpsbeacon, args=(), daemon=True)
-    t3.start()
+    # Start threads using threadhandler
+    listenT = Thread(target=threadhandler(listen, parent_logger=logger), name="listen", daemon=True)
+    listenT.start()
+    gpsbeaconT = Thread(target=threadhandler(gpsbeacon, parent_logger=logger), name="gpsbeacon", daemon=True)
+    gpsbeaconT.start()
 
     tlt = time.localtime()
-
     # Open the log file
     log_dir = os.path.join(config['core']['log_dir'], 'gps')
     filename = 'gps' + '-'.join([str(x) for x in time.localtime()[0:3]])
@@ -168,37 +164,29 @@ def on_startup():
 
     log('RUN@' + '-'.join([str(x) for x in tlt[3:5]]))
 
-    send('ECHO OFF')
-    send('UNLOGALL')
-    send('ANTENNAPOWER ON')
-    send('LOG GPGGA ONTIME 8')
+    send('echo off')
+    send('unlogall')
+    send('antennapower on')
+    send('log gpgga ontime 8')
     # send("ANTENNAPOWER OFF")
 
 
 # I NEED TO KNOW WHAT NEEDS TO BE DONE IN NORMAL, LOW POWER, AND EMERGENCY MODES
 def enter_normal_mode():
     # UPDATE GPS MODULE INTERNAL COORDINATES EVERY 10 MINUTES
-    #update_internal_coords() IF THIS METHOD IS NECESSARY MESSAGE ME(Anup)
+    update_internal_coords()
     # time.sleep(600)
-    send('ECHO OFF')
-    send('ASSIGNALL AUTO')
-    send('ANTENNAPOWER ON')
-    send('log gpgga ontime 600')
 
 
 def enter_low_power_mode():
-    #UPDATE GPS MODULE INTERNAL COORDINATES EVERY HOUR
-    #update_internal_coords() IF THIS METHOD IS NECESSARY MESSAGE ME(Anup)
+    # UPDATE GPS MODULE INTERNAL COORDINATES EVERY HOUR
+    update_internal_coords()
     # time.sleep(3600)
-    pass #dw its for now
 
 
 def enter_emergency_mode():
     # ALL GPS FUNCTIONS OFF. LOWEST POWER POSSIBLE
-    send('UNLOGALL')
-    send('ANTENNAPOWER OFF')
-    send('ASSIGNALL IDLE')
-
+    call("unlog")  # I don't know any other off functions - comment some here or message me (Rishabh) some on slack
 
 
 # USE THIS LOG FUNCTION
