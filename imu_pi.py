@@ -28,7 +28,9 @@ def acc_gyr():
     while True:
         acc()
         gyr()
-        datapoint = ':'.join([ax, ay, az, gx, gy, gz])
+        templist = [str(x) for x in [ax, ay, az, gx, gy, gz]]
+        datapoint = ':'.join(templist)
+        print(datapoint)
         datasave += [datapoint]
         time.sleep(speriod)
 
@@ -36,6 +38,7 @@ def acc_gyr():
 def on_startup():
     global speriod, datasave
     enter_normal_mode()
+    datasave = []
     t1 = Thread(target=acc_gyr, args=())
     t1.daemon = True
     t1.start()
