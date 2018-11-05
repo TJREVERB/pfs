@@ -26,7 +26,10 @@ def listen():
         # print(rr)
         # log('GOT: '+rr)
 
-
+def updateVals(msg):
+    #saves velocity data from gps
+    global velocity_data
+    velocity_data = msg
 
 def keyin():
     while (True):

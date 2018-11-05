@@ -10,6 +10,7 @@ import serial
 
 from core import config
 from . import aprs
+from . import adcs
 
 logger = logging.getLogger("GPS")
 
@@ -85,9 +86,34 @@ def listen():
         # print(rr)
         # log('GOT: '+rr)
 
+def findnth(msg, val, n):
+    parts= msg.split(val, n+1)
+    if len(parts)<=n+1:
+        return -1
+    return len(msg)-len(parts[-1])-len(val)
+
+
+def parse_xyz_packet(packet):
+    packet = packet[findnth(packet,' ',7)+1:]
+
+    result = {}
+    status_code = {'SOL_COMPUTED':0,'INSUFFICIENT_OBS':-1,'NO_CONVERGENCE':2,
+                   'SINGULARITY':3,'COV_TRACE':4,'TEST_DIST':5,
+                   'COLD_START':6,'V_H_LIMIT':7,'VARIANCE':8,
+                   'RESIDUALS':9,'INTEGRITY_WARNING':13,'PENDING':18,
+                   'INVALID_FIX':19,'UNAUTHORIZED':20,'INVALID_RATE':22
+                   }
+    result['latency'] = float(packet[-5:])
+    result['status'] = status_code[packet[:findnth(packet,' ',0)]]
+    result['x_vel'] = float(packet[findnth(packet,' ',1)+1:findnth(packet,' ',2)])
+    result['y_vel'] = float(packet[findnth(packet,' ',2)+1:findnth(packet,' ',3)])
+    result['z_vel'] = float(packet[findnth(packet,' ',3)+1:findnth(packet,' ',4)])
+
+    return result
+
 
 def parse_gps_packet(packet):
-    global cached_nmea_obj, lat, lon, alt
+    global cached_nmea_obj, lat, lon, alt, cached_xyz_obj, ser
     packet = str(packet)[2:-5]
     logger.info(packet)
     # packet = packet[]
@@ -96,20 +122,31 @@ def parse_gps_packet(packet):
         # logger.info('POS UPDATE')
         nmea_obj = pynmea2.parse(packet)
         cached_nmea_obj = nmea_obj
-        lat = cached_nmea_obj.lat
         lon = cached_nmea_obj.lon
+        lat = cached_nmea_obj.lat
         alt = cached_nmea_obj.altitude
         updateTime(cached_nmea_obj.timestamp)
+    elif packet[0:8] == '<BESTXYZ':
+        packet = ser.readline()
+        xyz_obj = parse_xyz_packet(packet[6:-33].decode("ascii"))
+        cached_xyz_obj = xyz_obj
+        pass
+
+
 
 
 def gpsbeacon():
-    global cached_nmea_obj
+    global cached_nmea_obj, cached_xyz_obj
     while True:
         time.sleep(gpsperiod)
         if cached_nmea_obj is not None:
             aprs.enqueue(
                 str(cached_nmea_obj.altitude) + str(cached_nmea_obj.altitude_units) + str(cached_nmea_obj.lat) + str(
                     cached_nmea_obj.lat_dir) + str(cached_nmea_obj.lon) + str(cached_nmea_obj.lon_dir))
+        if cached_xyz_obj is not None:
+           adcs.updateVals(cached_xyz_obj)
+
+
     # if packet[]
 
 # Update system time based on the given time
@@ -139,9 +176,10 @@ def thread(args1, stop_event, queue_obj):
 def on_startup():
     # GLOBAL VARIABLES ARE NEEDED IF YOU "CREATE" VARIABLES WITHIN THIS METHOD
     # AND ACCESS THEM ELSEWHERE
-    global gpsperiod, t1, ser, logfile, tlt, cached_nmea_obj
+    global gpsperiod, t1, ser, logfile, tlt, cached_nmea_obj, cached_xyz_obj
     # cached_nmea_obj = (None,None)
     cached_nmea_obj = None
+    cached_xyz_obj = None
     gpsperiod = 10
     serialPort = config['gps']['serial_port']
     # REPLACE WITH COMx IF ON WINDOWS
@@ -171,7 +209,9 @@ def on_startup():
     send('ECHO OFF')
     send('UNLOGALL')
     send('ANTENNAPOWER ON')
-    send('LOG GPGGA ONTIME 8')
+    send('FIX AUTO')
+    send('log gpgga ontime 8')
+    send('log bestxyz ontime 9')
     # send("ANTENNAPOWER OFF")
 
 
@@ -184,13 +224,14 @@ def enter_normal_mode():
     send('ASSIGNALL AUTO')
     send('ANTENNAPOWER ON')
     send('log gpgga ontime 600')
+    send('log bestxyz ontime 600')
 
 
 def enter_low_power_mode():
     #UPDATE GPS MODULE INTERNAL COORDINATES EVERY HOUR
     #update_internal_coords() IF THIS METHOD IS NECESSARY MESSAGE ME(Anup)
     # time.sleep(3600)
-    pass #dw its for now
+    pass
 
 
 def enter_emergency_mode():
