@@ -18,7 +18,6 @@ lat = -1.0
 lon = -1.0
 alt = -1.0
 
-#time = datetime.time(0, 0, 0)
 
 
 # EDIT THIS TO WORK WITH GPS
@@ -97,6 +96,8 @@ def parse_xyz_packet(packet):
     packet = packet[findnth(packet,' ',7)+1:]
 
     result = {}
+    #specific message @ https://docs.novatel.com/OEM7/Content/PDFs/OEM7_Commands_Logs_Manual.pdf
+    #pg.434 table.73
     status_code = {'SOL_COMPUTED':0,'INSUFFICIENT_OBS':-1,'NO_CONVERGENCE':2,
                    'SINGULARITY':3,'COV_TRACE':4,'TEST_DIST':5,
                    'COLD_START':6,'V_H_LIMIT':7,'VARIANCE':8,
@@ -212,7 +213,7 @@ def on_startup():
     send('FIX AUTO')
     send('log gpgga ontime 8')
     send('log bestxyz ontime 9')
-    # send("ANTENNAPOWER OFF")
+    #enter_normal_mode()
 
 
 # I NEED TO KNOW WHAT NEEDS TO BE DONE IN NORMAL, LOW POWER, AND EMERGENCY MODES
@@ -221,10 +222,11 @@ def enter_normal_mode():
     #update_internal_coords() IF THIS METHOD IS NECESSARY MESSAGE ME(Anup)
     # time.sleep(600)
     send('ECHO OFF')
+    send('FIX AUTO')
     send('ASSIGNALL AUTO')
     send('ANTENNAPOWER ON')
-    send('log gpgga ontime 600')
-    send('log bestxyz ontime 600')
+    send('log gpgga ontime 600') #update lat/lon/alt
+    send('log bestxyz ontime 600') #update x-y-z vel
 
 
 def enter_low_power_mode():
