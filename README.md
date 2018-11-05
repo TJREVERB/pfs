@@ -1,7 +1,7 @@
 # pfs
 
 ## TODO
-- [ ] Update clock from GPS once/minute
+- [x] Update clock from GPS once/minute
 - [ ] implement bursted telemetry
 - [x] implement commands
 - [x] implement telemetry
