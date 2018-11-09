@@ -150,16 +150,11 @@ def on_startup():
     # OPENS THE SERIAL PORT FOR ALL METHODS TO USE WITH 19200 BAUD
     ser = serial.Serial(serialPort, 9600)
 
-    testT = ThreadHandler(target=lambda: listen(), parent_logger=logger, auto_restart=False)
-    testT.start()
+    listenT = ThreadHandler(target=partial(listen), parent_logger=logger, auto_restart=False)
+    listenT.start()
 
-    time.sleep(5)
-
-    testT.resume()
-
-    time.sleep(5)
-
-    testT.pause()
+    gpsT = ThreadHandler(target=partial(gpsbeacon), parent_logger=logger, auto_restart=True)
+    gpsT.start()
     #
     # listenT = Thread(target=threadhandler(listen, parent_logger=logger), name="listen", daemon=True)
     # listenT.start()

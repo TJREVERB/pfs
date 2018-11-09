@@ -10,7 +10,13 @@ class ThreadHandler:
 
         self.target = target
 
-        self.name = name
+        if name is None:
+            if type(target) == functools.partial:
+                self.name = target.func.__name__
+            else:
+                self.name = "thread_" + str(id(self))
+        else:
+            self.name = name
 
         self.parent_logger = parent_logger
         self.interval = interval
