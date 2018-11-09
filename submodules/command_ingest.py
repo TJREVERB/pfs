@@ -2,6 +2,11 @@ import logging
 import time
 from . import aprs
 from . import gps
+# from . import adcs
+# from . import eps
+# from . import imu
+# from . import iridium
+# from . import telemetry
 
 logger = logging.getLogger("CI")
 
@@ -51,12 +56,12 @@ def on_startup():
     # modules = {'A':core,'B':m_aprs,'C':'iridium','D':'housekeeping','E':'log','F':'GPS'}
     m_aprs = {'a': aprs.enqueue, 'b': aprs.enter_normal_mode, 'c': aprs.enter_low_power_mode, 'd': aprs.enter_emergency_mode}
     m_gps = {'a': gps.sendgpsthruaprs, 'b': gps.queryfield, 'c': gps.querygps, 'd': gps.querypastgps, 'e': gps.getsinglegps, 'f': gps.enter_normal_mode, 'g': gps.enter_low_power_mode, 'h': gps.enter_emergency_mode}
-    m_adcs = {'a': adcs.enter_normal_mode, 'b': adcs.enter_low_power_mode, 'c': adcs.enter_emergency_mode}
-    m_eps = {'a': eps.pin_on, 'b': eps.pin_off, 'c': eps.get_PDM_status, 'd': eps.get_board_status, 'e': eps.set_system_watchdog_timeout, 'f': eps.get_BCR1_volts, 'g': eps.get_BCR1_amps_A, 'h': eps.get_BCR1_amps_B, 'i': eps.get_board_telem, 'j': eps.enter_normal_mode, 'k': eps.enter_low_power_mode, 'l': eps.enter_emergency_mode}
-    m_imu = {'a': imu.enter_normal_mode, 'b': imu.enter_low_power_mode, 'c': imu.enter_emergency_mode}
-    m_iridium = {}  # BLANK - nothing useful is in iridium.py
-    m_housekeeping = {'a': housekeeping.enter_normal_mode, 'b': housekeeping.enter_low_power_mode, 'c': housekeeping.enter_emergency_mode}
-    m_telemetry = {'a': telemetry.gps_subpacket, 'b': telemetry.adcs_subpacket, 'c': telemetry.comms_subpacket, 'd': telemetry.system_subpacket}
-
-    modules = {'B': m_aprs, 'C': m_iridium, 'D': m_housekeeping, 'F': m_gps, 'G': m_eps, 'H': m_adcs, 'I': m_imu, 'J': m_telemetry}
+    # m_adcs = {'a': adcs.enter_normal_mode, 'b': adcs.enter_low_power_mode, 'c': adcs.enter_emergency_mode}
+    # m_eps = {'a': eps.pin_on, 'b': eps.pin_off, 'c': eps.get_PDM_status, 'd': eps.get_board_status, 'e': eps.set_system_watchdog_timeout, 'f': eps.get_BCR1_volts, 'g': eps.get_BCR1_amps_A, 'h': eps.get_BCR1_amps_B, 'i': eps.get_board_telem, 'j': eps.enter_normal_mode, 'k': eps.enter_low_power_mode, 'l': eps.enter_emergency_mode}
+    # m_imu = {'a': imu.enter_normal_mode, 'b': imu.enter_low_power_mode, 'c': imu.enter_emergency_mode}
+    # m_iridium = {}  # BLANK - nothing useful is in iridium.py
+    # m_housekeeping = {'a': housekeeping.enter_normal_mode, 'b': housekeeping.enter_low_power_mode, 'c': housekeeping.enter_emergency_mode}
+    # m_telemetry = {'a': telemetry.gps_subpacket, 'b': telemetry.adcs_subpacket, 'c': telemetry.comms_subpacket, 'd': telemetry.system_subpacket}
+    modules = {'B': m_aprs, 'F': m_gps}
+    # modules = {'B': m_aprs, 'C': m_iridium, 'D': m_housekeeping, 'F': m_gps, 'G': m_eps, 'H': m_adcs, 'I': m_imu, 'J': m_telemetry}
     # core = {}
