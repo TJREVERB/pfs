@@ -2,6 +2,7 @@ import logging
 import os
 import threading
 import time
+from functools import partial
 from subprocess import call
 from threading import Thread
 
@@ -13,7 +14,7 @@ import serial
 from core import config
 from . import aprs
 
-from .threadhandler import threadhandler
+from .threadhandler import ThreadHandler
 
 logger = logging.getLogger("GPS")
 
@@ -80,6 +81,8 @@ def send(msg):
 
 def listen():
     while True:
+        time.sleep(2)
+        raise Exception("EX")
         # Read in a full message from serial
         line = ser.readline()
         # Dispatch command
@@ -147,11 +150,23 @@ def on_startup():
     # OPENS THE SERIAL PORT FOR ALL METHODS TO USE WITH 19200 BAUD
     ser = serial.Serial(serialPort, 9600)
 
-    # Start threads using threadhandler
-    listenT = Thread(target=threadhandler(listen, parent_logger=logger), name="listen", daemon=True)
-    listenT.start()
-    gpsbeaconT = Thread(target=threadhandler(gpsbeacon, parent_logger=logger), name="gpsbeacon", daemon=True)
-    gpsbeaconT.start()
+    testT = ThreadHandler(target=lambda: listen(), parent_logger=logger, auto_restart=False)
+    testT.start()
+
+    time.sleep(5)
+
+    testT.resume()
+
+    time.sleep(5)
+
+    testT.pause()
+    #
+    # listenT = Thread(target=threadhandler(listen, parent_logger=logger), name="listen", daemon=True)
+    # listenT.start()
+
+
+    # gpsbeaconT = Thread(target=threadhandler(gpsbeacon, parent_logger=logger), name="gpsbeacon", daemon=True)
+    # gpsbeaconT.start()
 
     tlt = time.localtime()
     # Open the log file
