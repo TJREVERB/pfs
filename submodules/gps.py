@@ -112,6 +112,13 @@ def parse_xyz_packet(packet):
 
     return result
 
+def parse_nmea_obj(packet):
+    result = {}
+    result['lat'] = packet.lat
+    result['lon'] = packet.lon
+    result['alt'] = packet.alt
+    result['time'] = packet.timestamp
+    return result    
 
 def parse_gps_packet(packet):
     global cached_nmea_obj, lat, lon, alt, cached_xyz_obj, ser
@@ -122,18 +129,23 @@ def parse_gps_packet(packet):
     if packet[0:6] == '$GPGGA':
         # logger.info('POS UPDATE')
         nmea_obj = pynmea2.parse(packet)
-        cached_nmea_obj = nmea_obj
-        lon = cached_nmea_obj.lon
-        lat = cached_nmea_obj.lat
-        alt = cached_nmea_obj.altitude
-        updateTime(cached_nmea_obj.timestamp)
+        cached_nmea_obj = parse_nmea_obj(nmea_obj)
+        #lon = cached_nmea_obj.lon
+        #lat = cached_nmea_obj.lat
+        #alt = cached_nmea_obj.altitude
+        updateTime(cached_nmea_obj['time'])
     elif packet[0:8] == '<BESTXYZ':
         packet = ser.readline()
         xyz_obj = parse_xyz_packet(packet[6:-33].decode("ascii"))
         cached_xyz_obj = xyz_obj
-        pass
+    cached_data_obj = merge(cached,
+        
 
 
+def merge(x,y):
+    z = x.copy()
+    z.update(y)
+    return z
 
 
 def gpsbeacon():
