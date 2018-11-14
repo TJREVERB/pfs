@@ -130,15 +130,15 @@ def parse_gps_packet(packet):
         # logger.info('POS UPDATE')
         nmea_obj = pynmea2.parse(packet)
         cached_nmea_obj = parse_nmea_obj(nmea_obj)
-        #lon = cached_nmea_obj.lon
-        #lat = cached_nmea_obj.lat
-        #alt = cached_nmea_obj.altitude
+        lon = cached_nmea_obj['lon']
+        lat = cached_nmea_obj['lat']
+        alt = cached_nmea_obj['alt']
         updateTime(cached_nmea_obj['time'])
     elif packet[0:8] == '<BESTXYZ':
         packet = ser.readline()
         xyz_obj = parse_xyz_packet(packet[6:-33].decode("ascii"))
         cached_xyz_obj = xyz_obj
-    cached_data_obj = merge(cached,
+    cached_data_obj = merge(cached_nmea_obj,cached_xyz_obj)
         
 
 
@@ -224,14 +224,22 @@ def on_startup():
     send('ANTENNAPOWER ON')
     send('FIX AUTO')
     send('log gpgga ontime 8')
+    # Check for signal, pynmea.parse throws pynmea2.nema.ChecksumError if there is no signal
+    while(True):
+        try:
+            pynmea2.parse(ser.readline()[2:-5])
+            break
+        except pynmea2.nmea.ChecksumError:
+            time.sleep(1)
+
     send('log bestxyz ontime 9')
-    #enter_normal_mode()
+    # enter_normal_mode()
 
 
 # I NEED TO KNOW WHAT NEEDS TO BE DONE IN NORMAL, LOW POWER, AND EMERGENCY MODES
 def enter_normal_mode():
     # UPDATE GPS MODULE INTERNAL COORDINATES EVERY 10 MINUTES
-    #update_internal_coords() IF THIS METHOD IS NECESSARY MESSAGE ME(Anup)
+    # update_internal_coords() IF THIS METHOD IS NECESSARY MESSAGE ME(Anup)
     # time.sleep(600)
     send('ECHO OFF')
     send('FIX AUTO')
@@ -242,8 +250,8 @@ def enter_normal_mode():
 
 
 def enter_low_power_mode():
-    #UPDATE GPS MODULE INTERNAL COORDINATES EVERY HOUR
-    #update_internal_coords() IF THIS METHOD IS NECESSARY MESSAGE ME(Anup)
+    # UPDATE GPS MODULE INTERNAL COORDINATES EVERY HOUR
+    # update_internal_coords() IF THIS METHOD IS NECESSARY MESSAGE ME(Anup)
     # time.sleep(3600)
     pass
 
