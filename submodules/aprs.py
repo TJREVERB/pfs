@@ -1,7 +1,7 @@
 import logging
 import os
 import time
-from threading import Thread
+from functools import partial
 from typing import Union
 
 import serial
@@ -10,6 +10,8 @@ from core import config
 # Initalize global variables
 from submodules import command_ingest
 from submodules import eps
+
+from submodules.threadhandler import ThreadHandler
 
 #PLACEHOLDER VALUES FOR TELEMETRY.PY
 total_received_ph = 100
@@ -104,9 +106,9 @@ def on_startup():
     ser = serial.Serial(config['aprs']['serial_port'], 19200)
 
     # Create all the background threads
-    t1 = Thread(target=listen, args=(), daemon=True)
-    t2 = Thread(target=send_loop, args=(), daemon=True)
-    t3 = Thread(target=telemetry_watchdog, args=(), daemon=True)
+    t1 = ThreadHandler(target=partial(listen), name="aprs-listen", parent_logger=logger)
+    t2 = ThreadHandler(target=partial(send_loop), name="aprs-send_loop", parent_logger=logger)
+    t3 = ThreadHandler(target=partial(telemetry_watchdog), name="aprs-telemetry_watchdog", parent_logger=logger)
 
     # Open the log file
     log_dir = os.path.join(config['core']['log_dir'], 'aprs')
@@ -117,7 +119,6 @@ def on_startup():
 
     # Mark the start of the log
     log_message('RUN@' + '-'.join([str(x) for x in time.localtime()[3:5]]))
-    t3.daemon = True
 
     # Start the background threads
     t1.start()

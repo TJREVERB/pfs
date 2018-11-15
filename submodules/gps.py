@@ -3,10 +3,12 @@ import os
 import sys
 import time
 from subprocess import call
-from threading import Thread
 
 import pynmea2
 import serial
+
+from submodules.threadhandler import ThreadHandler
+from functools import partial
 
 from core import config
 from . import aprs
@@ -200,11 +202,11 @@ def on_startup():
     # serialPort = "/dev/ttyS3"
     # OPENS THE SERIAL PORT FOR ALL METHODS TO USE WITH 19200 BAUD
     ser = serial.Serial(serialPort, 9600)
-    # CREATES A THREAD THAT RUNS THE LISTEN METHOD
-    t1 = Thread(target=listen, args=(), daemon=True)
+
+    t1 = ThreadHandler(target=partial(listen), name="gps-listen", parent_logger=logger)
     t1.start()
 
-    t3 = Thread(target=gpsbeacon, args=(), daemon=True)
+    t3 = ThreadHandler(target=partial(gpsbeacon), name="gps-gpsbeacon", parent_logger=logger)
     t3.start()
 
     tlt = time.localtime()
@@ -272,9 +274,8 @@ def log(msg):
 
 
 if __name__ == '__main__':
-
-    t2 = Thread(target=keyin, args=())
-    t2.daemon = True
+    t2 = ThreadHandler(target=partial(keyin), name="gps-keyin", parent_logger=logger)
     t2.start()
+
     while True:
         time.sleep(1)

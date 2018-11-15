@@ -2,7 +2,6 @@
 
 import base64
 import struct
-import threading
 import time
 
 import core, sys
@@ -16,6 +15,9 @@ from . import adcs
 from . import iridium
 
 import time
+
+from submodules.threadhandler import ThreadHandler
+from functools import partial
 
 listTelemPackets = []   # telem packet list
 sendingPackets = False  # don't add packets while sending them
@@ -107,10 +109,10 @@ def send():
 
 
 def on_startup():
-    t = threading.Thread(target=telemetry_collection, daemon=True)
-    t.start()
+    t1 = ThreadHandler(target=partial(telemetry_collection), name="telemetry-telemetry_collection")
+    t1.start()
 
-    t2 = threading.Thread(target=telemetry_send, daemon=True)
+    t2 = ThreadHandler(target=partial(telemetry_send), name="telemetry-telemetry_send")
     t2.start()
 
 

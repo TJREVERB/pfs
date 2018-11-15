@@ -1,14 +1,16 @@
 import logging
 import os
 import time
+from functools import partial
 from subprocess import call
-from threading import Thread
 
 import pynmea2
 import serial
 
 from core import config
 from . import aprs
+
+from submodules.threadhandler import ThreadHandler
 
 logger = logging.getLogger("ADCS")
 
@@ -53,7 +55,7 @@ def on_startup():
     # OPENS THE SERIAL PORT FOR ALL METHODS TO USE WITH 19200 BAUD
     # ser = serial.Serial(serialPort, 9600)
     # CREATES A THREAD THAT RUNS THE LISTEN METHOD
-    t1 = Thread(target=listen, args=(), daemon=True)
+    t1 = ThreadHandler(target=partial(listen), name="adcs-listen", parent_logger=logger)
     t1.start()
 
     tlt = time.localtime()
@@ -108,8 +110,7 @@ def log(msg):
 
 
 if __name__ == '__main__':
-
-    t2 = Thread(target=keyin, args=())
+    t2 = ThreadHandler(target=partial(keyin), name="adcs-keyin", parent_logger=logger)
     t2.daemon = True
     t2.start()
     while True:

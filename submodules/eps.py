@@ -3,13 +3,15 @@ import os
 import time
 import smbus
 from smbus2 import SMBusWrapper
-from threading import Thread
 from typing import Union
 
 import serial
 
 from core import config
 # Initalize global variables
+
+from submodules.threadhandler import ThreadHandler
+from functools import partial
 
 logger = logging.getLogger("EPS")
 pause_sending = False
@@ -103,8 +105,9 @@ def on_startup():
     #        pin_off(key)
     #        time.sleep(1)
     # Create all the background threads
-    t1 = Thread(target=led_on_off, args=(), daemon=True)
-    t2 = Thread(target=board_check, args=(), daemon=True)
+    t1 = ThreadHandler(target=partial(led_on_off), name="eps-led_on_off", parent_logger=logger)
+    t2 = ThreadHandler(target=partial(board_check), name="eps-board_check", parent_logger=logger)
+
     # Open the log file
     log_dir = os.path.join(config['core']['log_dir'], 'eps')
     filename = 'eps' + '-'.join([str(x) for x in time.localtime()[0:3]])
@@ -118,8 +121,6 @@ def on_startup():
     t1.daemon = True
     # Start the background threads
     #t1.start()
-    #t1.daemon = True
-    t2.daemon = True
     t2.start()
 
     # TESTING PURPOSES ONLY
