@@ -21,7 +21,6 @@ lon = -1.0
 alt = -1.0
 
 
-
 # EDIT THIS TO WORK WITH GPS
 def sendgpsthruaprs(givenarg):
     global cached_nmea_obj
@@ -87,32 +86,34 @@ def listen():
         # print(rr)
         # log('GOT: '+rr)
 
+
 def findnth(msg, val, n):
-    parts= msg.split(val, n+1)
-    if len(parts)<=n+1:
+    parts = msg.split(val, n + 1)
+    if len(parts) <= n + 1:
         return -1
-    return len(msg)-len(parts[-1])-len(val)
+    return len(msg) - len(parts[-1]) - len(val)
 
 
 def parse_xyz_packet(packet):
-    packet = packet[findnth(packet,' ',7)+1:]
+    packet = packet[findnth(packet, ' ', 7) + 1:]
 
     result = {}
-    #specific message @ https://docs.novatel.com/OEM7/Content/PDFs/OEM7_Commands_Logs_Manual.pdf
-    #pg.434 table.73
-    status_code = {'SOL_COMPUTED':0,'INSUFFICIENT_OBS':-1,'NO_CONVERGENCE':2,
-                   'SINGULARITY':3,'COV_TRACE':4,'TEST_DIST':5,
-                   'COLD_START':6,'V_H_LIMIT':7,'VARIANCE':8,
-                   'RESIDUALS':9,'INTEGRITY_WARNING':13,'PENDING':18,
-                   'INVALID_FIX':19,'UNAUTHORIZED':20,'INVALID_RATE':22
+    # specific message @ https://docs.novatel.com/OEM7/Content/PDFs/OEM7_Commands_Logs_Manual.pdf
+    # pg.434 table.73
+    status_code = {'SOL_COMPUTED': 0, 'INSUFFICIENT_OBS': -1, 'NO_CONVERGENCE': 2,
+                   'SINGULARITY': 3, 'COV_TRACE': 4, 'TEST_DIST': 5,
+                   'COLD_START': 6, 'V_H_LIMIT': 7, 'VARIANCE': 8,
+                   'RESIDUALS': 9, 'INTEGRITY_WARNING': 13, 'PENDING': 18,
+                   'INVALID_FIX': 19, 'UNAUTHORIZED': 20, 'INVALID_RATE': 22
                    }
     result['latency'] = float(packet[-5:])
-    result['status'] = status_code[packet[:findnth(packet,' ',0)]]
-    result['x_vel'] = float(packet[findnth(packet,' ',1)+1:findnth(packet,' ',2)])
-    result['y_vel'] = float(packet[findnth(packet,' ',2)+1:findnth(packet,' ',3)])
-    result['z_vel'] = float(packet[findnth(packet,' ',3)+1:findnth(packet,' ',4)])
+    result['status'] = status_code[packet[:findnth(packet, ' ', 0)]]
+    result['x_vel'] = float(packet[findnth(packet, ' ', 1) + 1:findnth(packet, ' ', 2)])
+    result['y_vel'] = float(packet[findnth(packet, ' ', 2) + 1:findnth(packet, ' ', 3)])
+    result['z_vel'] = float(packet[findnth(packet, ' ', 3) + 1:findnth(packet, ' ', 4)])
 
     return result
+
 
 def parse_nmea_obj(packet):
     result = {}
@@ -120,7 +121,8 @@ def parse_nmea_obj(packet):
     result['lon'] = packet.lon
     result['alt'] = packet.alt
     result['time'] = packet.timestamp
-    return result    
+    return result
+
 
 def parse_gps_packet(packet):
     global cached_nmea_obj, lat, lon, alt, cached_xyz_obj, ser
@@ -140,11 +142,10 @@ def parse_gps_packet(packet):
         packet = ser.readline()
         xyz_obj = parse_xyz_packet(packet[6:-33].decode("ascii"))
         cached_xyz_obj = xyz_obj
-    cached_data_obj = merge(cached_nmea_obj,cached_xyz_obj)
-        
+    cached_data_obj = merge(cached_nmea_obj, cached_xyz_obj)
 
 
-def merge(x,y):
+def merge(x, y):
     z = x.copy()
     z.update(y)
     return z
@@ -159,15 +160,16 @@ def gpsbeacon():
                 str(cached_nmea_obj.altitude) + str(cached_nmea_obj.altitude_units) + str(cached_nmea_obj.lat) + str(
                     cached_nmea_obj.lat_dir) + str(cached_nmea_obj.lon) + str(cached_nmea_obj.lon_dir))
         if cached_xyz_obj is not None:
-           adcs.updateVals(cached_xyz_obj)
-
+            adcs.updateVals(cached_xyz_obj)
 
     # if packet[]
+
 
 # Update system time based on the given time
 # time is a time object in UTC time
 def updateTime(time):
     os.system('date -s "' + str(time.hour) + ':' + str(time.minute) + ':' + str(time.second) + ' UTC"')
+
 
 def keyin():
     while (True):
@@ -176,6 +178,7 @@ def keyin():
         in1 = input("Type Command: ")
         send(in1)
         # send("TJ" + in1 + chr(sum([ord(x) for x in "TJ" + in1]) % 128))
+
 
 def thread(args1, stop_event, queue_obj):
     print("starting thread")
@@ -227,7 +230,7 @@ def on_startup():
     send('FIX AUTO')
     send('log gpgga ontime 8')
     # Check for signal, pynmea.parse throws pynmea2.nema.ChecksumError if there is no signal
-    while(True):
+    while (True):
         try:
             pynmea2.parse(ser.readline()[2:-5])
             break
@@ -247,8 +250,8 @@ def enter_normal_mode():
     send('FIX AUTO')
     send('ASSIGNALL AUTO')
     send('ANTENNAPOWER ON')
-    send('log gpgga ontime 600') #update lat/lon/alt
-    send('log bestxyz ontime 600') #update x-y-z vel
+    send('log gpgga ontime 600')  # update lat/lon/alt
+    send('log bestxyz ontime 600')  # update x-y-z vel
 
 
 def enter_low_power_mode():
@@ -263,7 +266,6 @@ def enter_emergency_mode():
     send('UNLOGALL')
     send('ANTENNAPOWER OFF')
     send('ASSIGNALL IDLE')
-
 
 
 # USE THIS LOG FUNCTION

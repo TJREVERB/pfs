@@ -13,12 +13,11 @@ from submodules import eps
 
 from submodules.threadhandler import ThreadHandler
 
-#PLACEHOLDER VALUES FOR TELEMETRY.PY
+# PLACEHOLDER VALUES FOR TELEMETRY.PY
 total_received_ph = 100
 success_checksum_ph = 60
 fail_checksum_ph = 40
 sent_messages_ph = 50
-
 
 # from submodules.command_ingest import logger, dispatch
 
@@ -126,6 +125,7 @@ def on_startup():
     t3.start()
 
     eps.pin_on('aprs')
+
 
 # Have the 3 below methods. Say pass if you dont know what to put there yet
 # these are in reference to power levels. Shut stuff down if we need to go to

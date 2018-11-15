@@ -13,7 +13,7 @@
 # from iridiumNotTest import *
 #
 #
-#PLACEHOLDER VALUES FOR TELEMETRY.PY
+# PLACEHOLDER VALUES FOR TELEMETRY.PY
 total_received_ph = 100
 success_checksum_ph = 60
 fail_checksum_ph = 40

@@ -14,6 +14,7 @@ from submodules.threadhandler import ThreadHandler
 
 logger = logging.getLogger("ADCS")
 
+
 def send(msg):
     msg += "\n"
     ser.write(msg.encode("utf-8"))
@@ -28,10 +29,12 @@ def listen():
         # print(rr)
         # log('GOT: '+rr)
 
+
 def updateVals(msg):
-    #saves velocity data from gps
+    # saves velocity data from gps
     global velocity_data
     velocity_data = msg
+
 
 def keyin():
     while (True):
@@ -89,18 +92,23 @@ def enter_low_power_mode():
 def enter_emergency_mode():
     pass
 
+
 # TODO fix this
 def get_pry():
-    return (-1,-1,-1)
+    return (-1, -1, -1)
+
 
 def get_mag():
-    return (-1,-1,-1)
+    return (-1, -1, -1)
+
 
 def get_abs():
-    return (-1,-1,-1)
+    return (-1, -1, -1)
+
 
 def can_TJ_be_seen():
-    return True # fix me!
+    return True  # fix me!
+
 
 # USE THIS LOG FUNCTION
 def log(msg):
