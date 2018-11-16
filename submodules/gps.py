@@ -11,8 +11,8 @@ from submodules.threadhandler import ThreadHandler
 from functools import partial
 
 from core import config
-from . import aprs
-from . import adcs
+#from . import aprs
+#from . import adcs
 
 logger = logging.getLogger("GPS")
 
@@ -194,23 +194,23 @@ def thread(args1, stop_event, queue_obj):
 def on_startup():
     # GLOBAL VARIABLES ARE NEEDED IF YOU "CREATE" VARIABLES WITHIN THIS METHOD
     # AND ACCESS THEM ELSEWHERE
-    global gpsperiod, t1, ser, logfile, tlt, cached_nmea_obj, cached_xyz_obj
+    global gpsperiod, t1, ser, logfile, tlt, cached_nmea_obj, cached_xyz_obj, t3
     # cached_nmea_obj = (None,None)
     cached_nmea_obj = None
     cached_xyz_obj = None
     gpsperiod = 10
     serialPort = config['gps']['serial_port']
     # REPLACE WITH COMx IF ON WINDOWS
-    # REPLACE WITH /dev/ttyUSBx if 1 DOESNT WORK
-    # serialPort = "/dev/ttyS3"
     # OPENS THE SERIAL PORT FOR ALL METHODS TO USE WITH 19200 BAUD
     ser = serial.Serial(serialPort, 9600)
+    # REPLACE WITH /dev/ttyUSBx if 1 DOESNT WORK
+    # serialPort = "/dev/ttyS3"
 
     t1 = ThreadHandler(target=partial(listen), name="gps-listen", parent_logger=logger)
-    t1.start()
+    # t1.start()
 
     t3 = ThreadHandler(target=partial(gpsbeacon), name="gps-gpsbeacon", parent_logger=logger)
-    t3.start()
+    # t3.start()
 
     tlt = time.localtime()
 
@@ -224,21 +224,37 @@ def on_startup():
 
     log('RUN@' + '-'.join([str(x) for x in tlt[3:5]]))
 
+    start_loop()
+    # enter_normal_mode()
+
+
+def wait_for_signal():
+    logger.info("WAITING FOR GPS SIGNAL")
+    while(True):
+        try:
+            packet = ser.readline()[2:-5]
+            packet = pynmea2.parse(packet)
+            if(packet.lon != ''):
+                logger.info("GPS SIGNAL ACQUIRED")
+                return
+            else:
+                continue
+        except:
+            continue
+
+
+def start_loop():
+    global t1, t2
     send('ECHO OFF')
     send('UNLOGALL')
     send('ANTENNAPOWER ON')
+    send('ASSIGNALL AUTO')
     send('FIX AUTO')
     send('log gpgga ontime 8')
-    # Check for signal, pynmea.parse throws pynmea2.nema.ChecksumError if there is no signal
-    while (True):
-        try:
-            pynmea2.parse(ser.readline()[2:-5])
-            break
-        except pynmea2.nmea.ChecksumError:
-            time.sleep(1)
-
+    wait_for_signal()
+    t1.start()
+    t3.start()
     send('log bestxyz ontime 9')
-    # enter_normal_mode()
 
 
 # I NEED TO KNOW WHAT NEEDS TO BE DONE IN NORMAL, LOW POWER, AND EMERGENCY MODES
@@ -246,12 +262,7 @@ def enter_normal_mode():
     # UPDATE GPS MODULE INTERNAL COORDINATES EVERY 10 MINUTES
     # update_internal_coords() IF THIS METHOD IS NECESSARY MESSAGE ME(Anup)
     # time.sleep(600)
-    send('ECHO OFF')
-    send('FIX AUTO')
-    send('ASSIGNALL AUTO')
-    send('ANTENNAPOWER ON')
-    send('log gpgga ontime 600')  # update lat/lon/alt
-    send('log bestxyz ontime 600')  # update x-y-z vel
+    start_loop()
 
 
 def enter_low_power_mode():
