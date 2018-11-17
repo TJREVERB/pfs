@@ -74,8 +74,6 @@ def recordgps():
 
 
 def getsinglegps():
-    # EXAMPLE METHOD THAT STILL NEEDS TO BE FLESHED OUT
-    # AS YOU CAN SEE THERRE'S STILL A TON TO DO
     global t1,t2, cached_data_obj
     eps.pin_on('gps')
     t1.pause()
@@ -89,6 +87,8 @@ def getsinglegps():
     cached_data_obj = gpsdata
     log(gpsdata)
     send("ANTENNAPOWER OFF")
+    send("ASSIGNALL IDLE")
+    eps.pin_off('gps')
     return gpsdata
     # end pseudo
 
@@ -186,8 +186,8 @@ def gpsbeacon():
         time.sleep(gpsperiod)
         if cached_nmea_obj is not None:
             aprs.enqueue(
-                str(cached_nmea_obj.altitude) + str(cached_nmea_obj.altitude_units) + str(cached_nmea_obj.lat) + str(
-                    cached_nmea_obj.lat_dir) + str(cached_nmea_obj.lon) + str(cached_nmea_obj.lon_dir))
+                str(cached_nmea_obj['alt']) + str(cached_nmea_obj['alt_units']) + str(cached_nmea_obj['lat']) + str(
+                    cached_nmea_obj['lat_dir']) + str(cached_nmea_obj['lon']) + str(cached_nmea_obj['lon_dir']))
         if cached_xyz_obj is not None:
             adcs.updateVals(cached_xyz_obj)
 
@@ -223,10 +223,11 @@ def thread(args1, stop_event, queue_obj):
 def on_startup():
     # GLOBAL VARIABLES ARE NEEDED IF YOU "CREATE" VARIABLES WITHIN THIS METHOD
     # AND ACCESS THEM ELSEWHERE
-    global gpsperiod, t1, ser, logfile, tlt, cached_nmea_obj, cached_xyz_obj, t3
+    global gpsperiod, t1, ser, logfile, tlt, cached_nmea_obj, cached_xyz_obj, t3, cached_data_obj
     # cached_nmea_obj = (None,None)
     cached_nmea_obj = None
     cached_xyz_obj = None
+    cached_data_obj = None
     gpsperiod = 10
     serialPort = config['gps']['serial_port']
     # REPLACE WITH COMx IF ON WINDOWS
@@ -256,6 +257,7 @@ def on_startup():
     start_loop()
     # enter_normal_mode()
 
+
 # TODO not 100% functional
 def wait_for_signal():
     a = True
@@ -283,11 +285,11 @@ def start_loop():
     send('ANTENNAPOWER ON')
     send('ASSIGNALL AUTO')
     send('FIX AUTO')
-    send('log gpgga ontime 1')
     wait_for_signal()
+    send('log gpgga ontime 8')
+    send('log bestxyz ontime 8')
     t1.start()
     t3.start()
-    send('log bestxyz ontime 9')
 
 
 # I NEED TO KNOW WHAT NEEDS TO BE DONE IN NORMAL, LOW POWER, AND EMERGENCY MODES
