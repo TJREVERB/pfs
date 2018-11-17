@@ -11,8 +11,9 @@ from submodules.threadhandler import ThreadHandler
 from functools import partial
 
 from core import config
-#from . import aprs
-#from . import adcs
+from . import aprs
+from . import adcs
+from . import eps
 
 logger = logging.getLogger("GPS")
 
@@ -53,14 +54,39 @@ def passivegps():
         time.sleep(gpsperiod)
         cached_nmea_obj = getsinglegps()
 
+def recordgps():
+    global cached_nmea_obj, cached_xyz_obj
+    send("log gpgg ontime 1")
+    time.sleep(1)
+    gps_packet = ser.readline()[2:-5]
+    send("unlogall")
+    send("log bestxyz ontime 1")
+    time.sleep(1)
+    temp = ser.readline()[2:-5]
+    xyz_packet = ser.readline()[2:-5]
+    gps_packet = parse_nmea_obj(pynmea2.parse(gps_packet))
+    updateTime(gps_packet['time'])
+    cached_nmea_obj = gps_packet
+    xyz_packet = parse_xyz_packet(xyz_packet)
+    cached_xyz_obj = xyz_packet
+    send("unlogall")
+    return merge(gps_packet,xyz_packet)
+
 
 def getsinglegps():
     # EXAMPLE METHOD THAT STILL NEEDS TO BE FLESHED OUT
     # AS YOU CAN SEE THERRE'S STILL A TON TO DO
+    global t1,t2, cached_data_obj
+    eps.pin_on('gps')
+    t1.pause()
+    t3.pause()
     send("ANTENNAPOWER ON")
+    send("FIX AUTO")
+    wait_for_signal()
     # pseudo
     # checkifgpslock()
     gpsdata = recordgps()
+    cached_data_obj = gpsdata
     log(gpsdata)
     send("ANTENNAPOWER OFF")
     return gpsdata
@@ -119,13 +145,16 @@ def parse_nmea_obj(packet):
     result = {}
     result['lat'] = packet.lat
     result['lon'] = packet.lon
-    result['alt'] = packet.alt
+    result['alt'] = packet.altitude
+    result['alt_unit'] = packet.altitude_units
+    result['lon_dir'] = packet.lon_dir
+    result['lat_dir'] = packet.lat_dir
     result['time'] = packet.timestamp
     return result
 
 
 def parse_gps_packet(packet):
-    global cached_nmea_obj, lat, lon, alt, cached_xyz_obj, ser
+    global cached_nmea_obj, lat, lon, alt, cached_xyz_obj, cached_data_obj
     packet = str(packet)[2:-5]
     logger.info(packet)
     # packet = packet[]
@@ -207,10 +236,10 @@ def on_startup():
     # serialPort = "/dev/ttyS3"
 
     t1 = ThreadHandler(target=partial(listen), name="gps-listen", parent_logger=logger)
-    # t1.start()
+    # t1.start() handled in start_loop()
 
     t3 = ThreadHandler(target=partial(gpsbeacon), name="gps-gpsbeacon", parent_logger=logger)
-    # t3.start()
+    # t3.start() handled in start_loop()
 
     tlt = time.localtime()
 
@@ -227,20 +256,24 @@ def on_startup():
     start_loop()
     # enter_normal_mode()
 
-
+# TODO not 100% functional
 def wait_for_signal():
+    a = True
     logger.info("WAITING FOR GPS SIGNAL")
-    while(True):
+    send("log gpgga ontime 1")
+    while a:
         try:
             packet = ser.readline()[2:-5]
             packet = pynmea2.parse(packet)
             if(packet.lon != ''):
                 logger.info("GPS SIGNAL ACQUIRED")
-                return
+                send("unlogall")
+                a = False
             else:
-                continue
+                time.sleep(1)
         except:
-            continue
+            time.sleep(1)
+    return
 
 
 def start_loop():
@@ -250,7 +283,7 @@ def start_loop():
     send('ANTENNAPOWER ON')
     send('ASSIGNALL AUTO')
     send('FIX AUTO')
-    send('log gpgga ontime 8')
+    send('log gpgga ontime 1')
     wait_for_signal()
     t1.start()
     t3.start()
@@ -258,6 +291,7 @@ def start_loop():
 
 
 # I NEED TO KNOW WHAT NEEDS TO BE DONE IN NORMAL, LOW POWER, AND EMERGENCY MODES
+# IS THERE ANYHING MORE TO BE DONE
 def enter_normal_mode():
     # UPDATE GPS MODULE INTERNAL COORDINATES EVERY 10 MINUTES
     # update_internal_coords() IF THIS METHOD IS NECESSARY MESSAGE ME(Anup)
