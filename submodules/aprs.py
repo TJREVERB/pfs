@@ -1,12 +1,10 @@
 import logging
 import time
 from functools import partial
-from typing import Union
 
 import serial
 
 from core import config
-# Initalize global variables
 from . import command_ingest
 from . import eps
 from .command_ingest import command
@@ -18,18 +16,14 @@ success_checksum_ph = 60
 fail_checksum_ph = 40
 sent_messages_ph = 50
 
-# from submodules.command_ingest import logger, dispatch
-
+# Initialize global variables
 logger = logging.getLogger("APRS")
-pause_sending = False
 send_buffer = []
-beacon_seen = False
 last_telem_time = time.time()
 last_message_time = time.time()
 
-user = False
 bperiod = 60
-ser: Union[serial.Serial, None] = None
+ser = None
 
 
 # Put a packet in the APRS queue.  The APRS queue exists
@@ -72,7 +66,7 @@ def telemetry_watchdog():
 
 
 def listen():
-    global last_message_time, last_telem_time, beacon_seen, pause_sending
+    global last_message_time, last_telem_time
     while True:
         # Read in a full message from serial
         line = ser.readline()
@@ -81,9 +75,7 @@ def listen():
         last_message_time = time.time()
         if line[0:2] == 'T#':  # Telemetry Packet: APRS special case
             last_telem_time = time.time()
-            beacon_seen = True
-            pause_sending = True
-            logger.debug('Telem heartbeat received')
+            logger.debug('APRS Telemetry heartbeat received')
             continue  # don't parse telemetry packets
 
         # Dispatch command
@@ -98,8 +90,7 @@ def parse_aprs_packet(packet: str) -> str:
     header_index = raw_packet.find(':')
     if header_index == -1:
         logger.error("Incomplete APRS header!")
-        raise RuntimeError()
-        # return
+        return ""  # TODO: make sure this is what we want to do
     header = raw_packet[:header_index]
     logger.debug("header: " + header)
     data = raw_packet[header_index + 1:]
@@ -115,7 +106,7 @@ def parse_aprs_packet(packet: str) -> str:
 
 # Method that is called upon application startup.
 def on_startup():
-    global ser, logfile
+    global ser
     # Opens the serial port for all methods to use with 19200 baud
     ser = serial.Serial(config['aprs']['serial_port'], 19200)
 

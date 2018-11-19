@@ -14,15 +14,6 @@ from submodules.threadhandler import ThreadHandler
 from functools import partial
 
 logger = logging.getLogger("EPS")
-pause_sending = False
-send_buffer = []
-beacon_seen = False
-last_telem_time = time.time()
-last_message_time = time.time()
-
-user = False
-bperiod = 60
-ser: Union[serial.Serial, None] = None
 
 address = 43
 
@@ -110,7 +101,6 @@ def board_check():
 
 # Method that is called upon application startup.
 def on_startup():
-    global ser, logfile
     global address, bus
 
     bus = smbus.SMBus(1)
@@ -123,17 +113,6 @@ def on_startup():
     t1 = ThreadHandler(target=partial(led_on_off), name="eps-led_on_off", parent_logger=logger)
     t2 = ThreadHandler(target=partial(board_check), name="eps-board_check", parent_logger=logger)
 
-    # Open the log file
-    log_dir = os.path.join(config['core']['log_dir'], 'eps')
-    filename = 'eps' + '-'.join([str(x) for x in time.localtime()[0:3]])
-    if not os.path.exists(log_dir):
-        os.mkdir(log_dir)
-    logfile = open(os.path.join(log_dir, filename + '.txt'), 'a+')
-
-    # Mark the start of the log
-    log_message('RUN@' + '-'.join([str(x) for x in time.localtime()[3:5]]))
-
-    t1.daemon = True
     # Start the background threads
     # t1.start()
     t2.start()
@@ -148,21 +127,11 @@ def on_startup():
 # these are in reference to power levels. Shut stuff down if we need to go to
 # emergency mode or low power. Entering normal mode should turn them back on
 def enter_normal_mode():
-    global bperiod
-    bperiod = 60
-
+    pass
 
 def enter_low_power_mode():
-    global bperiod
-    bperiod = 120
+    pass
 
 
 def enter_emergency_mode():
     pass
-
-
-def log_message(msg):
-    global logfile
-    # Write to file
-    logfile.write(msg + '\n')
-    logfile.flush()
