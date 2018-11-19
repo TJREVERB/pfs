@@ -26,16 +26,7 @@ ser: Union[serial.Serial, None] = None
 
 address = 43
 
-epsdict = {'gps': 1, 'magnetorquer': 2, 'aprs': 4, \
-           'iridium': 3, 'antenna': 5, 'a': 6, 'b': 7, 'e': 8, 'd': 9, 'e': 10}
-
-
-def listen():
-    while True:
-        # Read in a full message from serial
-        line = ser.readline()
-        # Dispatch command
-        parse_aprs_packet(line)
+epsdict = {'gps': 1, 'magnetorquer': 2, 'aprs': 4, 'iridium': 3, 'antenna': 5, 'a': 6, 'b': 7, 'e': 8, 'd': 9, 'e': 10}
 
 
 def pin_on(device_name):

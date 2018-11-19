@@ -48,7 +48,7 @@ def send_heartbeat():
         enc = struct.pack('I', int((2 ** 24 - 1) * battery_level))[:3]
         packet += base64.b64encode(enc)
         # Command stats
-        enc = struct.pack('HHH', command_ingest.total_recieved, command_ingest.total_errors,
+        enc = struct.pack('HHH', command_ingest.total_received, command_ingest.total_errors,
                           command_ingest.total_success)
         packet += base64.b64encode(enc)
         radio_output.send_immediate_raw(packet)

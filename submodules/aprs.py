@@ -1,5 +1,4 @@
 import logging
-import os
 import time
 from functools import partial
 from typing import Union
@@ -8,10 +7,10 @@ import serial
 
 from core import config
 # Initalize global variables
-from submodules import command_ingest
-from submodules import eps
-
-from submodules.threadhandler import ThreadHandler
+from . import command_ingest
+from . import eps
+from .command_ingest import command
+from .threadhandler import ThreadHandler
 
 # PLACEHOLDER VALUES FOR TELEMETRY.PY
 total_received_ph = 100
@@ -36,7 +35,8 @@ ser: Union[serial.Serial, None] = None
 # Put a packet in the APRS queue.  The APRS queue exists
 # only to make sure that we don't send and receive at the
 # same time.
-def enqueue(msg):
+@command("aprs_echo", str)
+def enqueue(msg: str) -> None:
     global send_buffer
     msg = msg + "\r\n"
     send_buffer += [msg]
@@ -72,30 +72,45 @@ def telemetry_watchdog():
 
 
 def listen():
+    global last_message_time, last_telem_time, beacon_seen, pause_sending
     while True:
         # Read in a full message from serial
         line = ser.readline()
+
+        # update last message time
+        last_message_time = time.time()
+        if line[0:2] == 'T#':  # Telemetry Packet: APRS special case
+            last_telem_time = time.time()
+            beacon_seen = True
+            pause_sending = True
+            logger.debug('Telem heartbeat received')
+            continue  # don't parse telemetry packets
+
         # Dispatch command
-        parse_aprs_packet(line)
+        parsed = parse_aprs_packet(line)
+        command_ingest.dispatch(parsed)
 
 
-def parse_aprs_packet(packet):
+# Given a raw radio packet, strip the APRS junk off of it and make it into pure data.
+def parse_aprs_packet(packet: str) -> str:
     raw_packet = str(packet)
-    logger.info("From APRS: " + raw_packet)
+    logger.debug("From APRS: " + raw_packet)
     header_index = raw_packet.find(':')
     if header_index == -1:
-        logger.info("Incomplete header")
-        return
+        logger.error("Incomplete APRS header!")
+        raise RuntimeError()
+        # return
     header = raw_packet[:header_index]
-    logger.info("header: " + header)
+    logger.debug("header: " + header)
     data = raw_packet[header_index + 1:]
 
     if len(data) == 0:
-        logger.debug("Empty body")
-        return
+        logger.warning("Empty packet body!")
+        # return ""
 
     logger.debug("Body: " + data)
-    command_ingest.dispatch(data)
+    return data
+    # command_ingest.dispatch(data)
 
 
 # Method that is called upon application startup.
@@ -109,21 +124,12 @@ def on_startup():
     t2 = ThreadHandler(target=partial(send_loop), name="aprs-send_loop", parent_logger=logger)
     t3 = ThreadHandler(target=partial(telemetry_watchdog), name="aprs-telemetry_watchdog", parent_logger=logger)
 
-    # Open the log file
-    log_dir = os.path.join(config['core']['log_dir'], 'aprs')
-    filename = 'aprs' + '-'.join([str(x) for x in time.localtime()[0:3]])
-    if not os.path.exists(log_dir):
-        os.mkdir(log_dir)
-    logfile = open(os.path.join(log_dir, filename + '.txt'), 'a+')
-
-    # Mark the start of the log
-    log_message('RUN@' + '-'.join([str(x) for x in time.localtime()[3:5]]))
-
     # Start the background threads
     t1.start()
     t2.start()
     t3.start()
 
+    # Turn the power on.  TODO: Power check before turn-on
     eps.pin_on('aprs')
 
 
@@ -142,10 +148,3 @@ def enter_low_power_mode():
 
 def enter_emergency_mode():
     pass
-
-
-def log_message(msg):
-    global logfile
-    # Write to file
-    logfile.write(msg + '\n')
-    logfile.flush()
