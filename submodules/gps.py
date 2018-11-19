@@ -11,15 +11,11 @@ from submodules.threadhandler import ThreadHandler
 from functools import partial
 
 from core import config
-from . import aprs
-from . import adcs
-from . import eps
+
+# from . import aprs
+# from . import eps
 
 logger = logging.getLogger("GPS")
-
-lat = -1.0
-lon = -1.0
-alt = -1.0
 
 
 # EDIT THIS TO WORK WITH GPS
@@ -54,6 +50,7 @@ def passivegps():
         time.sleep(gpsperiod)
         cached_nmea_obj = getsinglegps()
 
+
 def recordgps():
     global cached_nmea_obj, cached_xyz_obj
     send("log gpgg ontime 1")
@@ -70,13 +67,13 @@ def recordgps():
     xyz_packet = parse_xyz_packet(xyz_packet)
     cached_xyz_obj = xyz_packet
     send("unlogall")
-    return merge(gps_packet,xyz_packet)
+    return merge(gps_packet, xyz_packet)
 
 
 def getsinglegps():
     # EXAMPLE METHOD THAT STILL NEEDS TO BE FLESHED OUT
     # AS YOU CAN SEE THERRE'S STILL A TON TO DO
-    global t1,t2, cached_data_obj
+    global t1, t2, cached_data_obj
     eps.pin_on('gps')
     t1.pause()
     t3.pause()
@@ -121,6 +118,7 @@ def findnth(msg, val, n):
 
 
 def parse_xyz_packet(packet):
+    logger.info("parsing xyz")
     packet = packet[findnth(packet, ' ', 7) + 1:]
 
     result = {}
@@ -132,7 +130,6 @@ def parse_xyz_packet(packet):
                    'RESIDUALS': 9, 'INTEGRITY_WARNING': 13, 'PENDING': 18,
                    'INVALID_FIX': 19, 'UNAUTHORIZED': 20, 'INVALID_RATE': 22
                    }
-    result['latency'] = float(packet[-5:])
     result['status'] = status_code[packet[:findnth(packet, ' ', 0)]]
     result['x_vel'] = float(packet[findnth(packet, ' ', 1) + 1:findnth(packet, ' ', 2)])
     result['y_vel'] = float(packet[findnth(packet, ' ', 2) + 1:findnth(packet, ' ', 3)])
@@ -142,42 +139,50 @@ def parse_xyz_packet(packet):
 
 
 def parse_nmea_obj(packet):
-    result = {}
-    result['lat'] = packet.lat
-    result['lon'] = packet.lon
-    result['alt'] = packet.altitude
-    result['alt_unit'] = packet.altitude_units
-    result['lon_dir'] = packet.lon_dir
-    result['lat_dir'] = packet.lat_dir
-    result['time'] = packet.timestamp
-    return result
+    logger.debug("parsing nmea")
+    if(packet is None):
+        return
+    else:
+        return {'lat': packet.lat, 'lon': packet.lon, 'alt': packet.altitude, 'alt_unit': packet.altitude_units,
+                'lon_dir': packet.lon_dir, 'lat_dir': packet.lat_dir, 'time': packet.timestamp}
+
 
 
 def parse_gps_packet(packet):
-    global cached_nmea_obj, lat, lon, alt, cached_xyz_obj, cached_data_obj
+    global cached_nmea_obj, cached_xyz_obj, cached_data_obj
     packet = str(packet)[2:-5]
-    logger.info(packet)
-    # packet = packet[]
+    logger.debug(packet)
     logger.debug(packet[0:6])
     if packet[0:6] == '$GPGGA':
-        # logger.info('POS UPDATE')
-        nmea_obj = pynmea2.parse(packet)
+        logger.info('POS UPDATE')
+        try:
+            nmea_obj = pynmea2.parse(packet)
+        except:
+            logger.error("PARSING ERROR")
+            nmea_obj = None
         cached_nmea_obj = parse_nmea_obj(nmea_obj)
-        lon = cached_nmea_obj['lon']
-        lat = cached_nmea_obj['lat']
-        alt = cached_nmea_obj['alt']
         updateTime(cached_nmea_obj['time'])
     elif packet[0:8] == '<BESTXYZ':
+        logger.info("VEL UPDATE")
         packet = ser.readline()
         xyz_obj = parse_xyz_packet(packet[6:-33].decode("ascii"))
         cached_xyz_obj = xyz_obj
-    cached_data_obj = merge(cached_nmea_obj, cached_xyz_obj)
+        cached_data_obj = merge(cached_nmea_obj,cached_xyz_obj)
+    logger.debug("data: " + str(getData()))
+
+
+
+def getData():
+    global cached_nmea_obj, cached_xyz_obj, cached_data_obj
+    return cached_data_obj
 
 
 def merge(x, y):
-    z = x.copy()
-    z.update(y)
-    return z
+    logger.debug("merging")
+    if (x is not None and y is not None):
+        z = x.copy()
+        z.update(y)
+        return z
 
 
 def gpsbeacon():
@@ -188,10 +193,6 @@ def gpsbeacon():
             aprs.enqueue(
                 str(cached_nmea_obj.altitude) + str(cached_nmea_obj.altitude_units) + str(cached_nmea_obj.lat) + str(
                     cached_nmea_obj.lat_dir) + str(cached_nmea_obj.lon) + str(cached_nmea_obj.lon_dir))
-        if cached_xyz_obj is not None:
-            adcs.updateVals(cached_xyz_obj)
-
-    # if packet[]
 
 
 # Update system time based on the given time
@@ -236,10 +237,7 @@ def on_startup():
     # serialPort = "/dev/ttyS3"
 
     t1 = ThreadHandler(target=partial(listen), name="gps-listen", parent_logger=logger)
-    # t1.start() handled in start_loop()
-
     t3 = ThreadHandler(target=partial(gpsbeacon), name="gps-gpsbeacon", parent_logger=logger)
-    # t3.start() handled in start_loop()
 
     tlt = time.localtime()
 
@@ -256,23 +254,23 @@ def on_startup():
     start_loop()
     # enter_normal_mode()
 
-# TODO not 100% functional
+
 def wait_for_signal():
     a = True
     logger.info("WAITING FOR GPS SIGNAL")
     send("log gpgga ontime 1")
     while a:
         try:
-            packet = ser.readline()[2:-5]
+            packet = ser.readline()[1:-5].decode("ascii")
             packet = pynmea2.parse(packet)
-            if(packet.lon != ''):
+            if (packet.lon != ''):
                 logger.info("GPS SIGNAL ACQUIRED")
                 send("unlogall")
-                a = False
+                return
             else:
-                time.sleep(1)
+                continue
         except:
-            time.sleep(1)
+            continue
     return
 
 
@@ -283,11 +281,11 @@ def start_loop():
     send('ANTENNAPOWER ON')
     send('ASSIGNALL AUTO')
     send('FIX AUTO')
-    send('log gpgga ontime 1')
     wait_for_signal()
+    send('log gpgga ontime 5')
+    send('log bestxyz ontime 5')
     t1.start()
-    t3.start()
-    send('log bestxyz ontime 9')
+    # t3.start()
 
 
 # I NEED TO KNOW WHAT NEEDS TO BE DONE IN NORMAL, LOW POWER, AND EMERGENCY MODES
