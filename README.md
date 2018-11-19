@@ -5,7 +5,12 @@
 - [ ] Implement bursted telemetry
 - [x] Implement commands
 - [x] Implement telemetry
-- [x] Implement automatic process restarting
+- [ ] Implement automatic process restarting
+- [ ] sanity checks
+- [?] spec
+- [ ] **documentation**
+- [ ] EPS watchdog petting
+- [ ] Inital deployment (submodule?)
 
 ## Dependencies
 * If running on a local development environment, run ```pip3 install -r requirements.txt``` to install the dependencies.
