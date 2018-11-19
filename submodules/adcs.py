@@ -1,8 +1,8 @@
 import logging
 import os
 import time
+from functools import partial
 from subprocess import call
-from threading import Thread
 
 import pynmea2
 import serial
@@ -10,7 +10,10 @@ import serial
 from core import config
 from . import aprs
 
+from submodules.threadhandler import ThreadHandler
+
 logger = logging.getLogger("ADCS")
+
 
 def send(msg):
     msg += "\n"
@@ -26,10 +29,12 @@ def listen():
         # print(rr)
         # log('GOT: '+rr)
 
+
 def updateVals(msg):
-    #saves velocity data from gps
+    # saves velocity data from gps
     global velocity_data
     velocity_data = msg
+
 
 def keyin():
     while (True):
@@ -53,7 +58,7 @@ def on_startup():
     # OPENS THE SERIAL PORT FOR ALL METHODS TO USE WITH 19200 BAUD
     # ser = serial.Serial(serialPort, 9600)
     # CREATES A THREAD THAT RUNS THE LISTEN METHOD
-    t1 = Thread(target=listen, args=(), daemon=True)
+    t1 = ThreadHandler(target=partial(listen), name="adcs-listen", parent_logger=logger)
     t1.start()
 
     tlt = time.localtime()
@@ -87,18 +92,23 @@ def enter_low_power_mode():
 def enter_emergency_mode():
     pass
 
+
 # TODO fix this
 def get_pry():
-    return (-1,-1,-1)
+    return (-1, -1, -1)
+
 
 def get_mag():
-    return (-1,-1,-1)
+    return (-1, -1, -1)
+
 
 def get_abs():
-    return (-1,-1,-1)
+    return (-1, -1, -1)
+
 
 def can_TJ_be_seen():
-    return True # fix me!
+    return True  # fix me!
+
 
 # USE THIS LOG FUNCTION
 def log(msg):
@@ -108,8 +118,7 @@ def log(msg):
 
 
 if __name__ == '__main__':
-
-    t2 = Thread(target=keyin, args=())
+    t2 = ThreadHandler(target=partial(keyin), name="adcs-keyin", parent_logger=logger)
     t2.daemon = True
     t2.start()
     while True:

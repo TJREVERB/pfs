@@ -2,7 +2,6 @@
 # telemetry should be collected in telemetry.py
 import base64
 import struct
-import threading
 import time
 
 import core
@@ -12,9 +11,12 @@ from . import eps
 from . import gps
 from . import radio_output
 
+from submodules.threadhandler import ThreadHandler
+from functools import partial
+
 
 def on_startup():
-    t = threading.Thread(target=send_heartbeat, daemon=True)
+    t = ThreadHandler(target=partial(send_heartbeat), name="send_heartbeat")
     t.start()
 
 

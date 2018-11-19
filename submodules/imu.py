@@ -1,10 +1,12 @@
 import logging
 import time
-from threading import Thread
 
 import smbus
 
 from . import aprs
+
+from submodules.threadhandler import ThreadHandler
+from functools import partial
 
 bus = smbus.SMBus(0)
 address = 0x68
@@ -52,11 +54,11 @@ def on_startup():
     global speriod, datasave
     enter_normal_mode()
     datasave = []
-    t1 = Thread(target=acc_gyr, args=())
-    t1.daemon = True
+
+    t1 = ThreadHandler(target=partial(acc_gyr), name="imu-acc_gyr")
     t1.start()
-    t2 = Thread(target=imu_beacon, args=())
-    t2.daemon = True
+
+    t2 = ThreadHandler(target=partial(imu_beacon), name="imu-imu_beacon")
     t2.start()
 
 

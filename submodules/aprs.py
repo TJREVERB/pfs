@@ -1,7 +1,7 @@
 import logging
 import os
 import time
-from threading import Thread
+from functools import partial
 from typing import Union
 
 import serial
@@ -11,12 +11,13 @@ from core import config
 from submodules import command_ingest
 from submodules import eps
 
-#PLACEHOLDER VALUES FOR TELEMETRY.PY
+from submodules.threadhandler import ThreadHandler
+
+# PLACEHOLDER VALUES FOR TELEMETRY.PY
 total_received_ph = 100
 success_checksum_ph = 60
 fail_checksum_ph = 40
 sent_messages_ph = 50
-
 
 # from submodules.command_ingest import logger, dispatch
 
@@ -104,9 +105,9 @@ def on_startup():
     ser = serial.Serial(config['aprs']['serial_port'], 19200)
 
     # Create all the background threads
-    t1 = Thread(target=listen, args=(), daemon=True)
-    t2 = Thread(target=send_loop, args=(), daemon=True)
-    t3 = Thread(target=telemetry_watchdog, args=(), daemon=True)
+    t1 = ThreadHandler(target=partial(listen), name="aprs-listen", parent_logger=logger)
+    t2 = ThreadHandler(target=partial(send_loop), name="aprs-send_loop", parent_logger=logger)
+    t3 = ThreadHandler(target=partial(telemetry_watchdog), name="aprs-telemetry_watchdog", parent_logger=logger)
 
     # Open the log file
     log_dir = os.path.join(config['core']['log_dir'], 'aprs')
@@ -117,7 +118,6 @@ def on_startup():
 
     # Mark the start of the log
     log_message('RUN@' + '-'.join([str(x) for x in time.localtime()[3:5]]))
-    t3.daemon = True
 
     # Start the background threads
     t1.start()
@@ -125,6 +125,7 @@ def on_startup():
     t3.start()
 
     eps.pin_on('aprs')
+
 
 # Have the 3 below methods. Say pass if you dont know what to put there yet
 # these are in reference to power levels. Shut stuff down if we need to go to
