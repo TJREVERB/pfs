@@ -6,6 +6,12 @@
 - [x] implement commands
 - [x] implement telemetry
 - [ ] implement automatic process restarting
+- [ ] sanity checks
+- [ ] spec
+- [ ] **documentation**
+- [ ] EPS watchdog petting
+- [ ] Inital deployment (submodule?)
+- [ ] 
 
 ## Dependencies
 ```pip3 install -r requirements.txt```
