@@ -1,52 +1,51 @@
-# pushed 10/10/18 by Patrick Zhang, uses placeholder variables in other files
-
+# uses placeholder variables in other files. TODO: make it use actual values
 import base64
+import logging
 import struct
 import time
-
-import core, sys
-from core import config
-from . import command_ingest
-from . import eps
-from . import gps
-from . import radio_output
-from . import aprs
-from . import adcs
-from . import iridium
-
-import time
-
-from submodules.threadhandler import ThreadHandler
 from functools import partial
+from threading import Lock
 
-listTelemPackets = []  # telem packet list
-sendingPackets = False  # don't add packets while sending them
+from core import config
+from submodules.threadhandler import ThreadHandler
+from . import adcs
+from . import aprs
+from . import gps
+from . import iridium
+from . import radio_output
+
+packet_buffer = []  # telem packet list TODO: much better handling of telemetry packets
+packet_lock = Lock()  # TODO: Use an indexed system so that we have persistent log storage and querying
+logger = logging.getLogger("Telemetry")
 
 
 def telemetry_collection():
-    global listTelemPackets
+    global packet_buffer
     while True:
+        # TODO: aggregate and prioritize
         # Collect subpackets, aggregate, and prioritize
+        # Aquire the send lock so that we don't add packets while bursting
+        packet_lock.acquire()
         # GPS
-        if (time.time() % config['telemetry']['subpackets']['gps']['interval'] < 1 and sendingPackets == False):
-            listTelemPackets.append(gps_subpacket())
+        if time.time() % config['telemetry']['subpackets']['gps']['interval'] < 1:
+            packet_buffer.append(gps_subpacket())
         # Comms
-        if (time.time() % config['telemetry']['subpackets']['comms']['interval'] < 1 and sendingPackets == False):
-            listTelemPackets.append(comms_subpacket())
+        if time.time() % config['telemetry']['subpackets']['comms']['interval'] < 1:
+            packet_buffer.append(comms_subpacket())
         # ADCS
-        if (time.time() % config['telemetry']['subpackets']['adcs']['interval'] < 1 and sendingPackets == False):
-            listTelemPackets.append(adcs_subpacket())
-
-        print(len(listTelemPackets))
+        if time.time() % config['telemetry']['subpackets']['adcs']['interval'] < 1:
+            packet_buffer.append(adcs_subpacket())
+        # logger.debug("Packet Buffer is %d long" % len(packet_buffer))
+        packet_lock.release()
         time.sleep(1)
 
 
 def telemetry_send():
     while True:
-        if (time.time() % config['telemetry']['send_interval'] < 1 and adcs.can_TJ_be_seen() == True):
-            print("---------------------------------hi")
+        if time.time() % config['telemetry']['send_interval'] < 1 and adcs.can_TJ_be_seen():
+            logger.debug("---------------------------------hi")
             send()
-            print(len(listTelemPackets))
+            logger.debug(len(packet_buffer))
         time.sleep(1)
 
 
@@ -104,14 +103,14 @@ def system_subpacket():
 
 # Sends the queued packets through radio_output
 def send():
-    global listTelemPackets, sendingPackets
-    sendingPackets = True
-    for packet in listTelemPackets:
+    global packet_buffer
+    packet_lock.acquire()
+    for packet in packet_buffer:
         radio_output.send(packet, None)  # radio is set to default; change if necessary
-        listTelemPackets.remove(packet)
-        print(len(listTelemPackets))
-    print("done")
-    sendingPackets = False
+        packet_buffer.remove(packet)
+        logger.debug(len(packet_buffer))
+    logger.debug("Done dumping packets")
+    packet_lock.release()
 
 
 def on_startup():
@@ -123,7 +122,7 @@ def on_startup():
 
 
 def enter_emergency_mode():
-    pass
+    pass  # TODO: change config
 
 
 def enter_low_power_mode():
