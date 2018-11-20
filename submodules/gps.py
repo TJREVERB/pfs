@@ -2,12 +2,11 @@ import logging
 import os
 import sys
 import time
-from subprocess import call
 
 import pynmea2
 import serial
 
-from submodules.threadhandler import ThreadHandler
+from core.threadhandler import ThreadHandler
 from functools import partial
 
 from core import config

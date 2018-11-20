@@ -8,7 +8,7 @@ from core import config
 from . import command_ingest
 from . import eps
 from .command_ingest import command
-from .threadhandler import ThreadHandler
+from core.threadhandler import ThreadHandler
 
 # PLACEHOLDER VALUES FOR TELEMETRY.PY
 total_received_ph = 100

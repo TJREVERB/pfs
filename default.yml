@@ -1,0 +1,19 @@
+core:
+  modules:
+  - aprs
+  - command_ingest
+  - gps
+  log_dir: logs
+  config_save_interval: 60
+aprs:
+  #s1
+  serial_port: /dev/ttyUSB0
+  telem_timeout: 70
+  message_spacing: 1
+gps:
+  #s3
+  serial_port: /dev/ttyUSB1
+#telemetry:
+#    data_functions:
+#        - aprs.get_voltage
+#        - aprs.get_number-of_packeut

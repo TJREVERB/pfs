@@ -1,16 +1,11 @@
 import logging
-import os
 import time
 import smbus
 from smbus2 import SMBusWrapper
-from typing import Union
 
-import serial
-
-from core import config
 # Initalize global variables
 
-from submodules.threadhandler import ThreadHandler
+from core.threadhandler import ThreadHandler
 from functools import partial
 
 logger = logging.getLogger("EPS")

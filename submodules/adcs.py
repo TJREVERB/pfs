@@ -2,15 +2,10 @@ import logging
 import os
 import time
 from functools import partial
-from subprocess import call
-
-import pynmea2
-import serial
 
 from core import config
-from . import aprs
 
-from submodules.threadhandler import ThreadHandler
+from core.threadhandler import ThreadHandler
 
 logger = logging.getLogger("ADCS")
 

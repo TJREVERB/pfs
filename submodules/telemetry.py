@@ -7,7 +7,7 @@ from functools import partial
 from threading import Lock
 
 from core import config
-from submodules.threadhandler import ThreadHandler
+from core.threadhandler import ThreadHandler
 from . import adcs
 from . import aprs
 from . import gps

@@ -1,12 +1,12 @@
 import functools
 import logging
-import time
 import threading
+import time
 
 
 class ThreadHandler:
-    def __init__(self, target, name=None,
-                 parent_logger=logging, interval=3, suppress_out=False, auto_restart=True):
+    def __init__(self, target: callable, name: str = None, parent_logger=logging, interval: int = 3,
+                 suppress_out: bool = False, auto_restart: bool = True):
         """
         Initialize a ThreadHandler.
 
@@ -23,6 +23,8 @@ class ThreadHandler:
         if name is None:
             if type(target) == functools.partial:
                 self.name = target.func.__name__
+            elif type(target) is function:
+                self.name = target.__name__
             else:
                 self.name = "thread_" + str(id(self))
         else:
@@ -42,29 +44,29 @@ class ThreadHandler:
         threading.Thread(target=self.run, name=self.name, daemon=True).start()
 
     def run(self):
-        def start():
-            while True:
-                if self.is_active:
-                    if not self.suppress_out: self.parent_logger.info("'%s' thread started" % self.name)
-                    try:
-                        self.target()
-                    except BaseException as e:
-                        if not self.suppress_out: self.parent_logger.exception(str(e) + ", restarting '%s'" % self.name)
-                        if not self.auto_restart:
-                            self.is_active = False
-                    else:
-                        if not self.suppress_out: self.parent_logger.info("Bad thread, restarting '%s'" % self.name)
-                        if not self.auto_restart:
-                            self.is_active = False
-                time.sleep(self.interval)
-
-        return start()
+        while True:
+            if self.is_active:
+                if not self.suppress_out:
+                    self.parent_logger.info("'%s' thread started" % self.name)
+                try:
+                    self.target()
+                except BaseException as e:
+                    if not self.suppress_out: self.parent_logger.exception(str(e) + ", restarting '%s'" % self.name)
+                    if not self.auto_restart:
+                        self.is_active = False
+                else:
+                    if not self.suppress_out:
+                        self.parent_logger.info("Bad thread, restarting '%s'" % self.name)
+                    if not self.auto_restart:
+                        self.is_active = False
+            time.sleep(self.interval)
 
     def resume(self):
         """
         Resume the ThreadHandler.
         """
-        if not self.suppress_out: self.parent_logger.info("'%s' thread resumed" % self.name)
+        if not self.suppress_out:
+            self.parent_logger.info("'%s' thread resumed" % self.name)
         if not self.auto_restart:
             self.is_active = True
 
@@ -72,6 +74,7 @@ class ThreadHandler:
         """
         Pause the ThreadHandler.
         """
-        if not self.suppress_out: self.parent_logger.info("'%s' thread paused" % self.name)
+        if not self.suppress_out:
+            self.parent_logger.info("'%s' thread paused" % self.name)
         if not self.auto_restart:
             self.is_active = False

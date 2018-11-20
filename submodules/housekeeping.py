@@ -11,7 +11,7 @@ from . import eps
 from . import gps
 from . import radio_output
 
-from submodules.threadhandler import ThreadHandler
+from core.threadhandler import ThreadHandler
 from functools import partial
 
 
