@@ -23,7 +23,7 @@ def load_config():
 def config_saver():
     # Save config every so often
     while True:
-        time.sleep(config['core']['config_save_ interval'])  # TODO: put a lock on config saving / make use of remount
+        time.sleep(config['core']['config_save_interval'])  # TODO: put a lock on config saving / make use of remount
         with open('config.yml', 'w') as f:
             yaml.dump(f)
 
