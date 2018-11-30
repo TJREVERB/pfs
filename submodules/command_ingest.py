@@ -21,6 +21,7 @@ def command(command_name, *args, **kwargs):
     # Return decorator that registers function
     def decorator(func):
         registered_commands[command_name] = {"function": func, "args": args}
+        return func
 
     return decorator
 
