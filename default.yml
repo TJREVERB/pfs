@@ -17,8 +17,3 @@ gps:
 #    data_functions:
 #        - aprs.get_voltage
 #        - aprs.get_number-of_packeut
-
-
-
-
-aprs_echo,6
