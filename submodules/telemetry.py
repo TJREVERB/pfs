@@ -34,13 +34,22 @@ def telemetry_collection():
         packet_lock.acquire()
         # GPS
         if time.time() % config['telemetry']['subpackets']['gps']['interval'] < 1:
-            telem_packet_buffer.append(gps_subpacket())
+            try:
+                telem_packet_buffer.append(gps_subpacket())
+            except e:
+                logger.debug("exception" + str(e))
         # Comms
         if time.time() % config['telemetry']['subpackets']['comms']['interval'] < 1:
-            telem_packet_buffer.append(comms_subpacket())
+            try:
+                telem_packet_buffer.append(comms_subpacket())
+            except e:
+                logger.debug("exception" + str(e))
         # ADCS
         if time.time() % config['telemetry']['subpackets']['adcs']['interval'] < 1:
-            telem_packet_buffer.append(adcs_subpacket())
+            try:
+                telem_packet_buffer.append(adcs_subpacket())
+            except e:
+                logger.debug("exception" + str(e))
         # logger.debug("Packet Buffer is %d long" % len(packet_buffer))
         packet_lock.release()
         time.sleep(1)
