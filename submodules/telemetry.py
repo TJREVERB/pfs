@@ -3,9 +3,11 @@ import base64
 import logging
 import struct
 import time
+import collections
 from functools import partial
 from threading import Lock
 
+import core, sys
 from core import config
 from core.threadhandler import ThreadHandler
 from . import adcs
@@ -13,14 +15,18 @@ from . import aprs
 from . import gps
 from . import iridium
 from . import radio_output
+from . import aprs
+from . import adcs
+from . import iridium
 
-packet_buffer = []  # telem packet list TODO: much better handling of telemetry packets
+telem_packet_buffer = collections.deque(maxlen=config['telemetry']['buffer_size'])
+event_packet_buffer = collections.deque(maxlen=config['telemetry']['buffer_size'])
+packetBuffers = [event_packet_buffer, telem_packet_buffer]
 packet_lock = Lock()  # TODO: Use an indexed system so that we have persistent log storage and querying
 logger = logging.getLogger("Telemetry")
 
-
 def telemetry_collection():
-    global packet_buffer
+    global telem_packet_buffer
     while True:
         # TODO: aggregate and prioritize
         # Collect subpackets, aggregate, and prioritize
@@ -28,24 +34,25 @@ def telemetry_collection():
         packet_lock.acquire()
         # GPS
         if time.time() % config['telemetry']['subpackets']['gps']['interval'] < 1:
-            packet_buffer.append(gps_subpacket())
+            telem_packet_buffer.append(gps_subpacket())
         # Comms
         if time.time() % config['telemetry']['subpackets']['comms']['interval'] < 1:
-            packet_buffer.append(comms_subpacket())
+            telem_packet_buffer.append(comms_subpacket())
         # ADCS
         if time.time() % config['telemetry']['subpackets']['adcs']['interval'] < 1:
-            packet_buffer.append(adcs_subpacket())
+            telem_packet_buffer.append(adcs_subpacket())
         # logger.debug("Packet Buffer is %d long" % len(packet_buffer))
         packet_lock.release()
         time.sleep(1)
 
 
 def telemetry_send():
+    global telem_packet_buffer, event_packet_buffer
     while True:
-        if time.time() % config['telemetry']['send_interval'] < 1 and adcs.can_TJ_be_seen():
-            logger.debug("---------------------------------hi")
+        if (time.time() % config['telemetry']['send_interval'] < 1 and adcs.can_TJ_be_seen() == True and len(telem_packet_buffer) + len(event_packet_buffer) > 0):
+            beg_count = len(telem_packet_buffer) + len(event_packet_buffer)
             send()
-            logger.debug(len(packet_buffer))
+            logger.debug("Sent " + str(beg_count - len(telem_packet_buffer) - len(event_packet_buffer)) + " telemetry packets")
         time.sleep(1)
 
 
@@ -96,22 +103,50 @@ def comms_subpacket():
     # radio_output.send_immediate_raw(packet)
     return packet
 
-
+#TODO: add in system subpackets
 def system_subpacket():
     pass
 
+#TODO: EPS subpacket
 
-# Sends the queued packets through radio_output
+def last_telem_subpacket():
+    global telem_packet_buffer
+    return telem_packet_buffer[-1]
+
+def last_event_subpacket():
+    global event_packet_buffer
+    return event_packet_buffer[-1]
+
+def event_message(event):
+    global event_packet_buffer
+    packet = "Z"
+    packet += str(base64.b64encode(struct.pack('f', time.time())))
+    packet += event
+    event_packet_buffer.append(packet)
+
 def send():
-    global packet_buffer
-    packet_lock.acquire()
-    for packet in packet_buffer:
-        radio_output.send(packet, None)  # radio is set to default; change if necessary
-        packet_buffer.remove(packet)
-        logger.debug(len(packet_buffer))
-    logger.debug("Done dumping packets")
-    packet_lock.release()
+    global packetBuffers, event_packet_buffer, telem_packet_buffer
+    squishedPackets = ""
 
+    while len(event_packet_buffer)+len(telem_packet_buffer) > 0 and adcs.can_TJ_be_seen():
+        for buffer in packetBuffers:
+            while len(buffer) > 0 and len(squishedPackets) < config['telemetry']['max_packet_size'] and adcs.can_TJ_be_seen():
+                squishedPackets += buffer.pop()
+
+        #TODO: alternate between radios
+        radio_output.send(squishedPackets)
+        squishedPackets = ""
+
+
+
+
+    """while len(event_packet_buffer) + len(telem_packet_buffer) > 0:
+    while len(squishedPackets) < config['telemetry']['max_packet_size']:
+        for buffer in packetBuffers:
+            while len(buffer) > 0 and len(squishedPackets) < config['telemetry']['max_packet_size']:
+                squishedPackets += buffer.pop()
+            if len(squishedPackets) > config['telemetry']['max_packet_size']:
+                break"""
 
 def on_startup():
     t1 = ThreadHandler(target=partial(telemetry_collection), name="telemetry-telemetry_collection")
