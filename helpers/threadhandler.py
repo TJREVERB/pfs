@@ -10,12 +10,12 @@ class ThreadHandler:
         """
         Initialize a ThreadHandler.
 
-        :param target: the child function to run, should be either a functools.partial or lambda
-        :param name: the name of the thread; default is name of function or pointer location
-        :param parent_logger: a logging object (ex. GPS); default 'root'
-        :param interval: amount of time between checking the status of the child function; default 3s
-        :param suppress_out: suppresses the logging of messages; default False
-        :param auto_restart: whether or not to automatically restart the thread
+        :param target: The child function to run, should be either a functools.partial or lambda.
+        :param name: The name of the thread; default is name of function or pointer location.
+        :param parent_logger: A logging object (ex. GPS); default 'root'.
+        :param interval: Amount of time between checking the status of the child function; default 3s.
+        :param suppress_out: Suppresses the logging of messages; default False.
+        :param auto_restart: Whether or not to automatically restart the thread.
         """
 
         self.target = target
