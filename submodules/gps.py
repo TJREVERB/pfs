@@ -6,7 +6,7 @@ import time
 import pynmea2
 import serial
 
-from core.threadhandler import ThreadHandler
+from helpers.threadhandler import ThreadHandler
 from functools import partial
 
 from submodules import aprs

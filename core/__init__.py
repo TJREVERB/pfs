@@ -5,7 +5,7 @@ import time
 
 import yaml
 
-from core.threadhandler import ThreadHandler
+from helpers.threadhandler import ThreadHandler
 from . import mode
 from . import power
 

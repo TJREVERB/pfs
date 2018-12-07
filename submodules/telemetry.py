@@ -6,13 +6,9 @@ import time
 from functools import partial
 from threading import Lock
 
-import core, sys
 from core import config
-from core.threadhandler import ThreadHandler
-from . import adcs
-from . import aprs
+from helpers.threadhandler import ThreadHandler
 from . import gps
-from . import iridium
 from . import radio_output
 from . import aprs
 from . import adcs

@@ -5,7 +5,7 @@ from functools import partial
 
 from core import config
 
-from core.threadhandler import ThreadHandler
+from helpers.threadhandler import ThreadHandler
 from submodules.aprs import ser  # Resolve IDE errors about not finding serial
 
 logger = logging.getLogger("ADCS")

@@ -8,7 +8,7 @@ from core import config
 from . import command_ingest
 from . import eps
 from .command_ingest import command
-from core.threadhandler import ThreadHandler
+from helpers.threadhandler import ThreadHandler
 
 # Placeholder values for `telemetry.py`
 total_received_ph = 100

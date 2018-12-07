@@ -3,7 +3,7 @@ import time
 import smbus
 from smbus2 import SMBusWrapper
 
-from core.threadhandler import ThreadHandler
+from helpers.threadhandler import ThreadHandler
 from functools import partial
 
 # Initialize global variables

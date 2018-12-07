@@ -5,7 +5,7 @@ import smbus
 
 from . import aprs
 
-from core.threadhandler import ThreadHandler
+from helpers.threadhandler import ThreadHandler
 from functools import partial
 
 bus = smbus.SMBus(0)
