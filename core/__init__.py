@@ -9,6 +9,7 @@ from core.threadhandler import ThreadHandler
 from . import mode
 from . import power
 
+config = None
 
 def load_config():
     global config

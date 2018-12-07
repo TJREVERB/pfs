@@ -104,17 +104,21 @@ def comms_subpacket():
 def system_subpacket():
     pass
 
+
 def last_gps_subpacket():
     global lastGPSsubpacket
     return lastGPSsubpacket
+
 
 def last_comms_subpacket():
     global lastCommssubpacket
     return lastCommssubpacket
 
+
 def last_adcs_subpacket():
     global lastADCSsubpacket
     return lastADCSsubpacket
+
 
 # Sends the queued packets through radio_output
 def send():

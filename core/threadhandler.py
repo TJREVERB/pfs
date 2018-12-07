@@ -23,7 +23,7 @@ class ThreadHandler:
         if name is None:
             if type(target) == functools.partial:
                 self.name = target.func.__name__
-            elif type(target) is type(lambda x: x): #TODO figure out why function is not defined
+            elif type(target) is type(lambda x: x):  # TODO figure out why function is not defined
                 self.name = target.__name__
             else:
                 self.name = "thread_" + str(id(self))

@@ -124,6 +124,7 @@ def on_startup():
 def enter_normal_mode():
     pass
 
+
 def enter_low_power_mode():
     pass
 

@@ -139,12 +139,11 @@ def parse_xyz_packet(packet):
 
 def parse_nmea_obj(packet):
     logger.debug("parsing nmea")
-    if(packet is None):
+    if (packet is None):
         return
     else:
         return {'lat': packet.lat, 'lon': packet.lon, 'alt': packet.altitude, 'alt_unit': packet.altitude_units,
                 'lon_dir': packet.lon_dir, 'lat_dir': packet.lat_dir, 'time': packet.timestamp}
-
 
 
 def parse_gps_packet(packet):
@@ -166,9 +165,8 @@ def parse_gps_packet(packet):
         packet = ser.readline()
         xyz_obj = parse_xyz_packet(packet[6:-33].decode("ascii"))
         cached_xyz_obj = xyz_obj
-        cached_data_obj = merge(cached_nmea_obj,cached_xyz_obj)
+        cached_data_obj = merge(cached_nmea_obj, cached_xyz_obj)
     logger.debug("data: " + str(getData()))
-
 
 
 def getData():
