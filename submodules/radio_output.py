@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from . import aprs as aprs_mod
 from . import iridium as iridium_mod
 
@@ -8,7 +7,11 @@ iridium = "iridium"
 
 
 def send(message: str, radio=None):
-    """Send a message back to the groundstation.  If radio is None, then send the message on the default radio."""
+    """
+    Send a message back to the groundstation.
+    :param message: Message to send to the radio.
+    :param radio: Radio to which to send the message. If `None`, send to the default radio.
+    """
     if radio is None:
         radio = default_radio
     if radio == "aprs":

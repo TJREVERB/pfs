@@ -1,5 +1,8 @@
-# Collects data for housekeeping packets.  This is a special case; all other
-# telemetry should be collected in telemetry.py
+"""
+Collects data for housekeeping packets.
+This is a special case; all other telemetry should be collected in telemetry.py
+"""
+
 import base64
 import struct
 import time
@@ -20,15 +23,25 @@ def on_startup():
     t.start()
 
 
+# TODO: Need to know what needs to be done in normal, low power, and emergency modes.
 def enter_normal_mode():
+    """
+    Enter normal power mode.
+    """
     pass
 
 
 def enter_low_power_mode():
+    """
+    Enter low power mode.
+    """
     pass
 
 
 def enter_emergency_mode():
+    """
+    Enter emergency power mode.
+    """
     pass
 
 

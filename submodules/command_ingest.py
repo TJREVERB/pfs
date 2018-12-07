@@ -18,7 +18,10 @@ registered_commands = {}
 # ...
 
 def command(command_name, *args, **kwargs):
-    # Return decorator that registers function
+    """
+    Given a function name, return a decorator that registers that function.
+    :return: Decorator that registers function.
+    """
     def decorator(func):
         registered_commands[command_name] = {"function": func, "args": args}
         return func
@@ -26,8 +29,12 @@ def command(command_name, *args, **kwargs):
     return decorator
 
 
-# Given a message body, generate its checksum
 def generate_checksum(body: str):
+    """
+    Given a message body, generate its checksum
+    :param body: The body of the message.
+    :return: Generated checksum for the message.
+    """
     global sum1
     sum1 = sum([ord(x) for x in body[0:-7]])
     sum1 %= 26
@@ -36,9 +43,13 @@ def generate_checksum(body: str):
     return chr(sum1)
 
 
-# Given a raw radio packet, verify its checksum and execute it if it's a command.
-# Both radios will call this function whenever they receive an incoming message.
 def dispatch(body: str) -> None:
+    """
+    Given a raw radio packet, verify its checksum and execute it if it's a command.
+    Both radios will call this function whenever they receive an incoming message.
+    :param body: The body of a raw radio packet.
+    :return: None
+    """
     global total_errors, total_received, total_success
     if body[0:2] == 'TJ' and body[-5:-1] == '\\r\\n':  # TODO: exception proof this (index out of bounds)
         if generate_checksum(body) == body[-7]:  # TODO: exception proof (index out of bounds)

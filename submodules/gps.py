@@ -9,6 +9,9 @@ import serial
 from core.threadhandler import ThreadHandler
 from functools import partial
 
+from submodules import aprs
+from submodules import eps
+
 from core import config
 
 # from . import aprs
@@ -17,7 +20,7 @@ from core import config
 logger = logging.getLogger("GPS")
 
 
-# EDIT THIS TO WORK WITH GPS
+# TODO: Edit this to work with GPS.
 def sendgpsthruaprs(givenarg):
     global cached_nmea_obj
     if cached_nmea_obj is not None:
@@ -37,13 +40,18 @@ def querygps():
 
 
 def querypastgps(index):
-    # RETURN A PAST GPS COORDINATE BY INDEX
-    # REFERENCE OWN GPS LOGS
+    """
+    Retrieves a logged GPS coordinate by index. References GPS logs.
+    :param index: Index of the desired GPS coordinate.
+    :return: The past coordinate, located at `index`.
+    """
     return
 
 
 def passivegps():
-    # PASSIVELY UPDATE cached_nmea_obj According to gps period
+    """
+    Passively update `cached_nmea_obj` according to GPS period.
+    """
     global cached_nmea_obj, gpsperiod
     while True:
         time.sleep(gpsperiod)
@@ -61,7 +69,7 @@ def recordgps():
     temp = ser.readline()[2:-5]
     xyz_packet = ser.readline()[2:-5]
     gps_packet = parse_nmea_obj(pynmea2.parse(gps_packet))
-    updateTime(gps_packet['time'])
+    update_time(gps_packet['time'])
     cached_nmea_obj = gps_packet
     xyz_packet = parse_xyz_packet(xyz_packet)
     cached_xyz_obj = xyz_packet
@@ -89,21 +97,23 @@ def getsinglegps():
     # end pseudo
 
 
-def parsegps(bytes):
-    str(bytes)
-
-
 def send(msg):
+    """
+    Write a message to serial.
+    :param msg: Message to write to serial.
+    """
     msg += "\n"
     ser.write(msg.encode("utf-8"))
 
 
 def listen():
+    """
+    Read messages from serial.
+    """
     while True:
-        # Read in a full message from serial
-        line = ser.readline()
-        # Dispatch command
-        parse_gps_packet(line)
+        line = ser.readline()  # Read in a full message from serial
+
+        parse_gps_packet(line)  # Dispatch command
         # logger.info(line)
         # print(rr)
         # log('GOT: '+rr)
@@ -159,17 +169,17 @@ def parse_gps_packet(packet):
             logger.error("PARSING ERROR")
             nmea_obj = None
         cached_nmea_obj = parse_nmea_obj(nmea_obj)
-        updateTime(cached_nmea_obj['time'])
+        update_time(cached_nmea_obj['time'])
     elif packet[0:8] == '<BESTXYZ':
         logger.info("VEL UPDATE")
         packet = ser.readline()
         xyz_obj = parse_xyz_packet(packet[6:-33].decode("ascii"))
         cached_xyz_obj = xyz_obj
         cached_data_obj = merge(cached_nmea_obj, cached_xyz_obj)
-    logger.debug("data: " + str(getData()))
+    logger.debug("data: " + str(get_data()))
 
 
-def getData():
+def get_data():
     global cached_nmea_obj, cached_xyz_obj, cached_data_obj
     return cached_data_obj
 
@@ -192,17 +202,17 @@ def gpsbeacon():
                     cached_nmea_obj.lat_dir) + str(cached_nmea_obj.lon) + str(cached_nmea_obj.lon_dir))
 
 
-# Update system time based on the given time
-# time is a time object in UTC time
-def updateTime(time):
+def update_time(time):
+    """
+    Update system time based on the given time.
+    :param time: A `time` object in UTC format.
+    """
     os.system('date -s "' + str(time.hour) + ':' + str(time.minute) + ':' + str(time.second) + ' UTC"')
 
 
 def keyin():
-    while (True):
-        # GET INPUT FROM YOUR OWN TERMINAL
-        # TRY input("shihaoiscoolforcommentingstuff") IF raw_input() doesn't work
-        in1 = input("Type Command: ")
+    while True:
+        in1 = input("Type Command: ")  # Use `raw_input()` if working with Python2
         send(in1)
         # send("TJ" + in1 + chr(sum([ord(x) for x in "TJ" + in1]) % 128))
 
@@ -219,8 +229,6 @@ def thread(args1, stop_event, queue_obj):
 
 
 def on_startup():
-    # GLOBAL VARIABLES ARE NEEDED IF YOU "CREATE" VARIABLES WITHIN THIS METHOD
-    # AND ACCESS THEM ELSEWHERE
     global gpsperiod, t1, ser, logfile, tlt, cached_nmea_obj, cached_xyz_obj, t3
     # cached_nmea_obj = (None,None)
     cached_nmea_obj = None
@@ -285,8 +293,7 @@ def start_loop():
     # t3.start()
 
 
-# I NEED TO KNOW WHAT NEEDS TO BE DONE IN NORMAL, LOW POWER, AND EMERGENCY MODES
-# IS THERE ANYHING MORE TO BE DONE
+# TODO: Need to know what needs to be done in normal, low power, and emergency modes.
 def enter_normal_mode():
     # UPDATE GPS MODULE INTERNAL COORDINATES EVERY 10 MINUTES
     # update_internal_coords() IF THIS METHOD IS NECESSARY MESSAGE ME(Anup)
@@ -308,8 +315,11 @@ def enter_emergency_mode():
     send('ASSIGNALL IDLE')
 
 
-# USE THIS LOG FUNCTION
 def log(msg):
+    """
+    Write a message to the logfile. Use this function to log messages.
+    :param msg: Message to write to the logfile.
+    """
     global logfile
     logfile.write(msg + '\n')
     logfile.flush()

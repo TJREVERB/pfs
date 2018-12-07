@@ -1,4 +1,4 @@
-# uses placeholder variables in other files. TODO: make it use actual values
+# TODO: Uses placeholder variables in other files, so make it use actual values
 import base64
 import logging
 import struct
@@ -18,7 +18,7 @@ from . import aprs
 from . import adcs
 from . import iridium
 
-packet_buffer = []  # telem packet list TODO: much better handling of telemetry packets
+packet_buffer = []  # Telemetry packet list TODO: much better handling of telemetry packets
 packet_lock = Lock()  # TODO: Use an indexed system so that we have persistent log storage and querying
 logger = logging.getLogger("Telemetry")
 
@@ -120,8 +120,10 @@ def last_adcs_subpacket():
     return lastADCSsubpacket
 
 
-# Sends the queued packets through radio_output
 def send():
+    """
+    Sends the queued packets through `radio_output`.
+    """
     global packet_buffer
     packet_lock.acquire()
     for packet in packet_buffer:
@@ -140,6 +142,7 @@ def on_startup():
     t2.start()
 
 
+# TODO: Need to know what needs to be done in low power and emergency modes.
 def enter_emergency_mode():
     pass  # TODO: change config
 

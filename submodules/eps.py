@@ -3,15 +3,12 @@ import time
 import smbus
 from smbus2 import SMBusWrapper
 
-# Initalize global variables
-
 from core.threadhandler import ThreadHandler
 from functools import partial
 
+# Initialize global variables
 logger = logging.getLogger("EPS")
-
 address = 43
-
 epsdict = {'gps': 1, 'magnetorquer': 2, 'aprs': 4, 'iridium': 3, 'antenna': 5, 'a': 6, 'b': 7, 'e': 8, 'd': 9, 'e': 10}
 
 
@@ -94,7 +91,6 @@ def board_check():
         time.sleep(7)
 
 
-# Method that is called upon application startup.
 def on_startup():
     global address, bus
 
@@ -118,9 +114,7 @@ def on_startup():
     #   pin_on(key)
 
 
-# Have the 3 below methods. Say pass if you dont know what to put there yet
-# these are in reference to power levels. Shut stuff down if we need to go to
-# emergency mode or low power. Entering normal mode should turn them back on
+# TODO: Update these methods. Currently only holds placeholder methods.
 def enter_normal_mode():
     pass
 
