@@ -66,10 +66,7 @@ def telemetry_watchdog():
         time.sleep(config['aprs']['telem_timeout'])
         if time.time() - last_telem_time > config['aprs']['telem_timeout']:
             logger.error("APRS IS DEAD - RESTART APRS")
-            eps.pin_off('aprs')
-            time.sleep(3)
-            eps.pin_on('aprs')
-            time.sleep(3)
+            eps.reboot_device('aprs',3)
         else:
             logger.debug("Watchdog pass APRS")
 

@@ -22,6 +22,11 @@ def pin_on(device_name):
             logger.debug("Pin communication successful. \
             Pin is now ON.")
 
+def reboot_device(device_name, sleeptime):
+    eps.pin_off(device_name)
+    time.sleep(sleeptime)
+    eps.pin_on(device_name)
+    time.sleep(sleeptime)
 
 def pin_off(device_name):
     with SMBusWrapper(1) as bus:
