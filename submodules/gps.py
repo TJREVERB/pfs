@@ -244,6 +244,7 @@ def on_startup():
     t1 = ThreadHandler(target=partial(listen), name="gps-listen", parent_logger=logger)
     t3 = ThreadHandler(target=partial(gpsbeacon), name="gps-gpsbeacon", parent_logger=logger)
 
+    eps.pin_on("gps")
     tlt = time.localtime()
 
     # Open the log file
@@ -298,6 +299,7 @@ def enter_normal_mode():
     # UPDATE GPS MODULE INTERNAL COORDINATES EVERY 10 MINUTES
     # update_internal_coords() IF THIS METHOD IS NECESSARY MESSAGE ME(Anup)
     # time.sleep(600)
+    eps.pin_on("gps")
     start_loop()
 
 
