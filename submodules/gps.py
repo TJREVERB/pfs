@@ -57,23 +57,48 @@ def passivegps():
         time.sleep(gpsperiod)
         cached_nmea_obj = getsinglegps()
 
-
-def recordgps():
-    global cached_nmea_obj, cached_xyz_obj
+# Return a GPS position packet as returned by gpgg
+def get_position_packet():
+    global cached_nmea_obj
     send("log gpgg ontime 1")
     time.sleep(1)
     gps_packet = ser.readline()[2:-5]
     send("unlogall")
+    gps_packet = parse_nmea_obj(pynmea2.parse(gps_packet))
+    update_time(gps_packet['time'])
+    cached_nmea_obj = gps_packet
+    return gps_packet
+
+# Return a GPS velocity packet as returned by bestxyz
+def get_velocity_packet():
     send("log bestxyz ontime 1")
     time.sleep(1)
     temp = ser.readline()[2:-5]
     xyz_packet = ser.readline()[2:-5]
-    gps_packet = parse_nmea_obj(pynmea2.parse(gps_packet))
-    update_time(gps_packet['time'])
-    cached_nmea_obj = gps_packet
     xyz_packet = parse_xyz_packet(xyz_packet)
     cached_xyz_obj = xyz_packet
     send("unlogall")
+    return xyz_packet
+
+# Return both the gps position and velocity packet
+def recordgps():
+    # global cached_nmea_obj, cached_xyz_obj
+    # send("log gpgg ontime 1")
+    # time.sleep(1)
+    # gps_packet = ser.readline()[2:-5]
+    # send("unlogall")
+    # send("log bestxyz ontime 1")
+    # time.sleep(1)
+    # temp = ser.readline()[2:-5]
+    # xyz_packet = ser.readline()[2:-5]
+    # gps_packet = parse_nmea_obj(pynmea2.parse(gps_packet))
+    # update_time(gps_packet['time'])
+    # cached_nmea_obj = gps_packet
+    # xyz_packet = parse_xyz_packet(xyz_packet)
+    # cached_xyz_obj = xyz_packet
+    # send("unlogall")
+    gps_packet = get_position_packet()
+    xyz_packet = get_velocity_packet()
     return merge(gps_packet, xyz_packet)
 
 
