@@ -147,9 +147,6 @@ def send():
         radio_output.send(squishedPackets)
         squishedPackets = ""
 
-
-
-
     """while len(event_packet_buffer) + len(telem_packet_buffer) > 0:
     while len(squishedPackets) < config['telemetry']['max_packet_size']:
         for buffer in packetBuffers:
