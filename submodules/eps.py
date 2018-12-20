@@ -45,6 +45,13 @@ def get_PDM_status(device_name):
         bus.write_i2c_block_data(address, 0x0E, PDM_val)
         return bus.read_byte(address)  # RETURNS A BYTE, NOT A BIT. OK?
 
+def isModuleOn(device_name):
+    with SMBusWrapper(1) as bus:
+        PDM_val = [epsdict[device_name]]
+        if(get_PDM_status(device_name).equals(0)):
+            return False
+        else:
+            return True
 
 def get_board_status():
     with SMBusWrapper(1) as bus:
