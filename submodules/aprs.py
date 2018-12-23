@@ -82,7 +82,10 @@ def listen():
     global last_message_time, last_telem_time
     while True:
         if config['aprs']['simulate']:
-            line = os.read(ser_master, 1000)
+            line = b''
+            while not line.endswith(b'\r\n'):  # While EOL hasn't been sent
+                res = os.read(ser_master, 1000)
+                line += res
         else:
             line = ser.readline()  # Read in a full message from serial
 
@@ -128,8 +131,8 @@ def on_startup():
 
     # Opens the serial port for all methods to use with 19200 baud
     if config['aprs']['simulate']:
-        s_name = os.ttyname(slave, 19200)
-        ser = serial.Serial(s_name)
+        s_name = os.ttyname(ser_slave)
+        ser = serial.Serial(s_name, 19200)
         logger.info("Serial started on " + ser.name)
     else:
         ser = serial.Serial(config['aprs']['serial_port'], 19200)
