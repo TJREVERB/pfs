@@ -1,8 +1,10 @@
 import logging
 import time
 from functools import partial
-
 import serial
+
+import os
+import pty
 
 from core import config
 from . import command_ingest
@@ -24,6 +26,8 @@ last_message_time = time.time()
 
 bperiod = 60
 ser = None  # Initialize serial
+
+ser_master, ser_slave = pty.openpty()  # Serial ports for when in simulate mode
 
 
 @command("aprs_echo", str)
@@ -77,7 +81,10 @@ def listen():
     """
     global last_message_time, last_telem_time
     while True:
-        line = ser.readline()  # Read in a full message from serial
+        if config['aprs']['simulate']:
+            line = os.read(ser_master, 1000)
+        else:
+            line = ser.readline()  # Read in a full message from serial
 
         # Update last message time
         last_message_time = time.time()
@@ -120,7 +127,12 @@ def on_startup():
     global ser
 
     # Opens the serial port for all methods to use with 19200 baud
-    ser = serial.Serial(config['aprs']['serial_port'], 19200)
+    if config['aprs']['simulate']:
+        s_name = os.ttyname(slave, 19200)
+        ser = serial.Serial(s_name)
+        logger.info("Serial started on " + ser.name)
+    else:
+        ser = serial.Serial(config['aprs']['serial_port'], 19200)
 
     # Create all the background threads
     t1 = ThreadHandler(target=partial(listen), name="aprs-listen", parent_logger=logger)
@@ -133,7 +145,8 @@ def on_startup():
     t3.start()
 
     # Turn the power on.  TODO: Power check before turn-on.
-    eps.pin_on('aprs')
+    if not config['aprs']['simulate']:
+        eps.pin_on('aprs')
 
 
 # TODO: Update these methods. Currently only holds placeholder methods.
