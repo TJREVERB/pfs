@@ -1,4 +1,5 @@
 # TODO: Uses placeholder variables in other files, so make it use actual values
+# TODO: what if radio turned off during a burst?
 import base64
 import logging
 import struct
@@ -16,12 +17,18 @@ from . import radio_output
 from . import aprs
 from . import adcs
 from . import iridium
+from . import command_ingest
+from .command_ingest import command
 
 telem_packet_buffer = collections.deque(maxlen=config['telemetry']['buffer_size'])
 event_packet_buffer = collections.deque(maxlen=config['telemetry']['buffer_size'])
 packetBuffers = [event_packet_buffer, telem_packet_buffer]
 packet_lock = Lock()  # TODO: Use an indexed system so that we have persistent log storage and querying
 logger = logging.getLogger("Telemetry")
+
+gps_sequence_number = 1
+comms_sequence_number = 1
+adcs_sequence_number = 1
 
 def telemetry_collection():
     global telem_packet_buffer
@@ -31,56 +38,69 @@ def telemetry_collection():
         # Aquire the send lock so that we don't add packets while bursting
         packet_lock.acquire()
         # GPS
-        if time.time() % config['telemetry']['subpackets']['gps']['interval'] < 1:
-            try:
-                telem_packet_buffer.append(gps_subpacket())
-            except e:
-                logger.debug("exception" + str(e))
+        #if time.time() % config['telemetry']['subpackets']['gps']['interval'] < 1:
+        try:
+            telem_packet_buffer.append(gps_subpacket())
+        except e:
+            logger.debug("exception" + str(e))
         # Comms
-        if time.time() % config['telemetry']['subpackets']['comms']['interval'] < 1:
-            try:
-                telem_packet_buffer.append(comms_subpacket())
-            except e:
-                logger.debug("exception" + str(e))
+        #if time.time() % config['telemetry']['subpackets']['comms']['interval'] < 1:
+        try:
+            telem_packet_buffer.append(comms_subpacket())
+        except e:
+            logger.debug("exception" + str(e))
         # ADCS
-        if time.time() % config['telemetry']['subpackets']['adcs']['interval'] < 1:
-            try:
-                telem_packet_buffer.append(adcs_subpacket())
-            except e:
-                logger.debug("exception" + str(e))
+        #if time.time() % config['telemetry']['subpackets']['adcs']['interval'] < 1:
+        try:
+            telem_packet_buffer.append(adcs_subpacket())
+        except e:
+            logger.debug("exception" + str(e))
         # logger.debug("Packet Buffer is %d long" % len(packet_buffer))
         #logger.debug(f"packet buffer: {telem_packet_buffer}")
         packet_lock.release()
-        time.sleep(1)
+        time.sleep(config['telemetry']['subpackets'])
 
 
 def telemetry_send():
     global telem_packet_buffer, event_packet_buffer
-    while True:
-        if (time.time() % config['telemetry']['send_interval'] < 1 and adcs.can_TJ_be_seen() == True and len(telem_packet_buffer) + len(event_packet_buffer) > 0):
-            beg_count = len(telem_packet_buffer) + len(event_packet_buffer)
-            send()
-            logger.debug("Sent " + str(beg_count - len(telem_packet_buffer) - len(event_packet_buffer)) + " telemetry packets")
-        time.sleep(1)
+    time.sleep(60)
 
+    while True:
+        if (adcs.can_TJ_be_seen() == True and len(telem_packet_buffer) + len(event_packet_buffer) > 0):
+            telemetry_send_once()
+        time.sleep(config['telemetry']['send_interval'])
+
+@command("burst")
+def telemetry_send_once():
+    global telem_packet_buffer, event_packet_buffer
+    beg_count = len(telem_packet_buffer) + len(event_packet_buffer)
+    send()
+    logger.debug("Sent " + str(beg_count - len(telem_packet_buffer) - len(event_packet_buffer)) + " telemetry packets")
 
 def gps_subpacket():
+    global gps_sequence_number
     # packet header
     packet = "G"
     # Time
-    packet += base64.b64encode(struct.pack('f', time.time())).decode('UTF-8')
+    packet += base64.b64encode(struct.pack('d', time.time())).decode('UTF-8')
+    # Sequence number
+    packet += base64.b64encode(struct.pack('i', gps_sequence_number)).decode('UTF-8')    
     # GPS coords
     # TODO fix this packet += base64.b64encode(struct.pack('fff', gps.lat, gps.lon, gps.alt)).decode('UTF-8')
     packet += base64.b64encode(struct.pack('fff', -1, -1, -1)).decode('UTF-8')
     # radio_output.send_immediate_raw(packet)
+    gps_sequence_number += 1
     return packet
 
 
 def adcs_subpacket():
+    global adcs_sequence_number
     # packet header
     packet = "A"
     # time
-    packet += base64.b64encode(struct.pack('f', time.time())).decode('UTF-8')
+    packet += base64.b64encode(struct.pack('d', time.time())).decode('UTF-8')
+    # Sequence number
+    packet += base64.b64encode(struct.pack('i', adcs_sequence_number)).decode('UTF-8')
     # pitch,roll,yaw
     pitch, roll, yaw = adcs.get_pry()
     packet += base64.b64encode(struct.pack("ddd", pitch, roll, yaw)).decode('UTF-8')
@@ -91,14 +111,18 @@ def adcs_subpacket():
     magx, magy, magz = adcs.get_mag()
     packet += base64.b64encode(struct.pack("ddd", magx, magy, magz)).decode('UTF-8')
     # radio_output.send_immediate_raw(packet)
+    adcs_sequence_number += 1
     return packet
 
 
 def comms_subpacket():
+    global comms_sequence_number
     # packet header
     packet = "C"
     # Time
-    packet += base64.b64encode(struct.pack('f', time.time())).decode('UTF-8')
+    packet += base64.b64encode(struct.pack('d', time.time())).decode('UTF-8')
+    # Sequence number
+    packet += base64.b64encode(struct.pack('i', comms_sequence_number)).decode('UTF-8')
     # APRS info
     packet += base64.b64encode(struct.pack('d', aprs.total_received_ph)).decode('UTF-8')
     packet += base64.b64encode(struct.pack('d', aprs.success_checksum_ph)).decode('UTF-8')
@@ -110,6 +134,7 @@ def comms_subpacket():
     packet += base64.b64encode(struct.pack('d', iridium.fail_checksum_ph)).decode('UTF-8')
     packet += base64.b64encode(struct.pack('d', iridium.sent_messages_ph)).decode('UTF-8')
     # radio_output.send_immediate_raw(packet)
+    comms_sequence_number += 1
     return packet
 
 #TODO: add in system subpackets
@@ -129,7 +154,7 @@ def last_event_subpacket():
 def event_message(event):
     global event_packet_buffer
     packet = "Z"
-    packet += str(base64.b64encode(struct.pack('f', time.time())))
+    packet += str(base64.b64encode(struct.pack('d', time.time())))
     packet += event
     event_packet_buffer.append(packet)
 
@@ -146,6 +171,7 @@ def send():
         logger.debug(squishedPackets)
         radio_output.send(squishedPackets)
         squishedPackets = ""
+        time.sleep(6)
 
     """while len(event_packet_buffer) + len(telem_packet_buffer) > 0:
     while len(squishedPackets) < config['telemetry']['max_packet_size']:

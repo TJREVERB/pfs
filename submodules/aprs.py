@@ -66,7 +66,7 @@ def telemetry_watchdog():
         time.sleep(config['aprs']['telem_timeout'])
         if time.time() - last_telem_time > config['aprs']['telem_timeout']:
             logger.error("APRS IS DEAD - RESTART APRS")
-            eps.reboot_device('aprs',3)
+            #eps.reboot_device('aprs',3)
         else:
             logger.debug("Watchdog pass APRS")
 
@@ -133,7 +133,7 @@ def on_startup():
     t3.start()
 
     # Turn the power on.  TODO: Power check before turn-on.
-    eps.pin_on('aprs')
+    #eps.pin_on('aprs')
 
 
 # TODO: Update these methods. Currently only holds placeholder methods.
