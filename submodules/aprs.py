@@ -40,7 +40,7 @@ def enqueue(msg: str) -> None:
     :param msg: Message to send into the APRS queue.
     """
     global send_buffer
-    msg = msg + "\r\n"
+    msg = msg + "\n"
     send_buffer += [msg]
 
 
@@ -70,8 +70,9 @@ def telemetry_watchdog():
     while True:
         time.sleep(config['aprs']['telem_timeout'])
         if time.time() - last_telem_time > config['aprs']['telem_timeout']:
-            logger.error("APRS IS DEAD - RESTART APRS")
-            eps.reboot_device('aprs',3)
+            logger.error("APRS is dead, restarting APRS")
+            if not is_simulate('aprs'):
+                eps.reboot_device('aprs',3)
         else:
             logger.debug("Watchdog pass APRS")
 
@@ -84,7 +85,7 @@ def listen():
     while True:
         if is_simulate('aprs'):
             line = b''
-            while not line.endswith(b'\r\n'):  # While EOL hasn't been sent
+            while not line.endswith(b'\n'):  # While EOL hasn't been sent
                 res = os.read(ser_master, 1000)
                 line += res
         else:
@@ -94,7 +95,7 @@ def listen():
         last_message_time = time.time()
         if line[0:2] == 'T#':  # Telemetry Packet: APRS special case
             last_telem_time = time.time()
-            logger.debug('APRS Telemetry heartbeat received')
+            logger.debug('APRS telemetry heartbeat received')
             continue  # Don't parse telemetry packets
 
         # Dispatch command

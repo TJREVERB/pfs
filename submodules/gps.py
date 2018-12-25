@@ -111,7 +111,8 @@ def getsinglegps():
     # EXAMPLE METHOD THAT STILL NEEDS TO BE FLESHED OUT
     # AS YOU CAN SEE THERRE'S STILL A TON TO DO
     global t1, t2, cached_data_obj
-    eps.pin_on('gps')
+    if not is_simulate('gps'):
+        eps.pin_on("gps")
     t1.pause()
     t3.pause()
     send("ANTENNAPOWER ON")
@@ -266,12 +267,12 @@ def on_startup():
     gpsperiod = 10
 
     # Opens the serial port for all methods to use with 19200 baud
-    # if config['gps']['simulate']:
-    #     s_name = os.ttyname(ser_slave)
-    #     ser = serial.Serial(s_name, 19200)
-    #     logger.info("Serial started on " + ser.name)
-    # else:
-    #     ser = serial.Serial(config['gps']['serial_port'], 19200)
+    if is_simulate('gps'):
+        s_name = os.ttyname(ser_slave)
+        ser = serial.Serial(s_name, 19200)
+        logger.info("Serial started on " + ser.name)
+    else:
+        ser = serial.Serial(config['gps']['serial_port'], 19200)
 
     # REPLACE WITH /dev/ttyUSBx if 1 DOESNT WORK
     # serialPort = "/dev/ttyS3"
@@ -279,7 +280,8 @@ def on_startup():
     t1 = ThreadHandler(target=partial(listen), name="gps-listen", parent_logger=logger)
     t3 = ThreadHandler(target=partial(gpsbeacon), name="gps-gpsbeacon", parent_logger=logger)
 
-    eps.pin_on("gps")
+    if not is_simulate('gps'):
+        eps.pin_on("gps")
     tlt = time.localtime()
 
     # Open the log file
@@ -297,12 +299,20 @@ def on_startup():
 
 
 def wait_for_signal():
-    a = True
+    t = True
     logger.info("WAITING FOR GPS SIGNAL")
     send("log gpgga ontime 1")
-    while a:
+    while t:
+        line = b''
+        if is_simulate('gps'):
+            while not line.endswith(b'\n'):  # While EOL hasn't been sent
+                res = os.read(ser_master, 1000)
+                line += res
+        else:
+            line = ser.readline()
+
         try:
-            packet = ser.readline()[1:-5].decode("ascii")
+            packet = line[1:-5].decode("ascii")
             packet = pynmea2.parse(packet)
             if (packet.lon != ''):
                 logger.info("GPS SIGNAL ACQUIRED")
@@ -334,7 +344,8 @@ def enter_normal_mode():
     # UPDATE GPS MODULE INTERNAL COORDINATES EVERY 10 MINUTES
     # update_internal_coords() IF THIS METHOD IS NECESSARY MESSAGE ME(Anup)
     # time.sleep(600)
-    eps.pin_on("gps")
+    if not is_simulate('gps'):
+        eps.pin_on("gps")
     start_loop()
 
 
