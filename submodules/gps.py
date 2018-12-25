@@ -6,7 +6,11 @@ import time
 import pynmea2
 import serial
 
+import os
+import pty
+
 from helpers.threadhandler import ThreadHandler
+from helpers.helpers import is_simulate
 from functools import partial
 
 from submodules import aprs
@@ -19,6 +23,7 @@ from core import config
 
 logger = logging.getLogger("GPS")
 
+ser_master, ser_slave = pty.openpty()  # Serial ports for when in simulate mode
 
 # TODO: Edit this to work with GPS.
 def sendgpsthruaprs(givenarg):
@@ -259,10 +264,15 @@ def on_startup():
     cached_nmea_obj = None
     cached_xyz_obj = None
     gpsperiod = 10
-    serialPort = config['gps']['serial_port']
-    # REPLACE WITH COMx IF ON WINDOWS
-    # OPENS THE SERIAL PORT FOR ALL METHODS TO USE WITH 19200 BAUD
-    ser = serial.Serial(serialPort, 9600)
+
+    # Opens the serial port for all methods to use with 19200 baud
+    # if config['gps']['simulate']:
+    #     s_name = os.ttyname(ser_slave)
+    #     ser = serial.Serial(s_name, 19200)
+    #     logger.info("Serial started on " + ser.name)
+    # else:
+    #     ser = serial.Serial(config['gps']['serial_port'], 19200)
+
     # REPLACE WITH /dev/ttyUSBx if 1 DOESNT WORK
     # serialPort = "/dev/ttyS3"
 

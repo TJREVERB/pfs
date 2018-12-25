@@ -11,6 +11,7 @@ from . import command_ingest
 from . import eps
 from .command_ingest import command
 from helpers.threadhandler import ThreadHandler
+from helpers.helpers import is_simulate
 
 # Placeholder values for `telemetry.py`
 total_received_ph = 100
@@ -81,7 +82,7 @@ def listen():
     """
     global last_message_time, last_telem_time
     while True:
-        if config['aprs']['simulate']:
+        if is_simulate('aprs'):
             line = b''
             while not line.endswith(b'\r\n'):  # While EOL hasn't been sent
                 res = os.read(ser_master, 1000)
@@ -130,7 +131,7 @@ def on_startup():
     global ser
 
     # Opens the serial port for all methods to use with 19200 baud
-    if config['aprs']['simulate']:
+    if is_simulate('aprs'):
         s_name = os.ttyname(ser_slave)
         ser = serial.Serial(s_name, 19200)
         logger.info("Serial started on " + ser.name)
@@ -148,7 +149,7 @@ def on_startup():
     t3.start()
 
     # Turn the power on.  TODO: Power check before turn-on.
-    if not config['aprs']['simulate']:
+    if not is_simulate('aprs'):
         eps.pin_on('aprs')
 
 
