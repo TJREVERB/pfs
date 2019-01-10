@@ -1,16 +1,19 @@
-# import sys
-# import serial
-# import time
-# import os
-#
-#
-# debug = True
-# global ser
-#
-# #!/usr/bin/env python3
-#
-# sys.path.append(os.path.abspath("/home/TJREVERB/iridium-jacob"))
-# from iridiumNotTest import *
+import sys
+import serial
+import time
+import os
+import logging
+from collections import deque
+import threading
+
+
+debug = True
+global ser
+
+d = deque('')
+
+sys.path.append(os.path.abspath("/home/pi/iridium-jacob"))
+from iridiumNotTestog import *
 
 
 # Placeholder values for `telemetry.py`
@@ -21,10 +24,10 @@ sent_messages_ph = 50
 
 
 def enqueue(message):
-    """
-    IRIDIUM PLACEHOLDER UNTIL JACOB DOES HIS JOB.
-    """
-    pass
+	d.append(message)
+	threading.thread(target=check_d).start()
 
-# # print("Listening for Ring")
-# listenUp()
+def check_d():
+	on_Startup()
+	while len(d)>0:
+		send(d.popleft())
