@@ -1,15 +1,26 @@
 import threading
+from functools import partial
+
 import serial
 import time
 import sys
 import logging
 
+from core import config
+from . import command_ingest
+from . import eps
+from .command_ingest import command
+from helpers.threadhandler import ThreadHandler
+from helpers.helpers import is_simulate
+
 debug = True
 
 global ser
 
+# Initialize global variables
+logger = logging.getLogger("IRIDIUM")
 
-def sendCommand(cmd):
+def write_to_serial(cmd):
     if cmd[-1] != '\r\n':
         cmd += '\r\n'
     # if debug:
@@ -21,15 +32,9 @@ def sendCommand(cmd):
     # print("Echoed: " + cmd_echo.decode('UTF-8'))
 
 
-def setup(port):
-    global ser
-    ser = serial.Serial(port=port, baudrate=19200, timeout=15)
-    ser.flush()
-    doTheOK()
+def check():
+    write_to_serial("AT")
 
-
-def doTheOK():
-    sendCommand("AT")
     ser.readline().decode('UTF-8')  # get the empty line
     resp = ser.readline().decode('UTF-8')
     # # print (resp)
@@ -38,7 +43,7 @@ def doTheOK():
         exit(-1)
 
     # show signal quality
-    sendCommand('AT+CSQ')
+    write_to_serial('AT+CSQ')
     ser.readline().decode('UTF-8')  # get the empty line
     resp = ser.readline().decode('UTF-8')
     ser.readline().decode('UTF-8')  # get the empty line
@@ -47,7 +52,7 @@ def doTheOK():
     if 'OK' not in ok:
         # print('Unexpected "OK" response: ' + ok)
         exit(-1)
-    sendCommand("AT+SBDMTA=0")
+    write_to_serial("AT+SBDMTA=0")
     # if debug:
     # print("Signal quality 0-5: " + resp)
     ser.write("AT+SBDREG? \r\n".encode('UTF-8'))
@@ -57,35 +62,12 @@ def doTheOK():
             break
         except:
             continue
-        break
     if regStat != 2:
-        sendCommand("AT+SBDREG")
-
-
-def on_Startup():
-    argument = " "
-    command = " "
-    global port
-    if len(sys.argv) > 1:
-        port = sys.argv[1]
-    else:
-        port = '/dev/ttyUSB0'
-    setup(port)
-
-    # setup(port)
-    # if debug:
-    # # print("Connected to {}".format(ser.name))
-
-    # clear everything in buffer
-    # ser.reset_input_buffer()
-    # ser.reset_output_buffer()
-    # disable echo
-    # sendCommand('ATE0', has_resp=True)
+        write_to_serial("AT+SBDREG")
 
 
 def listen():
-    ser = serial.Serial(port=port, baudrate=19200, timeout=1)
-    sendCommand("AT+SBDMTA=1")
+    write_to_serial("AT+SBDMTA=1")
     signalStrength = 0
     ringSetup = 0
     iteration = 0
@@ -99,7 +81,7 @@ def listen():
             ser.timeout = 120
             while bytesLeft != 0:
                 print("checking bytes left")
-                sendCommand("AT+SBDIXA")
+                write_to_serial("AT+SBDIXA")
                 resp = "A"
                 while len(resp) < 2:
                     print("response length loop")
@@ -116,7 +98,7 @@ def listen():
                 bytesLeft = int(resp[0])
                 # print("split response: "+resp[1])
                 # bytesLeft = 0
-            sendCommand("AT+SBDRT")
+            write_to_serial("AT+SBDRT")
             print("About to show message")
             while True:
                 try:
@@ -133,30 +115,30 @@ def listen():
             # print(ser.readline().decode('UTF-8'))
             # print(ser.readline().decode('UTF-8'))
             # print(ser.readline().decode('UTF-8'))
-            # sendCommand("at+sbdmta=0")
+            # write_to_serial("at+sbdmta=0")
         # ser.flush()
         # print("listening...")
 
 
-def send(thingToSend):
+def send(message):
     # try to send until it sends
     startTime = time.time()
     alert = 2
     while alert == 2:
         # signal = ser.readline().decode('UTF-8')#empty line
         # signal = ser.readline().decode('UTF-8')#empty line
-        sendCommand("AT+CSQF")
+        write_to_serial("AT+CSQF")
 
         signal = ser.readline().decode('UTF-8')  # empty line
         signal = ser.readline().decode('UTF-8')
         # print("last known signal strength: "+signal)
         # prepare message
-        sendCommand("AT+SBDWT=" + thingToSend)
+        write_to_serial("AT+SBDWT=" + message)
         ok = ser.readline().decode('UTF-8')  # get the 'OK'
         ser.readline().decode('UTF-8')  # get the empty line
 
         # send message
-        sendCommand("AT+SBDI")
+        write_to_serial("AT+SBDI")
 
         resp = ser.readline().decode('UTF-8')  # get the empty line
         resp = resp.replace(",", " ").split(" ")
@@ -190,6 +172,20 @@ def send(thingToSend):
     exit(-1)
 
 
-on_Startup()
-time.sleep(10)
-send('hi')
+def on_startup():
+    global ser
+
+    # Opens the serial port for all methods to use with 19200 baud
+    ser = serial.Serial(config['iridium']['serial_port'], baudrate=19200, timeout=15)
+    ser.flush()
+
+    # Create all the background threads
+    t1 = ThreadHandler(target=partial(listen), name="iridium-listen", parent_logger=logger)
+
+    check()
+
+    # Start the threads
+    t1.start()
+
+    time.sleep(1)
+    send("TEST")
