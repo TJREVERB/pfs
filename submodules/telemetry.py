@@ -26,9 +26,7 @@ packetBuffers = [event_packet_buffer, telem_packet_buffer]
 packet_lock = Lock()  # TODO: Use an indexed system so that we have persistent log storage and querying
 logger = logging.getLogger("Telemetry")
 
-gps_sequence_number = 1
-comms_sequence_number = 1
-adcs_sequence_number = 1
+#adcs_sequence_number = 1
 
 def telemetry_collection():
     global telem_packet_buffer
@@ -72,13 +70,18 @@ def telemetry_send():
 
 @command("burst")
 def telemetry_send_once():
+    """
+    Immediately send telemetry packets in both telemetry and event packet queues
+    """
     global telem_packet_buffer, event_packet_buffer
     beg_count = len(telem_packet_buffer) + len(event_packet_buffer)
     send()
     logger.debug("Sent " + str(beg_count - len(telem_packet_buffer) - len(event_packet_buffer)) + " telemetry packets")
 
 def gps_subpacket():
-    global gps_sequence_number
+    """
+    Return a GPS subpacket
+    """
     # packet header
     packet = "G"
     # Time
@@ -89,12 +92,14 @@ def gps_subpacket():
     # TODO fix this packet += base64.b64encode(struct.pack('fff', gps.lat, gps.lon, gps.alt)).decode('UTF-8')
     packet += base64.b64encode(struct.pack('fff', -1, -1, -1)).decode('UTF-8')
     # radio_output.send_immediate_raw(packet)
-    gps_sequence_number += 1
+    
     return packet
 
 
 def adcs_subpacket():
-    global adcs_sequence_number
+    """
+    Return an ADCS subpacket
+    """
     # packet header
     packet = "A"
     # time
@@ -111,12 +116,14 @@ def adcs_subpacket():
     magx, magy, magz = adcs.get_mag()
     packet += base64.b64encode(struct.pack("ddd", magx, magy, magz)).decode('UTF-8')
     # radio_output.send_immediate_raw(packet)
-    adcs_sequence_number += 1
+    
     return packet
 
 
 def comms_subpacket():
-    global comms_sequence_number
+    """
+    Return a comms subpacket
+    """
     # packet header
     packet = "C"
     # Time
@@ -134,7 +141,6 @@ def comms_subpacket():
     packet += base64.b64encode(struct.pack('d', iridium.fail_checksum_ph)).decode('UTF-8')
     packet += base64.b64encode(struct.pack('d', iridium.sent_messages_ph)).decode('UTF-8')
     # radio_output.send_immediate_raw(packet)
-    comms_sequence_number += 1
     return packet
 
 #TODO: add in system subpackets
@@ -144,14 +150,24 @@ def system_subpacket():
 #TODO: EPS subpacket
 
 def last_telem_subpacket():
+    """
+    Return the last telemetry subpacket in queue
+    """
     global telem_packet_buffer
     return telem_packet_buffer[-1]
 
 def last_event_subpacket():
+    """
+    Return the last event subpacket in queue
+    """
     global event_packet_buffer
     return event_packet_buffer[-1]
 
-def event_message(event):
+def enqueue_event_message(event):
+    """
+    Enqueue an event message.
+    event - message to enqueue, maximum 16 bytes
+    """
     global event_packet_buffer
     packet = "Z"
     packet += str(base64.b64encode(struct.pack('d', time.time())))
