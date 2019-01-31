@@ -87,9 +87,6 @@ def startup():
     logging.debug("Config:")
     logging.debug(config)
 
-    # Start the thread that saves persistent `config` back to disk
-    # ThreadHandler(target=config_saver).start()
-
     # Ensure that logs directory exists
     if not os.path.exists(config['core']['log_dir']):
         os.mkdir(config['core']['log_dir'])
