@@ -189,3 +189,5 @@ def on_startup():
 
     time.sleep(1)
     send("TEST")
+
+on_startup()
