@@ -40,7 +40,7 @@ def telemetry_collection():
         try:
             telem_packet_buffer.append(gps_subpacket())
         except e:
-            logger.debug("exception" + str(e))
+            logger.debug("exception" + str(e)) #TODO: handle exceptions better
         # Comms
         #if time.time() % config['telemetry']['subpackets']['comms']['interval'] < 1:
         try:
