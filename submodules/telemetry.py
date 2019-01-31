@@ -87,7 +87,7 @@ def gps_subpacket():
     # Time
     packet += base64.b64encode(struct.pack('d', time.time())).decode('UTF-8')
     # Sequence number
-    packet += base64.b64encode(struct.pack('i', gps_sequence_number)).decode('UTF-8')    
+    #packet += base64.b64encode(struct.pack('i', gps_sequence_number)).decode('UTF-8')    
     # GPS coords
     # TODO fix this packet += base64.b64encode(struct.pack('fff', gps.lat, gps.lon, gps.alt)).decode('UTF-8')
     packet += base64.b64encode(struct.pack('fff', -1, -1, -1)).decode('UTF-8')
@@ -105,7 +105,7 @@ def adcs_subpacket():
     # time
     packet += base64.b64encode(struct.pack('d', time.time())).decode('UTF-8')
     # Sequence number
-    packet += base64.b64encode(struct.pack('i', adcs_sequence_number)).decode('UTF-8')
+    #packet += base64.b64encode(struct.pack('i', adcs_sequence_number)).decode('UTF-8')
     # pitch,roll,yaw
     pitch, roll, yaw = adcs.get_pry()
     packet += base64.b64encode(struct.pack("ddd", pitch, roll, yaw)).decode('UTF-8')
@@ -129,7 +129,7 @@ def comms_subpacket():
     # Time
     packet += base64.b64encode(struct.pack('d', time.time())).decode('UTF-8')
     # Sequence number
-    packet += base64.b64encode(struct.pack('i', comms_sequence_number)).decode('UTF-8')
+    #packet += base64.b64encode(struct.pack('i', comms_sequence_number)).decode('UTF-8')
     # APRS info
     packet += base64.b64encode(struct.pack('d', aprs.total_received_ph)).decode('UTF-8')
     packet += base64.b64encode(struct.pack('d', aprs.success_checksum_ph)).decode('UTF-8')
@@ -175,6 +175,9 @@ def enqueue_event_message(event):
     event_packet_buffer.append(packet)
 
 def send():
+    """
+    Concatenates packets to fit in max_packet_size (defined in config) and send through the APRS, dequing the packets in the process
+    """
     global packetBuffers, event_packet_buffer, telem_packet_buffer
     squishedPackets = ""
 

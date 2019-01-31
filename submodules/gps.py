@@ -294,7 +294,7 @@ def wait_for_signal():
         try:
             packet = ser.readline()[1:-5].decode("ascii")
             packet = pynmea2.parse(packet)
-            print("GPS_W" + packet)
+            #print("GPS_W" + packet)
             if (packet.lon != ''):
                 logger.info("GPS SIGNAL ACQUIRED")
                 send("unlogall")
