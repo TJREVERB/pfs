@@ -11,4 +11,4 @@ else:
 
 if __name__ == '__main__':
     logging.info("Starting application")
-    core.startup()
+    core.start()

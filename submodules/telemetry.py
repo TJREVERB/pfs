@@ -130,7 +130,7 @@ def send():
     packet_lock.release()
 
 
-def on_startup():
+def start():
     t1 = ThreadHandler(target=partial(telemetry_collection), name="telemetry-telemetry_collection")
     t1.start()
 

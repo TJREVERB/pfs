@@ -140,7 +140,7 @@ def send(message):
     exit(-1)
 
 
-def on_startup():
+def start():
     global ser
 
     # Opens the serial port for all methods to use with 19200 baud

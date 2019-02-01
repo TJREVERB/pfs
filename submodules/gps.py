@@ -321,7 +321,7 @@ def thread(args1, stop_event, queue_obj):
     pass
 
 
-def on_startup():
+def start():
     """
     Initializes all variables and starts all thread on boot
     :return:

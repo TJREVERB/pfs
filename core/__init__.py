@@ -80,7 +80,7 @@ def enter_emergency_mode(reason: str = '') -> None:
             getattr(module, 'enter_emergency_mode')()
 
 
-def startup():
+def start():
     global submodules
     # Load `config` from either default file or persistent config
     load_config()
@@ -97,10 +97,10 @@ def startup():
         logging.debug(f'Loading module {module}')
         submodules.append(importlib.import_module(f'submodules.{module}'))
 
-    # Trigger module startup
+    # Trigger module start
     for module in submodules:
-        if hasattr(module, 'on_startup'):
-            getattr(module, 'on_startup')()
+        if hasattr(module, 'start'):
+            getattr(module, 'start')()
 
     enter_normal_mode()  # Enter normal mode
     logging.debug("Entering main loop.")
