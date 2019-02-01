@@ -26,6 +26,6 @@ More information on `pipenv` available in the [documentation](https://pipenv.rea
 If you already have `pipenv` installed, run:
 ```
 pipenv install  # Install depedencies
-pipenv run main.py  # Run the flight software
+pipenv run python3 main.py  # Run the flight software
 ```
 Alternatively, configure your IDE to use the pipenv as the Python interpreter.

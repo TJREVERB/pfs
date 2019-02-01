@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "c299ad73042ea339c341d707ad9621da60c6faf118dd49c96577182853220f5d"
+            "sha256": "78461e75a308e91999416c478a2e3bcd7af163746baf70fc362ed9f597aa2b2d"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -16,20 +16,6 @@
         ]
     },
     "default": {
-        "future": {
-            "hashes": [
-                "sha256:67045236dcfd6816dc439556d009594abf643e5eb48992e36beac09c2ca659b8"
-            ],
-            "version": "==0.17.1"
-        },
-        "iso8601": {
-            "hashes": [
-                "sha256:210e0134677cc0d02f6028087fee1df1e1d76d372ee1db0bf30bf66c5c1c89a3",
-                "sha256:49c4b20e1f38aa5cf109ddcd39647ac419f928512c869dc01d5c7098eddede82",
-                "sha256:bbbae5fb4a7abfe71d4688fd64bff70b91bbd74ef6a99d964bab18f7fdf286dd"
-            ],
-            "version": "==0.1.12"
-        },
         "pynmea2": {
             "hashes": [
                 "sha256:f1509fe9a424f2ff0547a0b8475f807a587e3482eb6aed6b873c3df590edbca0"
@@ -68,14 +54,6 @@
             ],
             "index": "pypi",
             "version": "==3.13"
-        },
-        "serial": {
-            "hashes": [
-                "sha256:542150a127ddbf5ed2acc3a6ac4ce807cbcdae3b197acf785bbda6565c94f848",
-                "sha256:e887f06e07e190e39174b694eee6724e3c48bd361be1d97964caef5d5b61c73b"
-            ],
-            "index": "pypi",
-            "version": "==0.0.97"
         },
         "smbus2": {
             "hashes": [
