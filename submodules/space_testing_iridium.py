@@ -93,8 +93,16 @@ def on_startup():
     check()
     time.sleep(5)
     write_to_serial("AT")
+<<<<<<< HEAD
     print (ser.readline().decode('UTF-8'))
     print (ser.readline().decode('UTF-8'))
     print (ser.readline().decode('UTF-8'))
     print (ser.readline().decode('UTF-8'))
     print (ser.readline().decode('UTF-8'))
+=======
+    ser.readline().decode('UTF-8')
+    ser.readline().decode('UTF-8')
+    ser.readline().decode('UTF-8')
+    ser.readline().decode('UTF-8')
+    ser.readline().decode('UTF-8')
+>>>>>>> 3a266152eaf84d5f0dc5d33334a92d65f8b36f90
