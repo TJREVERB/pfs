@@ -15,15 +15,15 @@ config = None  # Prevents IDE from throwing errors about not finding `config`
 def load_config():
     """
     Loads a YAML file to be used as the `config`.
-    If `config.yml` exists, use that (this is user-configurable).
-    Else, use `default.yml`. This should not be changed while testing.
+    If `config_custom.yml` exists, use that (this is user-configurable).
+    Else, use `config_default.yml`. This should not be changed while testing.
     """
     global config
-    if os.path.exists('config.yml'):  # `config.yml` (custom configuration file) exists
-        with open('config.yml') as f:  # TODO: be resilient to I/O errors (e.g. persistent storage is ded)
+    if os.path.exists('config_custom.yml'):  # `config_custom.yml` (custom configuration file) exists
+        with open('config_custom.yml') as f:  # TODO: be resilient to I/O errors (e.g. persistent storage is ded)
             config = yaml.load(f)
     else:
-        with open('default.yml') as f:  # Custom configuration does not exist, use `default.yml`
+        with open('config_default.yml') as f:  # Custom configuration does not exist, use `config_default.yml`
             config = yaml.load(f)
 
 
@@ -33,7 +33,7 @@ def config_saver():
     """
     while True:
         time.sleep(config['core']['config_save_interval'])  # TODO: put a lock on config saving / make use of remount
-        with open('config.yml', 'w') as f:
+        with open('config_custom.yml', 'w') as f:
             yaml.dump(f)
 
 
