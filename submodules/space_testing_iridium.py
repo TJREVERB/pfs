@@ -87,14 +87,13 @@ def send(message):
 
 def on_startup():
     global ser
-
-    # Opens the serial port for all methods to use with 19200 baud
     ser = serial.Serial(config['iridium']['serial_port'], baudrate=19200, timeout=15)
+    ser.flush()
     check()
     time.sleep(5)
     write_to_serial("AT")
-    ser.readline().decode('UTF-8')
-    ser.readline().decode('UTF-8')
-    ser.readline().decode('UTF-8')
-    ser.readline().decode('UTF-8')
-    ser.readline().decode('UTF-8')
+    print ("line 1:"+ser.readline().decode('UTF-8'))
+    print ("line 2:"+ser.readline().decode('UTF-8'))
+    print ("line 3:"+ser.readline().decode('UTF-8'))
+    print ("line 4:"+ser.readline().decode('UTF-8'))
+    print ("line 5:"+ser.readline().decode('UTF-8'))
