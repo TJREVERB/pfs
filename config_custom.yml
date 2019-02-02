@@ -1,0 +1,24 @@
+core:
+  modules:
+  - aprs
+  - command_ingest
+  - gps
+  - iridium
+  log_dir: logs
+  config_save_interval: 60
+aprs:
+  # s1
+  serial_port: /dev/ttyUSB0
+  telem_timeout: 70
+  message_spacing: 1
+  simulate: true
+iridium:
+  serial_port: /dev/ttyUSB0
+gps:
+  # s3
+  serial_port: /dev/ttyUSB1
+  simulate: true
+#telemetry:
+#    data_functions:
+#        - aprs.get_voltage
+#        - aprs.get_number-of_packeut

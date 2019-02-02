@@ -128,7 +128,7 @@ def parse_aprs_packet(packet: str) -> str:
     # command_ingest.dispatch(data)
 
 
-def on_startup():
+def start():
     global ser
 
     # Opens the serial port for all methods to use with 19200 baud

@@ -92,7 +92,7 @@ def dispatch(body: str) -> None:
         # logger.debug('Invalid message')
         pass
 
-# def on_startup():
+# def start():
 #     global modules, m_aprs, m_gps, m_adcs, m_eps
 #     # modules = {'A':core,'B':m_aprs,'C':'iridium','D':'housekeeping','E':'log','F':'GPS'}
 #     m_aprs = {'a': aprs.enqueue, 'b': aprs.enter_normal_mode, 'c': aprs.enter_low_power_mode,

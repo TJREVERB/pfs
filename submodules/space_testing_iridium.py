@@ -85,7 +85,7 @@ def send(message):
     exit(-1)
 
 
-def on_startup():
+def start():
     global ser
     ser = serial.Serial(config['iridium']['serial_port'], baudrate=19200, timeout=15)
     ser.flush()

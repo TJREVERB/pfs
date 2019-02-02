@@ -103,7 +103,7 @@ def board_check():
         time.sleep(7)
 
 
-def on_startup():
+def start():
     global address, bus
 
     bus = smbus.SMBus(1)

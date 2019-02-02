@@ -50,7 +50,7 @@ def acc_gyr():
         time.sleep(speriod)
 
 
-def on_startup():
+def start():
     global speriod, datasave
     enter_normal_mode()
     datasave = []
@@ -78,6 +78,6 @@ def enter_emergency_mode():
 
 
 if __name__ == '__main__':
-    on_startup()
+    start()
     while True:
         time.sleep(1)

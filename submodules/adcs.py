@@ -13,7 +13,7 @@ def updateVals(msg):
 
 
 def on_startup():
-    # runs on application startup - start any threads you need here
+    # runs on application start - start any threads you need here
     pass
 
 

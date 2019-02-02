@@ -1,6 +1,7 @@
-.idea
+.idea/
 venv
 config.yml
 __pycache__/
 *.pyc
 logs/
+.DS_Store
