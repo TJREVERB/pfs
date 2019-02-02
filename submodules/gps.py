@@ -25,21 +25,6 @@ logger = logging.getLogger("GPS")
 
 ser_master, ser_slave = pty.openpty()  # Serial ports for when in simulate mode
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # Return a GPS position packet as returned by gpgga
 def get_position_packet():
     """
