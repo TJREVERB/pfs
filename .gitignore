@@ -1,7 +1,14 @@
+# IDE/editor configuration files
+.vscode/
 .idea/
-venv
-config.yml
+.DS_Store
+
+# Virtual environment directory
+venv/
+
+# Custom configuration file
+config-custom.yml
+
+# Unneeded Python files
 __pycache__/
 *.pyc
-logs/
-.DS_Store
