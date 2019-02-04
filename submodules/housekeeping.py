@@ -55,7 +55,8 @@ def send_heartbeat():
         f1 += bytes(config['housekeeping']['beacon_interval'])
         packet += base64.b64encode(f1)
         # GPS coords
-        packet += base64.b64encode(struct.pack('fff', gps.lat, gps.lon, gps.alt))
+        packet += base64.b64encode(struct.pack('fff',
+                                               gps.lat, gps.lon, gps.alt))
         # Battery percentage... as a 24 bit int :(
         battery_level = eps.get_battery_level()
         enc = struct.pack('I', int((2 ** 24 - 1) * battery_level))[:3]

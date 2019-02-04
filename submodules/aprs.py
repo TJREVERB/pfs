@@ -72,7 +72,7 @@ def telemetry_watchdog():
         if time.time() - last_telem_time > config['aprs']['telem_timeout']:
             logger.error("APRS is dead, restarting APRS")
             if not is_simulate('aprs'):
-                eps.reboot_device('aprs',3)
+                eps.reboot_device('aprs', 3)
         else:
             logger.debug("Watchdog pass APRS")
 
@@ -140,9 +140,12 @@ def start():
         ser = serial.Serial(config['aprs']['serial_port'], 19200)
 
     # Create all the background threads
-    t1 = ThreadHandler(target=partial(listen), name="aprs-listen", parent_logger=logger)
-    t2 = ThreadHandler(target=partial(send_loop), name="aprs-send_loop", parent_logger=logger)
-    t3 = ThreadHandler(target=partial(telemetry_watchdog), name="aprs-telemetry_watchdog", parent_logger=logger)
+    t1 = ThreadHandler(target=partial(listen),
+                       name="aprs-listen", parent_logger=logger)
+    t2 = ThreadHandler(target=partial(send_loop),
+                       name="aprs-send_loop", parent_logger=logger)
+    t3 = ThreadHandler(target=partial(telemetry_watchdog),
+                       name="aprs-telemetry_watchdog", parent_logger=logger)
 
     # Start the background threads
     t1.start()

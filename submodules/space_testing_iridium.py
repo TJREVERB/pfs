@@ -10,6 +10,7 @@ global ser
 # Initialize global variables
 logger = logging.getLogger("IRIDIUM")
 
+
 def write_to_serial(cmd):
     if cmd[-1] != '\r\n':
         cmd += '\r\n'
@@ -87,13 +88,14 @@ def send(message):
 
 def start():
     global ser
-    ser = serial.Serial(config['iridium']['serial_port'], baudrate=19200, timeout=15)
+    ser = serial.Serial(
+        config['iridium']['serial_port'], baudrate=19200, timeout=15)
     ser.flush()
     check()
     time.sleep(5)
     write_to_serial("AT")
-    print ("line 1:"+ser.readline().decode('UTF-8'))
-    print ("line 2:"+ser.readline().decode('UTF-8'))
-    print ("line 3:"+ser.readline().decode('UTF-8'))
-    print ("line 4:"+ser.readline().decode('UTF-8'))
-    print ("line 5:"+ser.readline().decode('UTF-8'))
+    print("line 1:"+ser.readline().decode('UTF-8'))
+    print("line 2:"+ser.readline().decode('UTF-8'))
+    print("line 3:"+ser.readline().decode('UTF-8'))
+    print("line 4:"+ser.readline().decode('UTF-8'))
+    print("line 5:"+ser.readline().decode('UTF-8'))

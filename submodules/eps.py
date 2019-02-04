@@ -9,7 +9,8 @@ from functools import partial
 # Initialize global variables
 logger = logging.getLogger("EPS")
 address = 43
-epsdict = {'gps': 1, 'magnetorquer': 2, 'aprs': 4, 'iridium': 3, 'antenna': 5, 'a': 6, 'b': 7, 'e': 8, 'd': 9, 'e': 10}
+epsdict = {'gps': 1, 'magnetorquer': 2, 'aprs': 4, 'iridium': 3,
+           'antenna': 5, 'a': 6, 'b': 7, 'e': 8, 'd': 9, 'e': 10}
 
 
 def pin_on(device_name):
@@ -22,11 +23,13 @@ def pin_on(device_name):
             logger.debug("Pin communication successful. \
             Pin is now ON.")
 
+
 def reboot_device(device_name, sleeptime):
     eps.pin_off(device_name)
     time.sleep(sleeptime)
     eps.pin_on(device_name)
     time.sleep(sleeptime)
+
 
 def pin_off(device_name):
     with SMBusWrapper(1) as bus:
@@ -45,6 +48,7 @@ def get_PDM_status(device_name):
         bus.write_i2c_block_data(address, 0x0E, PDM_val)
         return bus.read_byte(address)  # RETURNS A BYTE, NOT A BIT. OK?
 
+
 def isModuleOn(device_name):
     with SMBusWrapper(1) as bus:
         PDM_val = [epsdict[device_name]]
@@ -52,6 +56,7 @@ def isModuleOn(device_name):
             return False
         else:
             return True
+
 
 def get_board_status():
     with SMBusWrapper(1) as bus:
@@ -113,8 +118,10 @@ def start():
     #        pin_off(key)
     #        time.sleep(1)
     # Create all the background threads
-    t1 = ThreadHandler(target=partial(led_on_off), name="eps-led_on_off", parent_logger=logger)
-    t2 = ThreadHandler(target=partial(board_check), name="eps-board_check", parent_logger=logger)
+    t1 = ThreadHandler(target=partial(led_on_off),
+                       name="eps-led_on_off", parent_logger=logger)
+    t2 = ThreadHandler(target=partial(board_check),
+                       name="eps-board_check", parent_logger=logger)
 
     # Start the background threads
     # t1.start()

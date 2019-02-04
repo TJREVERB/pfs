@@ -23,7 +23,8 @@ class ThreadHandler:
         if name is None:
             if type(target) == functools.partial:
                 self.name = target.func.__name__
-            elif type(target) is type(lambda x: x):  # TODO figure out why function is not defined
+            # TODO figure out why function is not defined
+            elif type(target) is type(lambda x: x):
                 self.name = target.__name__
             else:
                 self.name = "thread_" + str(id(self))
@@ -51,12 +52,15 @@ class ThreadHandler:
                 try:
                     self.target()
                 except BaseException as e:
-                    if not self.suppress_out: self.parent_logger.exception(str(e) + ", restarting '%s'" % self.name)
+                    if not self.suppress_out:
+                        self.parent_logger.exception(
+                            str(e) + ", restarting '%s'" % self.name)
                     if not self.auto_restart:
                         self.is_active = False
                 else:
                     if not self.suppress_out:
-                        self.parent_logger.info("Bad thread, restarting '%s'" % self.name)
+                        self.parent_logger.info(
+                            "Bad thread, restarting '%s'" % self.name)
                     if not self.auto_restart:
                         self.is_active = False
             time.sleep(self.interval)

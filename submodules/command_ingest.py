@@ -51,8 +51,10 @@ def dispatch(body: str) -> None:
     :return: None
     """
     global total_errors, total_received, total_success
-    if body[0:2] == 'TJ' and body[-5:-1] == '\\r\\n':  # TODO: exception proof this (index out of bounds)
-        if generate_checksum(body) == body[-7]:  # TODO: exception proof (index out of bounds)
+    # TODO: exception proof this (index out of bounds)
+    if body[0:2] == 'TJ' and body[-5:-1] == '\\r\\n':
+        # TODO: exception proof (index out of bounds)
+        if generate_checksum(body) == body[-7]:
             logger.debug("Message %s passed checksum." % body)
             total_received += 1
             # Parse and execute command.
@@ -83,7 +85,8 @@ def dispatch(body: str) -> None:
                     # TODO: Enqueue as an event message
                     pass
             except Exception as e:
-                logger.error("Exception when executing command %s: %s" % (cmd[0], str(e)))
+                logger.error("Exception when executing command %s: %s" %
+                             (cmd[0], str(e)))
                 total_errors += 1
                 return
             total_success += 1
