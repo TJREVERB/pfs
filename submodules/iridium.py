@@ -21,11 +21,18 @@ logger = logging.getLogger("IRIDIUM")
 
 
 def write_to_serial(cmd):
-    if cmd[-1] != '\r\n':
+    """
+    Write a command to the serial port.
+
+    :param cmd: Command to write
+    """
+
+    # Append EOL if it isn't present alredy
+    if cmd[-2:] != '\r\n':
         cmd += '\r\n'
 
-    ser.write(cmd.encode('UTF-8'))
-    ser.flush()
+    ser.write(cmd.encode('UTF-8'))  # Encode the message with utf-8
+    ser.flush()  # Flush the serial
     cmd_echo = ser.readline()
 
 
@@ -37,12 +44,12 @@ def check():
     if 'OK' not in resp:
         exit(-1)
 
-    # show signal quality
+    # Show signal quality
     write_to_serial('AT+CSQ')
-    ser.readline().decode('UTF-8')  # get the empty line
+    ser.readline().decode('UTF-8')  # Get the empty line
     resp = ser.readline().decode('UTF-8')
-    ser.readline().decode('UTF-8')  # get the empty line
-    ok = ser.readline().decode('UTF-8')  # get the 'OK'
+    ser.readline().decode('UTF-8')  # Get the empty line
+    ok = ser.readline().decode('UTF-8')  # Get the 'OK'
     if 'OK' not in ok:
         exit(-1)
     write_to_serial("AT+SBDMTA=0")
@@ -78,9 +85,8 @@ def listen():
                 while len(resp) < 2:
                     print("response length loop")
                     test = ser.readline().decode('UTF-8')
-                    # print("Response before Splitting: "+test)
                     resp = test.split(': ')
-                # print("Response after splitting:  "+resp[1]+" 0 "+resp[0]+" END")
+
                 try:
                     print("splitting response")
                     resp = resp[1].split(', ')
@@ -88,8 +94,7 @@ def listen():
                     print("index out of bounds exception \r\n closing program")
                     exit(-1)
                 bytesLeft = int(resp[0])
-                # print("split response: "+resp[1])
-                # bytesLeft = 0
+
             write_to_serial("AT+SBDRT")
             print("About to show message")
             while True:
@@ -101,7 +106,6 @@ def listen():
                 except:
                     continue
             ringSetup = 0
-            # write_to_serial("at+sbdmta=0")
 
 
 def send(message):
@@ -111,7 +115,7 @@ def send(message):
     while alert == 2:
         write_to_serial("AT+CSQF")
 
-        signal = ser.readline().decode('UTF-8')  # empty line
+        signal = ser.readline().decode('UTF-8')  # Empty line
         signal = ser.readline().decode('UTF-8')
 
         # Prepare message
@@ -119,7 +123,7 @@ def send(message):
         ok = ser.readline().decode('UTF-8')  # Get the 'OK'
         ser.readline().decode('UTF-8')  # Get the empty line
 
-        # send message
+        # Send message
         write_to_serial("AT+SBDI")
 
         resp = ser.readline().decode('UTF-8')  # Get the empty line
