@@ -33,14 +33,28 @@ def get_position_packet():
     """
     global cached_nmea_obj
     send("log gpgg ontime 1")
-    time.sleep(1)
-    gps_packet = ser.readline()[0:-5].decode("ascii")
-    logger.debug(gps_packet)
-    send("unlogall")
-    gps_packet = parse_nmea_obj(pynmea2.parse(gps_packet))
-    update_time(gps_packet['time'])
-    cached_nmea_obj = gps_packet
-    return gps_packet
+    #time.sleep(1)
+
+    acquired = False
+    while acquired:
+        gps_packet = ser.readline()[0:-5].decode("ascii")
+
+        if gps_packet[0:3] == "[COM":
+            gps_packet = gps_packet[5:]
+        logger.debug(gps_packet)
+
+        try:
+            gps_packet = pynmea2.parse(gps_packet)
+            acquired = True
+        except(pynmea2.nmea.ChecksumError, pynmea2.nmea.ParseError, pynmea2.nmea.SentenceTypeError):
+            acquired = False
+            continue
+
+        gps_packet = parse_nmea_obj(gps_packet)
+        update_time(gps_packet['time'])
+        cached_nmea_obj = gps_packet
+        send("unlogall")
+        return gps_packet
 
 
 # Return a GPS velocity packet as returned by bestxyz
@@ -62,21 +76,6 @@ def get_velocity_packet():
 
 # Return both the gps position and velocity packet
 def recordgps():
-    # global cached_nmea_obj, cached_xyz_obj
-    # send("log gpgg ontime 1")
-    # time.sleep(1)
-    # gps_packet = ser.readline()[2:-5]
-    # send("unlogall")
-    # send("log bestxyz ontime 1")
-    # time.sleep(1)
-    # temp = ser.readline()[2:-5]
-    # xyz_packet = ser.readline()[2:-5]
-    # gps_packet = parse_nmea_obj(pynmea2.parse(gps_packet))
-    # update_time(gps_packet['time'])
-    # cached_nmea_obj = gps_packet
-    # xyz_packet = parse_xyz_packet(xyz_packet)
-    # cached_xyz_obj = xyz_packet
-    # send("unlogall")
     gps_packet = get_position_packet()
     xyz_packet = get_velocity_packet()
     return merge(gps_packet, xyz_packet)
@@ -94,7 +93,6 @@ def getsinglegps():
         pass
     # eps.pin_on("gps")
     t1.pause()
-    t3.pause()
     send("ANTENNAPOWER ON")
     send("FIX AUTO")
     wait_for_signal()
@@ -102,7 +100,6 @@ def getsinglegps():
     # checkifgpslock()
     gpsdata = recordgps()
     cached_data_obj = gpsdata
-    log(gpsdata)
     send("ANTENNAPOWER OFF")
     return gpsdata
     # end pseudo
@@ -123,11 +120,7 @@ def listen():
     """
     while True:
         line = ser.readline()  # Read in a full message from serial
-
         parse_gps_packet(line)  # Dispatch command
-        # logger.info(line)
-        # print(rr)
-        # log('GOT: '+rr)
 
 
 def findnth(msg, val, n):  # parsing helper method
@@ -151,26 +144,29 @@ def parse_xyz_packet(packet):
     :return: dictionary of x/y/z velocity and position along with status code
     """
     logger.info("parsing xyz")
-    packet = packet[findnth(packet, ' ', 7) + 1:]
-
     result = {}
+
     # specific message @ https://docs.novatel.com/OEM7/Content/PDFs/OEM7_Commands_Logs_Manual.pdf
     # pg.434 table.73
+    # status messages for bestxyz reliability (not 0 is bad)
     status_code = {'SOL_COMPUTED': 0, 'INSUFFICIENT_OBS': -1, 'NO_CONVERGENCE': 2,
-                   # status messages for bestxyz reliability not 0 is bad
                    'SINGULARITY': 3, 'COV_TRACE': 4, 'TEST_DIST': 5,
                    'COLD_START': 6, 'V_H_LIMIT': 7, 'VARIANCE': 8,
                    'RESIDUALS': 9, 'INTEGRITY_WARNING': 13, 'PENDING': 18,
                    'INVALID_FIX': 19, 'UNAUTHORIZED': 20, 'INVALID_RATE': 22
                    }
-    result['status'] = status_code[packet[:findnth(packet, ' ', 0)]]
-    result['x_vel'] = float(packet[findnth(packet, ' ', 1) + 1:findnth(packet, ' ', 2)])
-    result['y_vel'] = float(packet[findnth(packet, ' ', 2) + 1:findnth(packet, ' ', 3)])
-    result['z_vel'] = float(packet[findnth(packet, ' ', 3) + 1:findnth(packet, ' ', 4)])
-    # TODO: ADD x,y,z position
-    # result['x_pos'] = float(packet)
-    # result['y_pos'] = float(packet)
-    # result['z_pos'] = float(packet)
+
+    result['position_status'] = status_code[packet[:findnth(packet, ' ', 0)]]
+    result['x_pos'] = float(packet[findnth(packet, ' ', 1)+1:findnth(packet, ' ', 2)])
+    result['y_pos'] = float(packet[findnth(packet, ' ', 2)+1:findnth(packet, ' ', 3)])
+    result['z_pos'] = float(packet[findnth(packet, ' ', 3)+1:findnth(packet, ' ', 4)])
+
+    packetv = packet[findnth(packet, ' ', 7) + 1:]
+
+    result['velocity_status'] = status_code[packetv[:findnth(packetv, ' ', 0)]]
+    result['x_vel'] = float(packetv[findnth(packetv, ' ', 1) + 1:findnth(packetv, ' ', 2)])
+    result['y_vel'] = float(packetv[findnth(packetv, ' ', 2) + 1:findnth(packetv, ' ', 3)])
+    result['z_vel'] = float(packetv[findnth(packetv, ' ', 3) + 1:findnth(packetv, ' ', 4)])
 
     return result
 
@@ -214,6 +210,7 @@ def parse_gps_packet(packet):  # Parses and caches both the gpgga log and bestxy
     elif packet[0:8] == '<BESTXYZ':  # identifies bestxyz log
         logger.info("VEL UPDATE")
         packet = ser.readline()
+        logger.debug(packet)
         xyz_obj = parse_xyz_packet(packet[6:-33].decode("ascii"))
         cached_xyz_obj = xyz_obj
         cached_data_obj = merge(cached_nmea_obj, cached_xyz_obj)  # merges gpgga packets and bestxyz packets
@@ -238,9 +235,9 @@ def merge(x, y):  # parsing helper method
     """
     logger.debug("merging")
     if x is not None and y is not None:
-        z = x.copy()
-        z.update(y)
-        return z
+        for key, value in y.items():
+            x[key] = value
+    return x
 
 
 
@@ -293,7 +290,8 @@ def start():
         ser = serial.Serial(s_name, 19200)
         logger.info("Serial started on " + ser.name)
     else:
-        ser = serial.Serial(config['gps']['serial_port'], 9600)
+        ser = serial.Serial(config['gps']['serial_port'], 9600, timeout=10)
+        #eps.pin_on('gps')
 
     # REPLACE WITH /dev/ttyUSBx if 1 DOESNT WORK
     # serialPort = "/dev/ttyS3"
@@ -301,13 +299,9 @@ def start():
     t1 = ThreadHandler(target=partial(listen), name="gps-listen",
                        parent_logger=logger)  # thread for parsing and caching log packets
 
-    if not is_simulate('gps'):
-        pass
-        # eps.pin_on("gps")
-
-
     start_loop()  # start log and caching jobs
     # enter_normal_mode()
+    #  getsinglegps()
 
 
 def wait_for_signal():  # Temporary way of waiting for signal lock by waiting for an actual reading from gpgga log
@@ -317,9 +311,9 @@ def wait_for_signal():  # Temporary way of waiting for signal lock by waiting fo
     """
     logger.info("WAITING FOR GPS LOCK")
     send("log gpgga ontime 1")
+    line = b''
     while True:
 
-        line = b''
         if is_simulate('gps'):
             while not line.endswith(b'\n'):  # While EOL hasn't been sent
                 res = os.read(ser_master, 1000)
@@ -338,14 +332,13 @@ def wait_for_signal():  # Temporary way of waiting for signal lock by waiting fo
 
                 packet = pynmea2.parse(packet)
 
-
-
-                # if packet.lon != '':  # TODO: UNCOMMENT
-                if packet.lon == '':  # TODO: DELETE
+                if packet.lon != '':  # TODO: UNCOMMENT
                     logger.info("SIGNAL LOCK")
                     send("unlogall")
                     break
             except:
+                if line == b'\x00':
+                    logger.error("SERIAL PORT TIMEOUT CHECK SERIAL PORT")
                 logger.debug("incorrectly formatting string")
             else:
                 continue
@@ -358,7 +351,7 @@ def start_loop():
     Sends initial commands to gps to properly begin all log jobs
     :return:
     """
-    global t1, t2
+    global t1
     send('ECHO OFF')  # unnecessary for a headless system
     send('UNLOGALL')  # stops all previous log jobs
     send('ANTENNAPOWER ON')  # ensures power is supplied to the antenna
@@ -368,9 +361,8 @@ def start_loop():
     send('log gpgga ontime 5')  # starts to log gpgga every 5 seconds
     send('log bestxyz ontime 5')  # starts to log bestxyz every 5 seconds
     #TODO UNCOMMNENT
-   # t1.start()  # start parsing and caching
-    getsinglegps()
-    # t3.start()
+    t1.start()  # start parsing and caching
+    #getsinglegps() # start_loop is specifically used for parsing and caching data
 
 
 # TODO: Need to know what needs to be done in normal, low power, and emergency modes.
