@@ -26,6 +26,8 @@ logger = logging.getLogger("GPS")
 ser_master, ser_slave = pty.openpty()  # Serial ports for when in simulate mode
 
 # Return a GPS position packet as returned by gpgga
+
+
 def get_position_packet():
     """
     Starts a gpgga log job, parses and caches one reading
@@ -195,7 +197,8 @@ def parse_gps_packet(packet):  # Parses and caches both the gpgga log and bestxy
     packet = packet[0:-5].decode("ascii")
     logger.debug(packet)
     # logger.debug(packet[0:6])
-    if packet[0:3] == '[COM':  # com port is occasionally sent with log data causing errors( "[COM1]" )
+    # com port is occasionally sent with log data causing errors( "[COM1]" )
+    if packet[0:3] == '[COM':
         packet = packet[5:]  # removes com port characters
 
     if packet[0:6] == '$GPGGA':  # identifies gpgga log
@@ -205,15 +208,18 @@ def parse_gps_packet(packet):  # Parses and caches both the gpgga log and bestxy
         except (pynmea2.nmea.ChecksumError, pynmea2.nmea.SentenceTypeError, pynmea2.nmea.ParseError):
             logger.error("PARSING ERROR CAUGHT CONTINUING")
             nmea_obj = None
-        cached_nmea_obj = parse_nmea_obj(nmea_obj)  # translates pynmea object to dictionary
-        update_time(cached_nmea_obj['time'])  # updates system time from gpgga log
+        # translates pynmea object to dictionary
+        cached_nmea_obj = parse_nmea_obj(nmea_obj)
+        # updates system time from gpgga log
+        update_time(cached_nmea_obj['time'])
     elif packet[0:8] == '<BESTXYZ':  # identifies bestxyz log
         logger.info("VEL UPDATE")
         packet = ser.readline()
         logger.debug(packet)
         xyz_obj = parse_xyz_packet(packet[6:-33].decode("ascii"))
         cached_xyz_obj = xyz_obj
-        cached_data_obj = merge(cached_nmea_obj, cached_xyz_obj)  # merges gpgga packets and bestxyz packets
+        # merges gpgga packets and bestxyz packets
+        cached_data_obj = merge(cached_nmea_obj, cached_xyz_obj)
     logger.debug("data: " + str(get_data()))
 
 
@@ -240,16 +246,14 @@ def merge(x, y):  # parsing helper method
     return x
 
 
-
-
-
 def update_time(time):
     """
     Update system time based on the given time.
     :param time: A `time` object in UTC format.
     """
     if time is not None:
-        os.system('date -s "' + str(time.hour) + ':' + str(time.minute) + ':' + str(time.second) + ' UTC"')
+        os.system('date -s "' + str(time.hour) + ':' +
+                  str(time.minute) + ':' + str(time.second) + ' UTC"')
         logger.debug("system time updated")
     else:
         logger.error("system time not updated.")
@@ -257,7 +261,8 @@ def update_time(time):
 
 def keyin():
     while True:
-        in1 = input("Type Command: ")  # Use `raw_input()` if working with Python2
+        # Use `raw_input()` if working with Python2
+        in1 = input("Type Command: ")
         send(in1)
         # send("TJ" + in1 + chr(sum([ord(x) for x in "TJ" + in1]) % 128))
 
@@ -298,6 +303,7 @@ def start():
 
     t1 = ThreadHandler(target=partial(listen), name="gps-listen",
                        parent_logger=logger)  # thread for parsing and caching log packets
+
 
     start_loop()  # start log and caching jobs
     # enter_normal_mode()
@@ -355,14 +361,15 @@ def start_loop():
     send('ECHO OFF')  # unnecessary for a headless system
     send('UNLOGALL')  # stops all previous log jobs
     send('ANTENNAPOWER ON')  # ensures power is supplied to the antenna
-    send('ASSIGNALL AUTO')  # assigns all gps systems to an automatic configuration
+    # assigns all gps systems to an automatic configuration
+    send('ASSIGNALL AUTO')
     send('FIX AUTO')  # ensures bestxyz readings are accurate
     wait_for_signal()
     send('log gpgga ontime 5')  # starts to log gpgga every 5 seconds
     send('log bestxyz ontime 5')  # starts to log bestxyz every 5 seconds
-    #TODO UNCOMMNENT
-    t1.start()  # start parsing and caching
-    #getsinglegps() # start_loop is specifically used for parsing and caching data
+    # TODO UNCOMMNENT
+    #t1.start()  # start parsing and caching
+    getsinglegps()
 
 
 # TODO: Need to know what needs to be done in normal, low power, and emergency modes.
@@ -391,7 +398,8 @@ def enter_emergency_mode():
 
 
 if __name__ == '__main__':
-    t2 = ThreadHandler(target=partial(keyin), name="gps-keyin", parent_logger=logger)
+    t2 = ThreadHandler(target=partial(
+        keyin), name="gps-keyin", parent_logger=logger)
     t2.start()
 
     while True:

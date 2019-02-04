@@ -19,11 +19,14 @@ def load_config():
     Else, use `config_default.yml`. This should not be changed while testing.
     """
     global config
-    if os.path.exists('config_custom.yml'):  # `config_custom.yml` (custom configuration file) exists
-        with open('config_custom.yml') as f:  # TODO: be resilient to I/O errors (e.g. persistent storage is ded)
+    # `config_custom.yml` (custom configuration file) exists
+    if os.path.exists('config_custom.yml'):
+        # TODO: be resilient to I/O errors (e.g. persistent storage is ded)
+        with open('config_custom.yml') as f:
             config = yaml.load(f)
     else:
-        with open('config_default.yml') as f:  # Custom configuration does not exist, use `config_default.yml`
+        # Custom configuration does not exist, use `config_default.yml`
+        with open('config_default.yml') as f:
             config = yaml.load(f)
 
 
@@ -32,7 +35,8 @@ def config_saver():
     Save `config` every so often.
     """
     while True:
-        time.sleep(config['core']['config_save_interval'])  # TODO: put a lock on config saving / make use of remount
+        # TODO: put a lock on config saving / make use of remount
+        time.sleep(config['core']['config_save_interval'])
         with open('config_custom.yml', 'w') as f:
             yaml.dump(f)
 
@@ -43,7 +47,8 @@ def enter_normal_mode(reason: str = '') -> None:
     :param reason: Reason for entering normal mode.
     """
     global current_mode
-    logging.info(f"Entering normal mode.{'  Reason: ' if reason else ''}{reason}")
+    logging.info(
+        f"Entering normal mode.{'  Reason: ' if reason else ''}{reason}")
     current_mode = mode.NORMAL
 
     # Trigger the module hooks
@@ -58,7 +63,8 @@ def enter_low_power_mode(reason: str = '') -> None:
     :param reason: Reason for entering low power mode.
     """
     global current_mode
-    logging.warning(f"Entering low_power mode.{'  Reason: ' if reason else ''}{reason}")
+    logging.warning(
+        f"Entering low_power mode.{'  Reason: ' if reason else ''}{reason}")
     current_mode = mode.LOW_POWER
 
     for module in submodules:  # Trigger the module hooks
@@ -72,7 +78,8 @@ def enter_emergency_mode(reason: str = '') -> None:
     :param reason: Reason for entering emergency power mode.
     """
     global current_mode
-    logging.critical(f"Entering emergency mode.{'  Reason: ' if reason else ''}{reason}")
+    logging.critical(
+        f"Entering emergency mode.{'  Reason: ' if reason else ''}{reason}")
     current_mode = mode.EMERGENCY
 
     for module in submodules:  # Trigger the module hooks

@@ -10,9 +10,11 @@ def delay(target, delay_time):
     :param delay_time: Amount of time to delay run by (sec.).
     :return: A reference to the `threading.Timer` object that was created.
     """
-    function_timer = Timer(delay_time, target)  # Create the Timer, which automatically uses a thread
+    function_timer = Timer(
+        delay_time, target)  # Create the Timer, which automatically uses a thread
     function_timer.start()
     return function_timer
+
 
 def is_simulate(submodule):
     """
@@ -28,4 +30,3 @@ def is_simulate(submodule):
             return is_sim
     except KeyError:  # The key does not exist, assume not in simulation mode
         return False
-
