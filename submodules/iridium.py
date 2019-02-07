@@ -32,8 +32,16 @@ def write_to_serial(cmd):
         cmd += '\r\n'
 
     ser.write(cmd.encode('UTF-8'))  # Encode the message with utf-8
+
+    response = ""  # Received response
+    while "OK" not in response:  # Wait to get the 'OK' from the Iridium
+        response += ser.readline().decode('UTF-8')  # Append contents of serial
+    # Filter out the newline and the 'OK'
+    response.replace("\r\n", "").replace("OK", "")
+
     ser.flush()  # Flush the serial
-    cmd_echo = ser.readline()
+
+    return response
 
 
 def check():
@@ -151,16 +159,16 @@ def start():
     # Opens the serial port for all methods to use with 19200 baud
     ser = serial.Serial(
         config['iridium']['serial_port'], baudrate=19200, timeout=15)
-    ser.flush()
+    ser.flush()  # clean house before starting
 
     # Create all the background threads
-    t1 = ThreadHandler(target=partial(listen),
-                       name="iridium-listen", parent_logger=logger)
+    # t1 = ThreadHandler(target=partial(listen),name="iridium-listen", parent_logger=logger)
+    # no threads it breaks serial
 
     check()
 
     # Start the threads
-    t1.start()
+    # t1.start() threads break serial
 
     time.sleep(1)
     send("TEST")
