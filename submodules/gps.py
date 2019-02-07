@@ -1,7 +1,7 @@
 import logging
-import os
 import sys
 import time
+import threading
 
 import pynmea2
 import serial
@@ -25,6 +25,7 @@ logger = logging.getLogger("GPS")
 
 ser_master, ser_slave = pty.openpty()  # Serial ports for when in simulate mode
 
+
 # Return a GPS position packet as returned by gpgga
 
 
@@ -34,29 +35,29 @@ def get_position_packet():
     :return: latitude,longitude,altitude, and time readings in dictionary format
     """
     global cached_nmea_obj
-    send("log gpgg ontime 1")
-    #time.sleep(1)
+    send("log gpgga ontime 1")
+    # time.sleep(1)
 
-    acquired = False
-    while acquired:
-        gps_packet = ser.readline()[0:-5].decode("ascii")
+    # acquired = False
+    # while acquired:
+    #    gps_packet = ser.readline()[0:-5].decode("ascii")
 
-        if gps_packet[0:3] == "[COM":
-            gps_packet = gps_packet[5:]
-        logger.debug(gps_packet)
+    #   if gps_packet[0:4] == "[COM":
+    #       gps_packet = gps_packet[5:]
+    #   logger.debug(gps_packet)
 
-        try:
-            gps_packet = pynmea2.parse(gps_packet)
-            acquired = True
-        except(pynmea2.nmea.ChecksumError, pynmea2.nmea.ParseError, pynmea2.nmea.SentenceTypeError):
-            acquired = False
-            continue
-
-        gps_packet = parse_nmea_obj(gps_packet)
-        update_time(gps_packet['time'])
-        cached_nmea_obj = gps_packet
-        send("unlogall")
-        return gps_packet
+    #   try:
+    #       gps_packet = pynmea2.parse(gps_packet)
+    #       acquired = True
+    #   except(pynmea2.nmea.ChecksumError, pynmea2.nmea.ParseError, pynmea2.nmea.SentenceTypeError):
+    #       acquired = False
+    #       continue
+    gps_packet = capture_packet('gps')
+    logger.debug(gps_packet)
+    gps_packet = parse_nmea_obj(gps_packet)
+    cached_nmea_obj = gps_packet
+    send("unlogall")
+    return gps_packet
 
 
 # Return a GPS velocity packet as returned by bestxyz
@@ -68,8 +69,10 @@ def get_velocity_packet():
     global cached_xyz_obj
     send("log bestxyz ontime 1")
     time.sleep(1)
-    temp = ser.readline()[2:-5]
-    xyz_packet = ser.readline()[0:-5].decode("ascii")
+    # temp = ser.readline()[2:-5]
+    # xyz_packet = ser.readline()[0:-5].decode("ascii")
+
+    xyz_packet = capture_packet('vel')
     xyz_packet = parse_xyz_packet(xyz_packet)
     cached_xyz_obj = xyz_packet
     send("unlogall")
@@ -90,12 +93,14 @@ def getsinglegps():
     Takes a single reading of all log jobs
     :return: latitude,longitude,altitude,x/y/z velocity and position, and status code in dictionary format
     """
-    global t1, t2, cached_data_obj
+    global t1, cached_data_obj
     if not is_simulate('gps'):
         pass
     # eps.pin_on("gps")
     t1.pause()
+    send("unlogall")
     send("ANTENNAPOWER ON")
+    send("ASSIGNALL AUTO")
     send("FIX AUTO")
     wait_for_signal()
     # pseudo
@@ -159,9 +164,9 @@ def parse_xyz_packet(packet):
                    }
 
     result['position_status'] = status_code[packet[:findnth(packet, ' ', 0)]]
-    result['x_pos'] = float(packet[findnth(packet, ' ', 1)+1:findnth(packet, ' ', 2)])
-    result['y_pos'] = float(packet[findnth(packet, ' ', 2)+1:findnth(packet, ' ', 3)])
-    result['z_pos'] = float(packet[findnth(packet, ' ', 3)+1:findnth(packet, ' ', 4)])
+    result['x_pos'] = float(packet[findnth(packet, ' ', 1) + 1:findnth(packet, ' ', 2)])
+    result['y_pos'] = float(packet[findnth(packet, ' ', 2) + 1:findnth(packet, ' ', 3)])
+    result['z_pos'] = float(packet[findnth(packet, ' ', 3) + 1:findnth(packet, ' ', 4)])
 
     packetv = packet[findnth(packet, ' ', 7) + 1:]
 
@@ -180,9 +185,8 @@ def parse_nmea_obj(packet):
     :return: dictionary of latitude,longitude,altitude, and time
     """
     logger.debug("parsing nmea")
-    if (packet is None):
-        return
-    else:
+    if packet is not None:
+        update_time(packet.timestamp)
         return {'lat': packet.lat, 'lon': packet.lon, 'alt': packet.altitude, 'alt_unit': packet.altitude_units,
                 'lon_dir': packet.lon_dir, 'lat_dir': packet.lat_dir, 'time': packet.timestamp}
 
@@ -194,12 +198,14 @@ def parse_gps_packet(packet):  # Parses and caches both the gpgga log and bestxy
     :return: combined dictionary of gpgga and bestxyz data
     """
     global cached_nmea_obj, cached_xyz_obj, cached_data_obj  # nmea=gpgga xyz=bestxyz data=both
-    packet = packet[0:-5].decode("ascii")
+    packet = packet.decode("ascii")
     logger.debug(packet)
     # logger.debug(packet[0:6])
     # com port is occasionally sent with log data causing errors( "[COM1]" )
-    if packet[0:3] == '[COM':
-        packet = packet[5:]  # removes com port characters
+    if packet[0:4] == '[COM':
+        packet = packet[6:]  # removes com port characters
+
+    packet = packet[0:-5]
 
     if packet[0:6] == '$GPGGA':  # identifies gpgga log
         logger.info('POS UPDATE')
@@ -230,6 +236,40 @@ def get_data():
     """
     global cached_nmea_obj, cached_xyz_obj, cached_data_obj
     return cached_data_obj
+
+
+def capture_packet(type):
+    acquired = False
+    while not acquired:
+        try:
+            packet = ser.readline()
+            packet = packet.decode("ascii")
+            if packet[0:4] == '[COM':
+                packet = packet[6:]
+
+            packet = packet[0:-5]
+
+            if type == 'gps':
+                try:
+                    nmea_packet = pynmea2.parse(packet)
+                except pynmea2.nmea.ParseError:
+                    logger.error("NMEA PARSING ERROR")
+                    acquired = False
+                    continue
+                return nmea_packet
+
+            if type == 'vel':
+                if packet[0:8] == '<BESTXYZ':
+                    xyz_packet = ser.readline()[0:-5].decode("ascii")
+                    return xyz_packet[6:-33]
+                else:
+                    logger.error(packet)
+                    acquired = False
+                    continue
+
+        except serial.SerialException:
+            acquired = False
+            continue
 
 
 def merge(x, y):  # parsing helper method
@@ -278,16 +318,36 @@ def thread(args1, stop_event, queue_obj):
     pass
 
 
+# TODO TEST IF WORKS
+def getPoints(period):
+    time = 0
+    points = []
+    while time != period:
+        points.append(getsinglegps())
+        time += 1
+    return points
+
+
+# TODO TEST IF WORKS
+def update_cache():
+    cache.append(getPoints(gpsperiod))
+
+
 def start():
     """
     Initializes all variables and starts all thread on boot
     :return:
     """
-    global t1, ser, cached_nmea_obj, cached_xyz_obj, cached_data_obj
+    global t1, t2, ser, cached_nmea_obj, cached_xyz_obj, cached_data_obj, cache, gpsperiod
     # cached_nmea_obj = (None,None)
     cached_nmea_obj = None  # cached lat/lon/alt/gps object
     cached_xyz_obj = None  # cached velocity object
     cached_data_obj = None  # final data packet
+    cache = []  # list of (lists of dictionaries -returned by get k points)
+
+    # TODO UPDATE FOR ACTUAL VALUE
+    updateinterval = 10  # time in seconds getKPoints should be called
+    gpsperiod = 10
 
     # Opens the serial port for all methods to use with 19200 baud
     if is_simulate('gps'):
@@ -296,18 +356,17 @@ def start():
         logger.info("Serial started on " + ser.name)
     else:
         ser = serial.Serial(config['gps']['serial_port'], 9600, timeout=10)
-        #eps.pin_on('gps')
+        # eps.pin_on('gps')
 
     # REPLACE WITH /dev/ttyUSBx if 1 DOESNT WORK
     # serialPort = "/dev/ttyS3"
 
     t1 = ThreadHandler(target=partial(listen), name="gps-listen",
                        parent_logger=logger)  # thread for parsing and caching log packets
+    t2 = threading.Timer(float(updateinterval), update_cache)
 
-
-    start_loop()  # start log and caching jobs
-    # enter_normal_mode()
-    #  getsinglegps()
+    start_loop()
+    t2.start()
 
 
 def wait_for_signal():  # Temporary way of waiting for signal lock by waiting for an actual reading from gpgga log
@@ -328,13 +387,13 @@ def wait_for_signal():  # Temporary way of waiting for signal lock by waiting fo
 
             try:
                 line = ser.readline()
-                logger.debug(line[0:-5].decode("ascii"))
-                packet = line[0:-5].decode("ascii")
+                packet = line.decode("ascii")
 
-                if packet[0:3] == '[COM':
-                    packet = packet[5:]
-                else:
-                    packet = packet[1:]
+                if packet[0:4] == "[COM":
+                    packet = packet[6:]
+                packet = packet[0:-5]
+
+                logger.debug(packet)
 
                 packet = pynmea2.parse(packet)
 
@@ -350,8 +409,6 @@ def wait_for_signal():  # Temporary way of waiting for signal lock by waiting fo
                 continue
 
 
-# return
-
 def start_loop():
     """
     Sends initial commands to gps to properly begin all log jobs
@@ -359,7 +416,7 @@ def start_loop():
     """
     global t1
     send('ECHO OFF')  # unnecessary for a headless system
-    send('UNLOGALL')  # stops all previous log jobs
+    send('unlogall')  # stops all previous log jobs
     send('ANTENNAPOWER ON')  # ensures power is supplied to the antenna
     # assigns all gps systems to an automatic configuration
     send('ASSIGNALL AUTO')
@@ -367,9 +424,7 @@ def start_loop():
     wait_for_signal()
     send('log gpgga ontime 5')  # starts to log gpgga every 5 seconds
     send('log bestxyz ontime 5')  # starts to log bestxyz every 5 seconds
-    # TODO UNCOMMNENT
-    #t1.start()  # start parsing and caching
-    getsinglegps()
+    t1.start()  # start parsing and caching
 
 
 # TODO: Need to know what needs to be done in normal, low power, and emergency modes.
