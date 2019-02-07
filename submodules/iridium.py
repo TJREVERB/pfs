@@ -149,18 +149,17 @@ def start():
     global ser
 
     # Opens the serial port for all methods to use with 19200 baud
-    ser = serial.Serial(
-        config['iridium']['serial_port'], baudrate=19200, timeout=15)
-    ser.flush()
+    ser = serial.Serial(config['iridium']['serial_port'], baudrate=19200, timeout=15)
+    ser.flush() # clean house before starting
 
     # Create all the background threads
-    t1 = ThreadHandler(target=partial(listen),
-                       name="iridium-listen", parent_logger=logger)
+    # t1 = ThreadHandler(target=partial(listen),name="iridium-listen", parent_logger=logger) 
+    # no threads it breaks serial
 
     check()
 
     # Start the threads
-    t1.start()
+    # t1.start() threads break serial
 
     time.sleep(1)
     send("TEST")
