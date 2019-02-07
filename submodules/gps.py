@@ -25,9 +25,6 @@ logger = logging.getLogger("GPS")
 
 ser_master, ser_slave = pty.openpty()  # Serial ports for when in simulate mode
 
-# Return a GPS position packet as returned by gpgga
-
-
 def get_position_packet():
     """
     Starts a gpgga log job, parses and caches one reading
@@ -59,7 +56,6 @@ def get_position_packet():
         return gps_packet
 
 
-# Return a GPS velocity packet as returned by bestxyz
 def get_velocity_packet():
     """
     Starts a bestxyz log job, parses and caches one reading
