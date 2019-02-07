@@ -38,26 +38,30 @@ def telemetry_collection():
         #if time.time() % config['telemetry']['subpackets']['gps']['interval'] < 1:
         try:
             telem_packet_buffer.append(gps_subpacket())
-        except:
-            logger.debug("exception" + str(e)) #TODO: handle exceptions better
+        except Exception as err:
+            logger.error("Exception: " + str(err)) #TODO: handle exceptions better
         # Comms
         #if time.time() % config['telemetry']['subpackets']['comms']['interval'] < 1:
         try:
             telem_packet_buffer.append(comms_subpacket())
-        except:
-            logger.debug("exception" + str(e))
+        except Exception as err:
+            logger.error("Exception: " + str(err))
         # ADCS
         #if time.time() % config['telemetry']['subpackets']['adcs']['interval'] < 1:
         try:
             telem_packet_buffer.append(adcs_subpacket())
-        except:
-            logger.debug("exception" + str(e))
+        except Exception as err:
+            logger.error("Exception: " + str(err))
         # logger.debug("Packet Buffer is %d long" % len(packet_buffer))
         packet_lock.release()
         time.sleep(config['telemetry']['subpackets'])
 
 
 def telemetry_send():
+    """
+    Thread method to burst the telemetry every so often
+    """
+    # TODO: check battery levels
     global telem_packet_buffer, event_packet_buffer
     time.sleep(60)
 
@@ -66,7 +70,6 @@ def telemetry_send():
             telemetry_send_once()
         time.sleep(config['telemetry']['send_interval'])
 
-@command("burst")
 def telemetry_send_once():
     """
     Immediately send telemetry packets in both telemetry and event packet queues
@@ -76,6 +79,13 @@ def telemetry_send_once():
     send()
     logger.debug("Sent " + str(beg_count - len(telem_packet_buffer) - len(event_packet_buffer)) + " telemetry packets")
 
+@command("burst")
+def telemetry_burst_command():
+    """
+    Burst command; ignores 
+    """
+    send(ignoreAPRS=True)
+
 def gps_subpacket():
     """
     Return a GPS subpacket
@@ -84,8 +94,6 @@ def gps_subpacket():
     packet = "G"
     # Time
     packet += base64.b64encode(struct.pack('d', time.time())).decode('UTF-8')
-    # Sequence number
-    #packet += base64.b64encode(struct.pack('i', gps_sequence_number)).decode('UTF-8')
     # GPS coords
     # TODO fix this packet += base64.b64encode(struct.pack('fff', gps.lat, gps.lon, gps.alt)).decode('UTF-8')
     packet += base64.b64encode(struct.pack('fff', -1, -1, -1)).decode('UTF-8')
@@ -102,8 +110,6 @@ def adcs_subpacket():
     packet = "A"
     # time
     packet += base64.b64encode(struct.pack('d', time.time())).decode('UTF-8')
-    # Sequence number
-    #packet += base64.b64encode(struct.pack('i', adcs_sequence_number)).decode('UTF-8')
     # pitch,roll,yaw
     pitch, roll, yaw = adcs.get_pry()
     packet += base64.b64encode(struct.pack("ddd", pitch, roll, yaw)).decode('UTF-8')
@@ -147,41 +153,33 @@ def system_subpacket():
 
 #TODO: EPS subpacket
 
-def last_telem_subpacket():
-    """
-    Return the last telemetry subpacket in queue
-    """
-    global telem_packet_buffer
-    return telem_packet_buffer[-1]
-
-def last_event_subpacket():
-    """
-    Return the last event subpacket in queue
-    """
-    global event_packet_buffer
-    return event_packet_buffer[-1]
-
 def enqueue_event_message(event):
     """
     Enqueue an event message.
-    event - message to enqueue, maximum 16 bytes
+    event - message to enqueue, **MUST BE EXACTLY** 16 bytes
     """
+
+    if len(event.encode('utf-8')) != 16:
+        logger.error("Event message must be exactly 16 bytes, message is " + str(len(event.encode('utf-8'))) + " bytes")
+        return
+
     global event_packet_buffer
     packet = "Z"
     packet += str(base64.b64encode(struct.pack('d', time.time())))
     packet += event
     event_packet_buffer.append(packet)
 
-def send():
+def send(ignoreADCS=False):
     """
     Concatenates packets to fit in max_packet_size (defined in config) and send through the APRS, dequing the packets in the process
     """
     global packetBuffers, event_packet_buffer, telem_packet_buffer
     squishedPackets = ""
 
-    while len(event_packet_buffer)+len(telem_packet_buffer) > 0 and adcs.can_TJ_be_seen():
+    packet_lock.acquire()
+    while len(event_packet_buffer)+len(telem_packet_buffer) > 0 and (adcs.can_TJ_be_seen() or ignoreADCS):
         for buffer in packetBuffers:
-            while len(buffer) > 0 and len(squishedPackets) < config['telemetry']['max_packet_size'] and adcs.can_TJ_be_seen():
+            while len(buffer) > 0 and len(squishedPackets) < config['telemetry']['max_packet_size'] and (adcs.can_TJ_be_seen() or ignoreADCS):
                 squishedPackets += buffer.pop()
 
         #TODO: alternate between radios
@@ -190,21 +188,20 @@ def send():
         squishedPackets = ""
         time.sleep(6)
 
-    """while len(event_packet_buffer) + len(telem_packet_buffer) > 0:
-    while len(squishedPackets) < config['telemetry']['max_packet_size']:
-        for buffer in packetBuffers:
-            while len(buffer) > 0 and len(squishedPackets) < config['telemetry']['max_packet_size']:
-                squishedPackets += buffer.pop()
-            if len(squishedPackets) > config['telemetry']['max_packet_size']:
-                break"""
+    packet_lock.release()
 
 def start():
+    """
+    Starts the telemetry collection and telemetry send threads
+    """
     t1 = ThreadHandler(target=partial(telemetry_collection), name="telemetry-telemetry_collection")
     t1.start()
 
     t2 = ThreadHandler(target=partial(telemetry_send), name="telemetry-telemetry_send")
     t2.start()
 
+
+    print(gps.get_position_packet())
 
 # TODO: Need to know what needs to be done in low power and emergency modes.
 def enter_emergency_mode():
