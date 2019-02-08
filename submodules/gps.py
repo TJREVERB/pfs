@@ -13,13 +13,9 @@ from helpers.threadhandler import ThreadHandler
 from helpers.helpers import is_simulate
 from functools import partial
 
-from submodules import aprs
 from submodules import eps
 
 from core import config
-
-# from . import aprs
-# from . import eps
 
 logger = logging.getLogger("GPS")
 
@@ -65,39 +61,40 @@ def get_velocity_packet():
 
 # Return both the gps position and velocity packet
 def recordgps():
+    """
+    Gets a single reading from the gps assuming gps is already on and initialized. Does not turn off gps
+    :return: single dictionary of all readings
+    """
     global cached_data_obj
     gps_packet = get_position_packet()
     xyz_packet = get_velocity_packet()
 
-    data_obj = merge(gps_packet,xyz_packet)
+    data_obj = merge(gps_packet, xyz_packet)
     cached_data_obj = data_obj
-
 
     return data_obj
 
 
 def getsinglegps():
-    # EXAMPLE METHOD THAT STILL NEEDS TO BE FLESHED OUT
-    # AS YOU CAN SEE THERRE'S STILL A TON TO DO
     """
     Takes a single reading of all log jobs
     :return: latitude,longitude,altitude,x/y/z velocity and position, and status code in dictionary format
     """
-    global t1, cached_data_obj
+    global cached_data_obj
     if not is_simulate('gps'):
         pass
-    # eps.pin_on("gps")
+    eps.pin_on("gps")
     t1.pause()
     send("unlogall")
     send("ANTENNAPOWER ON")
     send("ASSIGNALL AUTO")
     send("FIX AUTO")
     wait_for_signal()
-    # pseudo
-    # checkifgpslock()
+
     gpsdata = recordgps()
     cached_data_obj = gpsdata
     send("ANTENNAPOWER OFF")
+    eps.pin_off('gps')
     return gpsdata
     # end pseudo
 
@@ -146,12 +143,9 @@ def parse_xyz_packet(packet):
     # specific message @ https://docs.novatel.com/OEM7/Content/PDFs/OEM7_Commands_Logs_Manual.pdf
     # pg.434 table.73
     # status messages for bestxyz reliability (not 0 is bad)
-    status_code = {'SOL_COMPUTED': 0, 'INSUFFICIENT_OBS': -1, 'NO_CONVERGENCE': 2,
-                   'SINGULARITY': 3, 'COV_TRACE': 4, 'TEST_DIST': 5,
-                   'COLD_START': 6, 'V_H_LIMIT': 7, 'VARIANCE': 8,
-                   'RESIDUALS': 9, 'INTEGRITY_WARNING': 13, 'PENDING': 18,
-                   'INVALID_FIX': 19, 'UNAUTHORIZED': 20, 'INVALID_RATE': 22
-                   }
+    status_code = {'SOL_COMPUTED': 0, 'INSUFFICIENT_OBS': -1, 'NO_CONVERGENCE': 2, 'SINGULARITY': 3, 'COV_TRACE': 4,
+                   'TEST_DIST': 5, 'COLD_START': 6, 'V_H_LIMIT': 7, 'VARIANCE': 8, 'RESIDUALS': 9,
+                   'INTEGRITY_WARNING': 13, 'PENDING': 18, 'INVALID_FIX': 19, 'UNAUTHORIZED': 20, 'INVALID_RATE': 22}
 
     result['position_status'] = status_code[packet[:findnth(packet, ' ', 0)]]
     result['x_pos'] = float(packet[findnth(packet, ' ', 1) + 1:findnth(packet, ' ', 2)])
@@ -181,11 +175,11 @@ def parse_nmea_obj(packet):
                 'lon_dir': packet.lon_dir, 'lat_dir': packet.lat_dir, 'time': packet.timestamp}
 
 
-def parse_gps_packet(packet):  # Parses and caches both the gpgga log and bestxyz log
+# FIXME make more cleaner?
+def parse_gps_packet(packet):
     """
-    Handles the parsing of both gpgga and bestxyz logs
+    Handles the parsing of both gpgga and bestxyz logs. Caches readings to cached_data_obj
     :param packet: raw gps line either gpgga or bestxyz
-    :return: combined dictionary of gpgga and bestxyz data
     """
     global cached_nmea_obj, cached_xyz_obj, cached_data_obj  # nmea=gpgga xyz=bestxyz data=both
     packet = packet.decode("ascii")
@@ -228,10 +222,10 @@ def get_data():
     return cached_data_obj
 
 
-def capture_packet(type):
+def capture_packet(packet_type):
     """
     Ensures a data packet is read from the gps. Excludes all incorrect data
-    :param type: either 'gps' or 'vel' to return either a gps or velocity packet
+    :param packet_type: either 'gps' or 'vel' to return either a gps or velocity packet
     :return: genuine packet of data
     """
     acquired = False
@@ -244,7 +238,7 @@ def capture_packet(type):
 
             packet = packet[0:-5]
 
-            if type == 'gps':
+            if packet_type == 'gps':
                 try:
                     nmea_packet = pynmea2.parse(packet)
                 except pynmea2.nmea.ParseError:
@@ -253,7 +247,7 @@ def capture_packet(type):
                     continue
                 return nmea_packet
 
-            if type == 'vel':
+            if packet_type == 'vel':
                 if packet[0:8] == '<BESTXYZ':
                     xyz_packet = ser.readline()[0:-5].decode("ascii")
                     return xyz_packet[6:-33]
@@ -281,20 +275,23 @@ def merge(x, y):  # parsing helper method
     return x
 
 
-def update_time(time):
+def update_time(new_time):
     """
     Update system time based on the given time.
-    :param time: A `time` object in UTC format.
+    :param new_time: A `time` object in UTC format.
     """
-    if time is not None:
-        os.system('date -s "' + str(time.hour) + ':' +
-                  str(time.minute) + ':' + str(time.second) + ' UTC"')
+    if new_time is not None:
+        os.system('date -s "' + str(new_time.hour) + ':' +
+                  str(new_time.minute) + ':' + str(new_time.second) + ' UTC"')
         logger.debug("system time updated")
     else:
         logger.error("system time not updated.")
 
 
 def keyin():
+    """
+    Takes in input and sends to gps
+    """
     while True:
         # Use `raw_input()` if working with Python2
         in1 = input("Type Command: ")
@@ -315,8 +312,13 @@ def thread(args1, stop_event, queue_obj):
 
 # TODO TEST IF WORKS
 def getPoints(period):
-    # eps.pin_on('gps')
-    logger.info("PARSING "+str(period)+" POINTS")
+    """
+    Returns a list of multiple dictionaries defined by period. Each dictionary is a singular reading from the gps
+    :param period: Amount of time in seconds of data needed
+    :return: list of dictionaries of all data recorded
+    """
+    eps.pin_on('gps')
+    logger.info("PARSING " + str(period) + " POINTS")
     send("ANTENNAPOWER ON")
     send("ASSIGNALL AUTO")
     send("FIX AUTO")
@@ -331,12 +333,15 @@ def getPoints(period):
 
     cache.append(points)
     send("unlogall")
-    # eps.pin_off('gps')
+    eps.pin_off('gps')
     return points
 
 
 # TODO TEST IF WORKS
 def update_cache():
+    """
+    Updates the system cache of gps data
+    """
     logger.info("UPDATING CACHE STORAGE")
     cache.append(getPoints(gpsperiod))
     logger.debug(cache)
@@ -365,7 +370,7 @@ def start():
         logger.info("Serial started on " + ser.name)
     else:
         ser = serial.Serial(config['gps']['serial_port'], 9600, timeout=10)
-        # eps.pin_on('gps')
+        eps.pin_on('gps')
 
     # REPLACE WITH /dev/ttyUSBx if 1 DOESNT WORK
     # serialPort = "/dev/ttyS3"
@@ -411,7 +416,7 @@ def wait_for_signal():  # Temporary way of waiting for signal lock by waiting fo
                     logger.info("SIGNAL LOCK")
                     send("unlogall")
                     break
-            except:
+            except serial.SerialException:
                 if line == b'\x00':
                     logger.error("SERIAL PORT TIMEOUT CHECK SERIAL PORT")
                 logger.debug("incorrectly formatting string")
@@ -444,10 +449,8 @@ def enter_normal_mode():
     # time.sleep(600)
     if not is_simulate('gps'):
         pass
-    # eps.pin_on("gps")
+    eps.pin_on("gps")
     start_loop()
-
-
 
 
 def enter_low_power_mode():
