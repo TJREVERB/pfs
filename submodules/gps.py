@@ -36,22 +36,6 @@ def get_position_packet():
     """
     global cached_nmea_obj
     send("log gpgga ontime 1")
-    # time.sleep(1)
-
-    # acquired = False
-    # while acquired:
-    #    gps_packet = ser.readline()[0:-5].decode("ascii")
-
-    #   if gps_packet[0:4] == "[COM":
-    #       gps_packet = gps_packet[5:]
-    #   logger.debug(gps_packet)
-
-    #   try:
-    #       gps_packet = pynmea2.parse(gps_packet)
-    #       acquired = True
-    #   except(pynmea2.nmea.ChecksumError, pynmea2.nmea.ParseError, pynmea2.nmea.SentenceTypeError):
-    #       acquired = False
-    #       continue
     gps_packet = capture_packet('gps')
     logger.debug(gps_packet)
     gps_packet = parse_nmea_obj(gps_packet)
@@ -81,9 +65,15 @@ def get_velocity_packet():
 
 # Return both the gps position and velocity packet
 def recordgps():
+    global cached_data_obj
     gps_packet = get_position_packet()
     xyz_packet = get_velocity_packet()
-    return merge(gps_packet, xyz_packet)
+
+    data_obj = merge(gps_packet,xyz_packet)
+    cached_data_obj = data_obj
+
+
+    return data_obj
 
 
 def getsinglegps():
@@ -239,6 +229,11 @@ def get_data():
 
 
 def capture_packet(type):
+    """
+    Ensures a data packet is read from the gps. Excludes all incorrect data
+    :param type: either 'gps' or 'vel' to return either a gps or velocity packet
+    :return: genuine packet of data
+    """
     acquired = False
     while not acquired:
         try:
@@ -320,17 +315,31 @@ def thread(args1, stop_event, queue_obj):
 
 # TODO TEST IF WORKS
 def getPoints(period):
-    time = 0
+    # eps.pin_on('gps')
+    logger.info("PARSING "+str(period)+" POINTS")
+    send("ANTENNAPOWER ON")
+    send("ASSIGNALL AUTO")
+    send("FIX AUTO")
+    wait_for_signal()
+    runtime = 0
     points = []
-    while time != period:
-        points.append(getsinglegps())
-        time += 1
+
+    while runtime != period:
+        packet = recordgps()
+        points.append(packet)
+        runtime += 1
+
+    cache.append(points)
+    send("unlogall")
+    # eps.pin_off('gps')
     return points
 
 
 # TODO TEST IF WORKS
 def update_cache():
+    logger.info("UPDATING CACHE STORAGE")
     cache.append(getPoints(gpsperiod))
+    logger.debug(cache)
 
 
 def start():
@@ -365,7 +374,6 @@ def start():
                        parent_logger=logger)  # thread for parsing and caching log packets
     t2 = threading.Timer(float(updateinterval), update_cache)
 
-    start_loop()
     t2.start()
 
 
@@ -375,6 +383,8 @@ def wait_for_signal():  # Temporary way of waiting for signal lock by waiting fo
     :return:
     """
     logger.info("WAITING FOR GPS LOCK")
+    send("ANTENNAPOWER ON")
+    send("ASSIGNALL AUTO")
     send("log gpgga ontime 1")
     line = b''
     while True:
@@ -438,6 +448,8 @@ def enter_normal_mode():
     start_loop()
 
 
+
+
 def enter_low_power_mode():
     # UPDATE GPS MODULE INTERNAL COORDINATES EVERY HOUR
     # update_internal_coords() IF THIS METHOD IS NECESSARY MESSAGE ME(Anup)
@@ -453,9 +465,9 @@ def enter_emergency_mode():
 
 
 if __name__ == '__main__':
-    t2 = ThreadHandler(target=partial(
+    t3 = ThreadHandler(target=partial(
         keyin), name="gps-keyin", parent_logger=logger)
-    t2.start()
+    t3.start()
 
     while True:
         time.sleep(1)
