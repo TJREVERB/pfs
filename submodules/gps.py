@@ -311,7 +311,7 @@ def thread(args1, stop_event, queue_obj):
 
 
 # TODO TEST IF WORKS
-def getPoints(period):
+def get_points(period):
     """
     Returns a list of multiple dictionaries defined by period. Each dictionary is a singular reading from the gps
     :param period: Amount of time in seconds of data needed
@@ -337,13 +337,17 @@ def getPoints(period):
     return points
 
 
+def get_cache():
+    return cache
+
+
 # TODO TEST IF WORKS
 def update_cache():
     """
     Updates the system cache of gps data
     """
     logger.info("UPDATING CACHE STORAGE")
-    cache.append(getPoints(gpsperiod))
+    cache.append(get_points(gpsperiod))
     logger.debug(cache)
 
 
