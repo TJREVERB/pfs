@@ -30,31 +30,33 @@ logger = logging.getLogger("Telemetry")
 def telemetry_collection():
     global telem_packet_buffer
     while True:
-        # TODO: aggregate and prioritize
-        # Collect subpackets, aggregate, and prioritize
-        # Aquire the send lock so that we don't add packets while bursting
-        packet_lock.acquire()
-        # GPS
-        #if time.time() % config['telemetry']['subpackets']['gps']['interval'] < 1:
-        try:
-            telem_packet_buffer.append(gps_subpacket())
-        except Exception as err:
-            logger.error("Exception: " + str(err)) #TODO: handle exceptions better
-        # Comms
-        #if time.time() % config['telemetry']['subpackets']['comms']['interval'] < 1:
-        try:
-            telem_packet_buffer.append(comms_subpacket())
-        except Exception as err:
-            logger.error("Exception: " + str(err))
-        # ADCS
-        #if time.time() % config['telemetry']['subpackets']['adcs']['interval'] < 1:
-        try:
-            telem_packet_buffer.append(adcs_subpacket())
-        except Exception as err:
-            logger.error("Exception: " + str(err))
-        # logger.debug("Packet Buffer is %d long" % len(packet_buffer))
-        packet_lock.release()
+        with packet_lock:
+            # TODO: aggregate and prioritize
+            # Collect subpackets, aggregate, and prioritize
+            # Aquire the send lock so that we don't add packets while bursting
+            #packet_lock.acquire()
+            # GPS
+            #if time.time() % config['telemetry']['subpackets']['gps']['interval'] < 1:
+            try:
+                telem_packet_buffer.append(gps_subpacket())
+            except Exception as err:
+                logger.error("Exception: " + str(err)) #TODO: handle exceptions better
+            # Comms
+            #if time.time() % config['telemetry']['subpackets']['comms']['interval'] < 1:
+            try:
+                telem_packet_buffer.append(comms_subpacket())
+            except Exception as err:
+                logger.error("Exception: " + str(err))
+            # ADCS
+            #if time.time() % config['telemetry']['subpackets']['adcs']['interval'] < 1:
+            try:
+                telem_packet_buffer.append(adcs_subpacket())
+            except Exception as err:
+                logger.error("Exception: " + str(err))
+            # logger.debug("Packet Buffer is %d long" % len(packet_buffer))
+            #packet_lock.release()
         time.sleep(config['telemetry']['subpackets'])
+        #print(telem_packet_buffer)
 
 
 def telemetry_send():
@@ -82,7 +84,7 @@ def telemetry_send_once():
 @command("burst")
 def telemetry_burst_command():
     """
-    Burst command; ignores 
+    Burst command; ignores isTJseen and other checks
     """
     send(ignoreAPRS=True)
 
@@ -176,19 +178,23 @@ def send(ignoreADCS=False):
     global packetBuffers, event_packet_buffer, telem_packet_buffer
     squishedPackets = ""
 
-    packet_lock.acquire()
-    while len(event_packet_buffer)+len(telem_packet_buffer) > 0 and (adcs.can_TJ_be_seen() or ignoreADCS):
-        for buffer in packetBuffers:
-            while len(buffer) > 0 and len(squishedPackets) < config['telemetry']['max_packet_size'] and (adcs.can_TJ_be_seen() or ignoreADCS):
-                squishedPackets += buffer.pop()
+    with packet_lock:
+        #packet_lock.acquire()
+        while len(event_packet_buffer)+len(telem_packet_buffer) > 0 and (adcs.can_TJ_be_seen() or ignoreADCS):
+            for buffer in packetBuffers:
+                while len(buffer) > 0 and len(squishedPackets) < config['telemetry']['max_packet_size'] and (adcs.can_TJ_be_seen() or ignoreADCS):
+                    #test = buffer.pop()
+                    #print(test)
+                    #squishedPackets += test
+                    squishedPackets += buffer.pop()
 
-        #TODO: alternate between radios
-        logger.debug(squishedPackets)
-        radio_output.send(squishedPackets)
-        squishedPackets = ""
-        time.sleep(6)
+            #TODO: alternate between radios
+            logger.debug(squishedPackets)
+            radio_output.send(squishedPackets)
+            squishedPackets = ""
+            time.sleep(6)
 
-    packet_lock.release()
+    #packet_lock.release()
 
 def start():
     """
