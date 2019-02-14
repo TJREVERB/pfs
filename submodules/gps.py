@@ -13,12 +13,14 @@ from helpers.threadhandler import ThreadHandler
 from helpers.helpers import is_simulate
 from functools import partial
 
-from submodules import eps
+#from submodules import eps
 
 from core import config
 
 logger = logging.getLogger("GPS")
 
+
+signal_lock = threading.Lock()
 ser_master, ser_slave = pty.openpty()  # Serial ports for when in simulate mode
 
 
@@ -83,7 +85,8 @@ def getsinglegps():
     global cached_data_obj
     if not is_simulate('gps'):
         pass
-    eps.pin_on("gps")
+    signal_lock.acquire()
+    #eps.pin_on("gps")
     t1.pause()
     send("unlogall")
     send("ANTENNAPOWER ON")
@@ -93,8 +96,9 @@ def getsinglegps():
 
     gpsdata = recordgps()
     cached_data_obj = gpsdata
+    signal_lock.release()
     send("ANTENNAPOWER OFF")
-    eps.pin_off('gps')
+    #eps.pin_off('gps')
     return gpsdata
     # end pseudo
 
@@ -182,6 +186,7 @@ def parse_gps_packet(packet):
     :param packet: raw gps line either gpgga or bestxyz
     """
     global cached_nmea_obj, cached_xyz_obj, cached_data_obj  # nmea=gpgga xyz=bestxyz data=both
+    signal_lock.acquire()
     packet = packet.decode("ascii")
     logger.debug(packet)
     # logger.debug(packet[0:6])
@@ -211,6 +216,7 @@ def parse_gps_packet(packet):
         # merges gpgga packets and bestxyz packets
         cached_data_obj = merge(cached_nmea_obj, cached_xyz_obj)
     logger.debug("data: " + str(get_data()))
+    signal_lock.release()
 
 
 def get_data():
@@ -317,7 +323,8 @@ def get_points(period):
     :param period: Amount of time in seconds of data needed
     :return: list of dictionaries of all data recorded
     """
-    eps.pin_on('gps')
+    #eps.pin_on('gps')
+    signal_lock.acquire()
     logger.info("PARSING " + str(period) + " POINTS")
     send("ANTENNAPOWER ON")
     send("ASSIGNALL AUTO")
@@ -333,7 +340,8 @@ def get_points(period):
 
     cache.append(points)
     send("unlogall")
-    eps.pin_off('gps')
+    signal_lock.release()
+    #eps.pin_off('gps')
     return points
 
 
@@ -374,7 +382,7 @@ def start():
         logger.info("Serial started on " + ser.name)
     else:
         ser = serial.Serial(config['gps']['serial_port'], 9600, timeout=10)
-        eps.pin_on('gps')
+        #eps.pin_on('gps')
 
     # REPLACE WITH /dev/ttyUSBx if 1 DOESNT WORK
     # serialPort = "/dev/ttyS3"
@@ -383,7 +391,7 @@ def start():
                        parent_logger=logger)  # thread for parsing and caching log packets
     t2 = threading.Timer(float(updateinterval), update_cache)
 
-    t2.start()
+    #t2.start()
 
 
 def wait_for_signal():  # Temporary way of waiting for signal lock by waiting for an actual reading from gpgga log
@@ -420,6 +428,8 @@ def wait_for_signal():  # Temporary way of waiting for signal lock by waiting fo
                     logger.info("SIGNAL LOCK")
                     send("unlogall")
                     break
+            except(pynmea2.nmea.ParseError, pynmea2.nmea.ChecksumError, pynmea2.nmea.SentenceTypeError):
+                continue
             except serial.SerialException:
                 if line == b'\x00':
                     logger.error("SERIAL PORT TIMEOUT CHECK SERIAL PORT")
@@ -453,7 +463,7 @@ def enter_normal_mode():
     # time.sleep(600)
     if not is_simulate('gps'):
         pass
-    eps.pin_on("gps")
+    #eps.pin_on("gps")
     start_loop()
 
 
