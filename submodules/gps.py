@@ -85,21 +85,20 @@ def getsinglegps():
     global cached_data_obj
     if not is_simulate('gps'):
         pass
-    signal_lock.acquire()
-    #eps.pin_on("gps")
-    t1.pause()
-    send("unlogall")
-    send("ANTENNAPOWER ON")
-    send("ASSIGNALL AUTO")
-    send("FIX AUTO")
-    wait_for_signal()
+    with signal_lock:
+        #eps.pin_on("gps")
+        t1.pause()
+        send("unlogall")
+        send("ANTENNAPOWER ON")
+        send("ASSIGNALL AUTO")
+        send("FIX AUTO")
+        wait_for_signal()
 
-    gpsdata = recordgps()
-    cached_data_obj = gpsdata
-    signal_lock.release()
-    send("ANTENNAPOWER OFF")
-    #eps.pin_off('gps')
-    return gpsdata
+        gpsdata = recordgps()
+        cached_data_obj = gpsdata
+        send("ANTENNAPOWER OFF")
+        #eps.pin_off('gps')
+        return gpsdata
     # end pseudo
 
 
@@ -186,37 +185,37 @@ def parse_gps_packet(packet):
     :param packet: raw gps line either gpgga or bestxyz
     """
     global cached_nmea_obj, cached_xyz_obj, cached_data_obj  # nmea=gpgga xyz=bestxyz data=both
-    signal_lock.acquire()
-    packet = packet.decode("ascii")
-    logger.debug(packet)
-    # logger.debug(packet[0:6])
-    # com port is occasionally sent with log data causing errors( "[COM1]" )
-    if packet[0:4] == '[COM':
-        packet = packet[6:]  # removes com port characters
 
-    packet = packet[0:-5]
-
-    if packet[0:6] == '$GPGGA':  # identifies gpgga log
-        logger.info('POS UPDATE')
-        try:
-            nmea_obj = pynmea2.parse(packet)
-        except (pynmea2.nmea.ChecksumError, pynmea2.nmea.SentenceTypeError, pynmea2.nmea.ParseError):
-            logger.error("PARSING ERROR CAUGHT CONTINUING")
-            nmea_obj = None
-        # translates pynmea object to dictionary
-        cached_nmea_obj = parse_nmea_obj(nmea_obj)
-        # updates system time from gpgga log
-        update_time(cached_nmea_obj['time'])
-    elif packet[0:8] == '<BESTXYZ':  # identifies bestxyz log
-        logger.info("VEL UPDATE")
-        packet = ser.readline()
+    with signal_lock:
+        packet = packet.decode("ascii")
         logger.debug(packet)
-        xyz_obj = parse_xyz_packet(packet[6:-33].decode("ascii"))
-        cached_xyz_obj = xyz_obj
-        # merges gpgga packets and bestxyz packets
-        cached_data_obj = merge(cached_nmea_obj, cached_xyz_obj)
-    logger.debug("data: " + str(get_data()))
-    signal_lock.release()
+        # logger.debug(packet[0:6])
+        # com port is occasionally sent with log data causing errors( "[COM1]" )
+        if packet[0:4] == '[COM':
+            packet = packet[6:]  # removes com port characters
+
+        packet = packet[0:-5]
+
+        if packet[0:6] == '$GPGGA':  # identifies gpgga log
+            logger.info('POS UPDATE')
+            try:
+                nmea_obj = pynmea2.parse(packet)
+            except (pynmea2.nmea.ChecksumError, pynmea2.nmea.SentenceTypeError, pynmea2.nmea.ParseError):
+                logger.error("PARSING ERROR CAUGHT CONTINUING")
+                nmea_obj = None
+            # translates pynmea object to dictionary
+            cached_nmea_obj = parse_nmea_obj(nmea_obj)
+            # updates system time from gpgga log
+            update_time(cached_nmea_obj['time'])
+        elif packet[0:8] == '<BESTXYZ':  # identifies bestxyz log
+            logger.info("VEL UPDATE")
+            packet = ser.readline()
+            logger.debug(packet)
+            xyz_obj = parse_xyz_packet(packet[6:-33].decode("ascii"))
+            cached_xyz_obj = xyz_obj
+            # merges gpgga packets and bestxyz packets
+            cached_data_obj = merge(cached_nmea_obj, cached_xyz_obj)
+        logger.debug("data: " + str(get_data()))
 
 
 def get_data():
@@ -324,25 +323,24 @@ def get_points(period):
     :return: list of dictionaries of all data recorded
     """
     #eps.pin_on('gps')
-    signal_lock.acquire()
-    logger.info("PARSING " + str(period) + " POINTS")
-    send("ANTENNAPOWER ON")
-    send("ASSIGNALL AUTO")
-    send("FIX AUTO")
-    wait_for_signal()
-    runtime = 0
-    points = []
+    with signal_lock:
+        logger.info("PARSING " + str(period) + " POINTS")
+        send("ANTENNAPOWER ON")
+        send("ASSIGNALL AUTO")
+        send("FIX AUTO")
+        wait_for_signal()
+        runtime = 0
+        points = []
 
-    while runtime != period:
-        packet = recordgps()
-        points.append(packet)
-        runtime += 1
+        while runtime != period:
+            packet = recordgps()
+            points.append(packet)
+            runtime += 1
 
-    cache.append(points)
-    send("unlogall")
-    signal_lock.release()
-    #eps.pin_off('gps')
-    return points
+        cache.append(points)
+        send("unlogall")
+        #eps.pin_off('gps')
+        return points
 
 
 def get_cache():
