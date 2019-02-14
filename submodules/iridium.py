@@ -45,32 +45,16 @@ def write_to_serial(cmd):
 
 
 def check():
-    write_to_serial("AT")
+    write_to_serial("AT")  # Test the Iridium
 
-    ser.readline().decode('UTF-8')  # Get the empty line
-    resp = ser.readline().decode('UTF-8')
-    if 'OK' not in resp:
-        exit(-1)
+    signalQuality = write_to_serial('AT+CSQ')  # Show signal quality
 
-    # Show signal quality
-    write_to_serial('AT+CSQ')
-    ser.readline().decode('UTF-8')  # Get the empty line
-    resp = ser.readline().decode('UTF-8')
-    ser.readline().decode('UTF-8')  # Get the empty line
-    ok = ser.readline().decode('UTF-8')  # Get the 'OK'
-    if 'OK' not in ok:
-        exit(-1)
     write_to_serial("AT+SBDMTA=0")
 
-    ser.write("AT+SBDREG? \r\n".encode('UTF-8'))
-    while True:
-        try:
-            regStat = int(ser.readline().decode('UTF-8').split(":")[1])
-            break
-        except:
-            continue
-    if regStat != 2:
-        write_to_serial("AT+SBDREG")
+    response = write_to_serial("AT+SBDREG?").split(":")
+
+    if response != 2:
+        write_to_serial("AT+SBDREG")  # Retry the SBD Network Registration
 
 
 def listen():
@@ -121,36 +105,27 @@ def send(message):
     startTime = time.time()
     alert = 2
     while alert == 2:
+        # Get last known signal strength
         write_to_serial("AT+CSQF")
-
-        signal = ser.readline().decode('UTF-8')  # Empty line
-        signal = ser.readline().decode('UTF-8')
 
         # Prepare message
         write_to_serial("AT+SBDWT=" + message)
-        ok = ser.readline().decode('UTF-8')  # Get the 'OK'
-        ser.readline().decode('UTF-8')  # Get the empty line
 
         # Send message
-        write_to_serial("AT+SBDI")
+        response = write_to_serial("AT+SBDI").replace(",", " ")
 
-        resp = ser.readline().decode('UTF-8')  # Get the empty line
-        resp = resp.replace(",", " ").split(" ")
         startTime = time.time()
         currTime = startTime
 
-        while len(resp) > 0 and len(resp) <= 2:
-            resp = ser.readline().decode('UTF-8')
-            resp = resp.replace(",", " ").split(" ")
+        while len(response) > 0 and len(response) <= 2:
+            response = write_to_serial("AT+SBDI").replace(",", " ")
             curTime = time.time()
             if (curTime - startTime) > 30:
                 break
         try:
-            alert = int(resp[1])
+            alert = int(response[1])
         except:
             continue
-
-    exit(-1)
 
 
 def start():
