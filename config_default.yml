@@ -1,12 +1,13 @@
 core:
     modules:
-        - eps
-        - aprs
-        - command_ingest
-        - gps
-        - adcs
-        - housekeeping
-        - telemetry
+         - iridium
+        #- eps
+        #- aprs
+         - command_ingest
+        #- gps
+        #- adcs
+        #- housekeeping
+        #- telemetry
     log_dir: logs
     config_save_interval: 60
 adcs:
@@ -55,3 +56,5 @@ telemetry:
     send_interval: 30
     buffer_size: 100
     max_packet_size: 170
+iridium:
+    serial_port: /dev/ttyUSB0
