@@ -5,6 +5,7 @@ import sys
 import threading
 import time
 from functools import partial
+import RPi.GPIO as GPIO
 
 import pynmea2
 import serial
@@ -110,9 +111,16 @@ def listen():
     """
     Read messages from serial.
     """
+    global cached_nmea_obj, cached_xyz_obj, cached_data_obj
     while True:
-        line = ser.readline()  # Read in a full message from serial
-        parse_gps_packet(line)  # Dispatch command
+        gps_line = capture_packet('gps')
+        nmea_packet = parse_nmea_obj(gps_line)
+        cached_nmea_obj = nmea_packet
+        vel_line = capture_packet('vel')
+        vel_packet = parse_xyz_packet(vel_line)
+        cached_xyz_obj = vel_packet
+        cached_data_obj = merge(nmea_packet,vel_packet)
+        logger.info("Data: " + str(cached_data_obj))
 
 
 def findnth(msg, val, n):  # parsing helper method
@@ -173,52 +181,11 @@ def parse_nmea_obj(packet):
                 'lon_dir': packet.lon_dir, 'lat_dir': packet.lat_dir, 'time': packet.timestamp}
 
 
-# FIXME make more cleaner?
-def parse_gps_packet(packet):
-    """
-    Handles the parsing of both gpgga and bestxyz logs. Caches readings to cached_data_obj
-    :param packet: raw gps line either gpgga or bestxyz
-    """
-    global cached_nmea_obj, cached_xyz_obj, cached_data_obj  # nmea=gpgga xyz=bestxyz data=both
-
-    with signal_lock:
-        packet = packet.decode("ascii")
-        logger.debug(packet)
-        # logger.debug(packet[0:6])
-        # com port is occasionally sent with log data causing errors( "[COM1]" )
-        if packet[0:4] == '[COM':
-            packet = packet[6:]  # removes com port characters
-
-        packet = packet[0:-5]
-
-        if packet[0:6] == '$GPGGA':  # identifies gpgga log
-            logger.info('POS UPDATE')
-            try:
-                nmea_obj = pynmea2.parse(packet)
-            except (pynmea2.nmea.ChecksumError, pynmea2.nmea.SentenceTypeError, pynmea2.nmea.ParseError):
-                logger.error("PARSING ERROR CAUGHT CONTINUING")
-                nmea_obj = None
-            # translates pynmea object to dictionary
-            cached_nmea_obj = parse_nmea_obj(nmea_obj)
-            # updates system time from gpgga log
-            update_time(cached_nmea_obj['time'])
-        elif packet[0:8] == '<BESTXYZ':  # identifies bestxyz log
-            logger.info("VEL UPDATE")
-            packet = ser.readline()
-            logger.debug(packet)
-            xyz_obj = parse_xyz_packet(packet[6:-33].decode("ascii"))
-            cached_xyz_obj = xyz_obj
-            # merges gpgga packets and bestxyz packets
-            cached_data_obj = merge(cached_nmea_obj, cached_xyz_obj)
-        logger.debug("data: " + str(get_data()))
-
-
 def get_data():
     """
     Returns the cached dictionary of all the data
     :return: latest data packet in dictionary form
     """
-    global cached_nmea_obj, cached_xyz_obj, cached_data_obj
     return cached_data_obj
 
 
@@ -269,9 +236,7 @@ def merge(x, y):  # parsing helper method
     :return: combined dictionary of x and y with the values in x preceding values in y
     """
     logger.debug("merging")
-    if x is not None and y is not None:
-        for key, value in y.items():
-            x[key] = value
+    x.update(y)
     return x
 
 
@@ -364,9 +329,13 @@ def start():
     cached_data_obj = None  # final data packet
     cache = []  # list of (lists of dictionaries -returned by get k points)
 
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(26, GPIO.IN)
+
     # TODO UPDATE FOR ACTUAL VALUE
     updateinterval = 10  # time in seconds getKPoints should be called
     gpsperiod = 10
+    burst_interval = 10 # 28800
 
     # Opens the serial port for all methods to use with 19200 baud
     if is_simulate('gps'):
@@ -383,8 +352,14 @@ def start():
     t1 = ThreadHandler(target=partial(listen), name="gps-listen",
                        parent_logger=logger)  # thread for parsing and caching log packets
     t2 = threading.Timer(float(updateinterval), update_cache)
+    t3 = threading.Timer(float(burst_interval), telem_send)
 
     # t2.start()
+    t2.start()
+    t3.start()
+
+def telem_send():
+    packet = get_points(gpsperiod)
 
 
 def wait_for_signal():  # Temporary way of waiting for signal lock by waiting for an actual reading from gpgga log
@@ -392,43 +367,21 @@ def wait_for_signal():  # Temporary way of waiting for signal lock by waiting fo
     Continuously parses a gpgga log until signal lock.
     :return:
     """
+
     logger.info("WAITING FOR GPS LOCK")
     send("ANTENNAPOWER ON")
     send("ASSIGNALL AUTO")
     send("log gpgga ontime 1")
     line = b''
-    while True:
 
-        if is_simulate('gps'):
-            while not line.endswith(b'\n'):  # While EOL hasn't been sent
-                res = os.read(ser_master, 1000)
-                line += res
+    acquired = False
+    while not acquired:
+        if GPIO.input(26) == 1:
+            logger.info("GPS LOCK")
+            acquired = True
+            return
         else:
-
-            try:
-                line = ser.readline()
-                packet = line.decode("ascii")
-
-                if packet[0:4] == "[COM":
-                    packet = packet[6:]
-                packet = packet[0:-5]
-
-                logger.debug(packet)
-
-                packet = pynmea2.parse(packet)
-
-                if packet.lon != '':  # TODO: UNCOMMENT
-                    logger.info("SIGNAL LOCK")
-                    send("unlogall")
-                    break
-            except(pynmea2.nmea.ParseError, pynmea2.nmea.ChecksumError, pynmea2.nmea.SentenceTypeError):
-                continue
-            except serial.SerialException:
-                if line == b'\x00':
-                    logger.error("SERIAL PORT TIMEOUT CHECK SERIAL PORT")
-                logger.debug("incorrectly formatting string")
-            else:
-                continue
+            continue
 
 
 def start_loop():
