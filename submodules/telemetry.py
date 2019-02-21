@@ -91,10 +91,11 @@ def enqueue_submodule_packets(packets):
             telem_packet_buffer.append(packet)
 
 
-def send(ignoreADCS=False):
+def send(ignoreADCS=False, radio="aprs"):
     """
     Concatenates packets to fit in max_packet_size (defined in config) and send through the APRS, dequing the packets in the process
     :param ignoreADCS: If true, ignores ADCS canTJBeSeen.
+    :param radio: Radio to send telemetry over, either "aprs" or "iridium"
     """
     global packetBuffers, event_packet_buffer, telem_packet_buffer, packet_lock
     squishedPackets = ""
@@ -111,7 +112,7 @@ def send(ignoreADCS=False):
 
             #TODO: alternate between radios
             logger.debug(squishedPackets)
-            radio_output.send(squishedPackets)
+            radio_output.send(squishedPackets, radio)
             squishedPackets = ""
             time.sleep(6)
 
