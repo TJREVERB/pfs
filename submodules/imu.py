@@ -17,7 +17,7 @@ def imu_beacon():
     while True:
         if len(datasave) > 9:
             for x in datasave:
-                aprs.enqueue(x)
+                aprs.send(x)
             datasave = []
             logging.debug('IMU DATASAVE CLEAR')
         time.sleep(1)

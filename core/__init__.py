@@ -30,17 +30,6 @@ def load_config():
             config = yaml.load(f)
 
 
-def config_saver():
-    """
-    Save `config` every so often.
-    """
-    while True:
-        # TODO: put a lock on config saving / make use of remount
-        time.sleep(config['core']['config_save_interval'])
-        with open('config_custom.yml', 'w') as f:
-            yaml.dump(f)
-
-
 def enter_normal_mode(reason: str = '') -> None:
     """
     Enter normal power mode.

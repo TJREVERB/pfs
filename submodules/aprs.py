@@ -1,17 +1,17 @@
 import logging
-import time
-from functools import partial
-import serial
-
 import os
 import pty
+import time
+from functools import partial
+
+import serial
 
 from core import config
+from helpers.helpers import is_simulate
+from helpers.threadhandler import ThreadHandler
 from . import command_ingest
 from . import eps
 from .command_ingest import command
-from helpers.threadhandler import ThreadHandler
-from helpers.helpers import is_simulate
 
 # Placeholder values for `telemetry.py`
 total_received_ph = 100
@@ -21,7 +21,6 @@ sent_messages_ph = 50
 
 # Initialize global variables
 logger = logging.getLogger("APRS")
-send_buffer = []
 last_telem_time = time.time()
 last_message_time = time.time()
 
@@ -32,35 +31,21 @@ ser_master, ser_slave = pty.openpty()  # Serial ports for when in simulate mode
 
 
 @command("aprs_echo", str)
-def enqueue(msg: str) -> None:
+def send(msg: str) -> None:
     """
     Put a packet in the APRS queue.  The APRS queue exists
     only to make sure that we don't send and receive at the
     same time.
     :param msg: Message to send into the APRS queue.
     """
-    global send_buffer
-    msg = msg + "\n"
-    send_buffer += [msg]
+    global last_message_time
 
-
-def send_loop():
-    """
-    Send all messages in the APRS queue.
-    """
-    global send_buffer
-    while True:
-        while len(send_buffer) > 0:  # While there are still messages left in the queue
-            # Wait until `message_spacing` seconds after the last received message
-            while time.time() - last_message_time < config['aprs']['message_spacing']:
-                time.sleep(1)
-
-            ser.write(send_buffer[0].encode("utf-8"))  # Send the message
-
-            send_buffer = send_buffer[1:]  # Remove message from queue
-            time.sleep(1)
-
+    # Wait until `message_spacing` seconds after the last received message
+    while time.time() - last_message_time < config['aprs']['message_spacing']:
         time.sleep(1)
+    last_message_time = time.time()
+    ser.write((msg + '\n').encode("utf-8"))  # Send the message
+    time.sleep(1)
 
 
 def telemetry_watchdog():
