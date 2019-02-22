@@ -1,23 +1,24 @@
+import base64
+import datetime
 import logging
 import os
 import pty
+import struct
 import sys
 import threading
 import time
-from functools import partial
-import RPi.GPIO as GPIO
-import base64
-import struct
-import datetime
 from collections import deque
+from functools import partial
+
+import RPi.GPIO as GPIO
 import pynmea2
 import serial
 
 from core import config
 from helpers.helpers import is_simulate
 from helpers.threadhandler import ThreadHandler
-
 from submodules import telemetry
+
 logger = logging.getLogger("GPS")
 
 signal_lock = threading.Lock()
@@ -113,9 +114,6 @@ def send(msg):
     ser.write(msg.encode("utf-8"))
 
 
-
-
-
 def findnth(msg, val, n):  # parsing helper method
     """
     Finds the nth occurrence of a character in a string
@@ -147,16 +145,22 @@ def parse_xyz_packet(packet):
                    'INTEGRITY_WARNING': 13, 'PENDING': 18, 'INVALID_FIX': 19, 'UNAUTHORIZED': 20, 'INVALID_RATE': 22}
 
     result['position_status'] = status_code[packet[:findnth(packet, ' ', 0)]]
-    result['x_pos'] = float(packet[findnth(packet, ' ', 1) + 1:findnth(packet, ' ', 2)])
-    result['y_pos'] = float(packet[findnth(packet, ' ', 2) + 1:findnth(packet, ' ', 3)])
-    result['z_pos'] = float(packet[findnth(packet, ' ', 3) + 1:findnth(packet, ' ', 4)])
+    result['x_pos'] = float(
+        packet[findnth(packet, ' ', 1) + 1:findnth(packet, ' ', 2)])
+    result['y_pos'] = float(
+        packet[findnth(packet, ' ', 2) + 1:findnth(packet, ' ', 3)])
+    result['z_pos'] = float(
+        packet[findnth(packet, ' ', 3) + 1:findnth(packet, ' ', 4)])
 
     packetv = packet[findnth(packet, ' ', 7) + 1:]
 
     result['velocity_status'] = status_code[packetv[:findnth(packetv, ' ', 0)]]
-    result['x_vel'] = float(packetv[findnth(packetv, ' ', 1) + 1:findnth(packetv, ' ', 2)])
-    result['y_vel'] = float(packetv[findnth(packetv, ' ', 2) + 1:findnth(packetv, ' ', 3)])
-    result['z_vel'] = float(packetv[findnth(packetv, ' ', 3) + 1:findnth(packetv, ' ', 4)])
+    result['x_vel'] = float(
+        packetv[findnth(packetv, ' ', 1) + 1:findnth(packetv, ' ', 2)])
+    result['y_vel'] = float(
+        packetv[findnth(packetv, ' ', 2) + 1:findnth(packetv, ' ', 3)])
+    result['z_vel'] = float(
+        packetv[findnth(packetv, ' ', 3) + 1:findnth(packetv, ' ', 4)])
 
     return result
 
@@ -321,14 +325,15 @@ def start():
     cached_nmea_obj = None  # cached lat/lon/alt/gps object
     cached_xyz_obj = None  # cached velocity object
     cached_data_obj = None  # final data packet
-    cache = deque([],2)  # deque of (lists of dictionaries -returned by get k points)
+    # deque of (lists of dictionaries -returned by get k points)
+    cache = deque([], 2)
 
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(26, GPIO.IN)
 
     # TODO UPDATE FOR ACTUAL VALUE
-    updateinterval = 10  #FIXME val = 90 minutes in seconds
-    gpsperiod = 10 #FIXME val = 300
+    updateinterval = 10  # FIXME val = 90 minutes in seconds
+    gpsperiod = 10  # FIXME val = 300
 
     # Opens the serial port for all methods to use with 19200 baud
     if is_simulate('gps'):
@@ -361,15 +366,15 @@ def telemetry_send():
 
     packet = "G"
     packet += base64.b64encode(struct.pack('d', t)).decode("UTF-8")
-    packet += base64.b64encode(struct.pack('fff', lat, lon, alt)).decode("UTF-8")
+    packet += base64.b64encode(struct.pack('fff', lat,
+                                           lon, alt)).decode("UTF-8")
 
     telemetry.enqueue_submodule_packet(packet)
 
 
-
-
 def has_signal():
     return GPIO.input(26) == 1
+
 
 def wait_for_signal():  # Temporary way of waiting for signal lock by waiting for an actual reading from gpgga log
     """
