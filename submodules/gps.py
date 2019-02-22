@@ -192,7 +192,7 @@ def capture_packet(packet_type):
     while not acquired:
         try:
             packet = ser.readline()
-            packet = packet.decode("ascii")
+            packet = packet.decode("utf-8")
             if packet[0:4] == '[COM':
                 packet = packet[6:]
 
@@ -209,7 +209,7 @@ def capture_packet(packet_type):
 
             if packet_type == 'vel':
                 if packet[0:8] == '<BESTXYZ':
-                    xyz_packet = ser.readline()[0:-5].decode("ascii")
+                    xyz_packet = ser.readline()[0:-5].decode("utf-8")
                     return xyz_packet[6:-33]
                 else:
                     logger.error(packet)
@@ -351,8 +351,7 @@ def start():
     t3.start()
 
 
-def telemetry_send():
-    gps_packet = getsinglegps()
+def telemetry_send(gps_packet):
     lat = gps_packet['lat']
     lon = gps_packet['lon']
     alt = gps_packet['alt']
@@ -366,10 +365,9 @@ def telemetry_send():
     telemetry.enqueue_submodule_packet(packet)
 
 
-
-
 def has_signal():
     return GPIO.input(26) == 1
+
 
 def wait_for_signal():  # Temporary way of waiting for signal lock by waiting for an actual reading from gpgga log
     """
