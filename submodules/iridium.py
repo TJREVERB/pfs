@@ -133,7 +133,7 @@ def send(message):
         while len(response) > 0 and len(response) <= 2:
             response = write_to_serial("AT+SBDI").replace(",", " ")
             curTime = time.time()
-            if (curTime - startTime) > 30:
+            if (curTime - startTime) > 300:
                 break
         try:
             alert = int(response[1])
@@ -154,7 +154,7 @@ def start():
 
     # Create all the background threads
     # t1 = ThreadHandler(target=partial(listen),name="iridium-listen", parent_logger=logger)
-    # no threads it breaks serial
+    # no threads recommended it breaks serial
 
     # Start the threads
     # t1.start() threads break serial
