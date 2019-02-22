@@ -33,7 +33,7 @@ def write_to_serial(cmd):
 
     # Determine if an "OK" or an "ERROR" was received
     if "OK" in response:
-        response.replace("OK", "").strip()
+        response.replace("OK", "/r/n", "").strip()
         ser.flush()  # Flush the serial
         return response, True
     else:
@@ -58,7 +58,7 @@ def check(numChecks):
     write_to_serial("AT+SBDMTA=0")
 
     # Get the current registration status of the Iridium
-    response = int(write_to_serial("AT+SBDREG?")[0].split(":")[1])
+    response = str(write_to_serial("AT+SBDREG?")[0].split(":")[1]) # Returning OK instead of 2, add check for these types of commands in write_to_serial
 
     # `response` should be 2, which means the Iridium is registered
     while numChecks > 0:  # Recheck the Iridium for `numChecks` number of times
