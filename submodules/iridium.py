@@ -126,7 +126,7 @@ def send(message):
         write_to_serial("AT+SBDWT=" + message)
 
         # Send message
-        response = write_to_serial("AT+SBDI")
+        response = write_to_serial("AT+SBDI").replace(",", " ")
 
         startTime = time.time()
         currTime = startTime
