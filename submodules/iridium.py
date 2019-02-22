@@ -1,16 +1,9 @@
-import threading
-from functools import partial
+import logging
+import time
 
 import serial
-import time
-import logging
 
 from core import config
-from . import command_ingest
-from . import eps
-from .command_ingest import command
-from helpers.threadhandler import ThreadHandler
-from helpers.helpers import is_simulate
 
 debug = True
 
@@ -25,6 +18,7 @@ def write_to_serial(cmd):
     Write a command to the serial port.
 
     :param cmd: Command to write
+    :return: Tuple consisting of (response text, boolean if error or not)
     """
 
     # Append EOL if it isn't present alredy
@@ -34,27 +28,46 @@ def write_to_serial(cmd):
     ser.write(cmd.encode('UTF-8'))  # Encode the message with utf-8
 
     response = ""  # Received response
-    while "OK" not in response:  # Wait to get the 'OK' from the Iridium
+    while ("OK" or "ERROR") not in response:  # Wait to get the 'OK' or 'ERROR' from Iridium
         response += ser.readline().decode('UTF-8')  # Append contents of serial
-    # Filter out the newline and the 'OK'
-    response.replace("\r\n", "").replace("OK", "")
 
-    ser.flush()  # Flush the serial
+    # Determine if an "OK" or an "ERROR" was received
+    if "OK" in response:
+        response.replace("OK", "").strip()
+        ser.flush()  # Flush the serial
+        return response, True
+    else:
+        response.replace("ERROR", "").strip()
+        ser.flush()  # Flush the serial
+        return response, False
 
-    return response
 
+def check(numChecks):
+    """
+    Check that the Iridium works and is registered
+    :param numChecks: Number of times to check if the Iridium is registered
+    :return: True if check was successful, False if not
+    """
 
-def check():
     write_to_serial("AT")  # Test the Iridium
 
-    signalQuality = write_to_serial('AT+CSQ')  # Show signal quality
+    signalQuality = write_to_serial('AT+CSQ')  # Get current signal quality
+    logger.debug(signalQuality[0])
 
+    # Disable SBD Ring Alerts to get registration status
     write_to_serial("AT+SBDMTA=0")
 
-    response = write_to_serial("AT+SBDREG?").split(":")
+    # Get the current registration status of the Iridium
+    response = int(write_to_serial("AT+SBDREG?")[0].split(":")[1])
 
-    if response != 2:
-        write_to_serial("AT+SBDREG")  # Retry the SBD Network Registration
+    # `response` should be 2, which means the Iridium is registered
+    while numChecks > 0:  # Recheck the Iridium for `numChecks` number of times
+        if response == 2:  # Check succeeded
+            return True
+        else:  # Check failed, retry
+            response = write_to_serial("AT+SBDREG")[0]
+            numChecks -= 1
+    return False  # Check failed all times, return False
 
 
 def listen():
@@ -120,7 +133,7 @@ def send(message):
         while len(response) > 0 and len(response) <= 2:
             response = write_to_serial("AT+SBDI").replace(",", " ")
             curTime = time.time()
-            if (curTime - startTime) > 30:
+            if (curTime - startTime) > 300:
                 break
         try:
             alert = int(response[1])
@@ -134,13 +147,14 @@ def start():
     # Opens the serial port for all methods to use with 19200 baud
     ser = serial.Serial(
         config['iridium']['serial_port'], baudrate=19200, timeout=15)
-    ser.flush()  # clean house before starting
+    # Clean serial port before proceeding
+    ser.flush()
+
+    check(5)  # Check that the Iridium works 5 times
 
     # Create all the background threads
     # t1 = ThreadHandler(target=partial(listen),name="iridium-listen", parent_logger=logger)
-    # no threads it breaks serial
-
-    check()
+    # no threads recommended it breaks serial
 
     # Start the threads
     # t1.start() threads break serial
