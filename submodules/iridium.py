@@ -33,7 +33,7 @@ def write_to_serial(cmd):
 
     # Determine if an "OK" or an "ERROR" was received
     if "OK" in response:
-        response.replace("OK", "/r/n", "").strip()
+        response.replace("OK", "").strip()
         ser.flush()  # Flush the serial
         return response, True
     else:
