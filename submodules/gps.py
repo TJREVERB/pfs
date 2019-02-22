@@ -1,18 +1,23 @@
+import base64
+import datetime
 import logging
 import os
 import pty
+import struct
 import sys
 import threading
 import time
+from collections import deque
 from functools import partial
-import RPi.GPIO as GPIO
 
+import RPi.GPIO as GPIO
 import pynmea2
 import serial
 
 from core import config
 from helpers.helpers import is_simulate
 from helpers.threadhandler import ThreadHandler
+from submodules import telemetry
 
 logger = logging.getLogger("GPS")
 
@@ -88,7 +93,9 @@ def getsinglegps():
         send("ANTENNAPOWER ON")
         send("ASSIGNALL AUTO")
         send("FIX AUTO")
-        wait_for_signal()
+
+        if not has_signal():
+            wait_for_signal()
 
         gpsdata = record_gps()
         cached_data_obj = gpsdata
@@ -105,22 +112,6 @@ def send(msg):
     """
     msg += "\n"
     ser.write(msg.encode("utf-8"))
-
-
-def listen():
-    """
-    Read messages from serial.
-    """
-    global cached_nmea_obj, cached_xyz_obj, cached_data_obj
-    while True:
-        gps_line = capture_packet('gps')
-        nmea_packet = parse_nmea_obj(gps_line)
-        cached_nmea_obj = nmea_packet
-        vel_line = capture_packet('vel')
-        vel_packet = parse_xyz_packet(vel_line)
-        cached_xyz_obj = vel_packet
-        cached_data_obj = merge(nmea_packet,vel_packet)
-        logger.info("Data: " + str(cached_data_obj))
 
 
 def findnth(msg, val, n):  # parsing helper method
@@ -154,16 +145,22 @@ def parse_xyz_packet(packet):
                    'INTEGRITY_WARNING': 13, 'PENDING': 18, 'INVALID_FIX': 19, 'UNAUTHORIZED': 20, 'INVALID_RATE': 22}
 
     result['position_status'] = status_code[packet[:findnth(packet, ' ', 0)]]
-    result['x_pos'] = float(packet[findnth(packet, ' ', 1) + 1:findnth(packet, ' ', 2)])
-    result['y_pos'] = float(packet[findnth(packet, ' ', 2) + 1:findnth(packet, ' ', 3)])
-    result['z_pos'] = float(packet[findnth(packet, ' ', 3) + 1:findnth(packet, ' ', 4)])
+    result['x_pos'] = float(
+        packet[findnth(packet, ' ', 1) + 1:findnth(packet, ' ', 2)])
+    result['y_pos'] = float(
+        packet[findnth(packet, ' ', 2) + 1:findnth(packet, ' ', 3)])
+    result['z_pos'] = float(
+        packet[findnth(packet, ' ', 3) + 1:findnth(packet, ' ', 4)])
 
     packetv = packet[findnth(packet, ' ', 7) + 1:]
 
     result['velocity_status'] = status_code[packetv[:findnth(packetv, ' ', 0)]]
-    result['x_vel'] = float(packetv[findnth(packetv, ' ', 1) + 1:findnth(packetv, ' ', 2)])
-    result['y_vel'] = float(packetv[findnth(packetv, ' ', 2) + 1:findnth(packetv, ' ', 3)])
-    result['z_vel'] = float(packetv[findnth(packetv, ' ', 3) + 1:findnth(packetv, ' ', 4)])
+    result['x_vel'] = float(
+        packetv[findnth(packetv, ' ', 1) + 1:findnth(packetv, ' ', 2)])
+    result['y_vel'] = float(
+        packetv[findnth(packetv, ' ', 2) + 1:findnth(packetv, ' ', 3)])
+    result['z_vel'] = float(
+        packetv[findnth(packetv, ' ', 3) + 1:findnth(packetv, ' ', 4)])
 
     return result
 
@@ -294,13 +291,14 @@ def get_points(period):
 
         while runtime != period:
             packet = record_gps()
-            points.append(packet)
-            runtime += 1
+            if point_is_good(packet):
+                telemetry_send(packet)
+                points.append(packet)
+                runtime += 1
 
         cache.append(points)
         send("unlogall")
         # eps.pin_off('gps')
-        return points
 
 
 def get_cache():
@@ -327,15 +325,15 @@ def start():
     cached_nmea_obj = None  # cached lat/lon/alt/gps object
     cached_xyz_obj = None  # cached velocity object
     cached_data_obj = None  # final data packet
-    cache = []  # list of (lists of dictionaries -returned by get k points)
+    # deque of (lists of dictionaries -returned by get k points)
+    cache = deque([], 2)
 
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(26, GPIO.IN)
 
     # TODO UPDATE FOR ACTUAL VALUE
-    updateinterval = 10  # time in seconds getKPoints should be called
-    gpsperiod = 10
-    burst_interval = 10 # 28800
+    updateinterval = 10  # FIXME val = 90 minutes in seconds
+    gpsperiod = 10  # FIXME val = 300
 
     # Opens the serial port for all methods to use with 19200 baud
     if is_simulate('gps'):
@@ -349,17 +347,33 @@ def start():
     # REPLACE WITH /dev/ttyUSBx if 1 DOESNT WORK
     # serialPort = "/dev/ttyS3"
 
-    t1 = ThreadHandler(target=partial(listen), name="gps-listen",
+    t1 = ThreadHandler(target=partial(get_points(gpsperiod)), name="gps-listen",
                        parent_logger=logger)  # thread for parsing and caching log packets
     t2 = threading.Timer(float(updateinterval), update_cache)
-    t3 = threading.Timer(float(burst_interval), telem_send)
 
     # t2.start()
     t2.start()
     t3.start()
 
-def telem_send():
-    packet = get_points(gpsperiod)
+
+def telemetry_send():
+    gps_packet = getsinglegps()
+    lat = gps_packet['lat']
+    lon = gps_packet['lon']
+    alt = gps_packet['alt']
+    t = gps_packet['time']
+    t = t.replace(tzinfo=datetime.timezone.utc).timestamp()
+
+    packet = "G"
+    packet += base64.b64encode(struct.pack('d', t)).decode("UTF-8")
+    packet += base64.b64encode(struct.pack('fff', lat,
+                                           lon, alt)).decode("UTF-8")
+
+    telemetry.enqueue_submodule_packet(packet)
+
+
+def has_signal():
+    return GPIO.input(26) == 1
 
 
 def wait_for_signal():  # Temporary way of waiting for signal lock by waiting for an actual reading from gpgga log

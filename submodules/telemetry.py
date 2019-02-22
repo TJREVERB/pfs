@@ -1,30 +1,28 @@
 # TODO: Uses placeholder variables in other files, so make it use actual values
 # TODO: what if radio turned off during a burst?
 import base64
+import collections
 import logging
 import struct
 import time
-import collections
 from functools import partial
 from threading import Lock
 
-import core, sys
 from core import config
 from helpers.threadhandler import ThreadHandler
-from . import gps
-from . import iridium
-from . import radio_output
-from . import aprs
 from . import adcs
-from . import iridium
-from . import command_ingest
+from . import radio_output
 from .command_ingest import command
 
-telem_packet_buffer = collections.deque(maxlen=config['telemetry']['buffer_size'])
-event_packet_buffer = collections.deque(maxlen=config['telemetry']['buffer_size'])
+telem_packet_buffer = collections.deque(
+    maxlen=config['telemetry']['buffer_size'])
+event_packet_buffer = collections.deque(
+    maxlen=config['telemetry']['buffer_size'])
 packetBuffers = [event_packet_buffer, telem_packet_buffer]
-packet_lock = Lock()  # TODO: Use an indexed system so that we have persistent log storage and querying
+# TODO: Use an indexed system so that we have persistent log storage and querying
+packet_lock = Lock()
 logger = logging.getLogger("Telemetry")
+
 
 def telemetry_send():
     """
@@ -39,6 +37,7 @@ def telemetry_send():
             telemetry_send_once()
         time.sleep(config['telemetry']['send_interval'])
 
+
 def telemetry_send_once():
     """
     Immediately send telemetry packets in both telemetry and event packet queues
@@ -46,7 +45,9 @@ def telemetry_send_once():
     global telem_packet_buffer, event_packet_buffer
     beg_count = len(telem_packet_buffer) + len(event_packet_buffer)
     send()
-    logger.debug("Sent " + str(beg_count - len(telem_packet_buffer) - len(event_packet_buffer)) + " telemetry packets")
+    logger.debug("Sent " + str(beg_count - len(telem_packet_buffer) -
+                               len(event_packet_buffer)) + " telemetry packets")
+
 
 @command("burst")
 def telemetry_burst_command():
@@ -55,6 +56,7 @@ def telemetry_burst_command():
     """
     send(ignoreADCS=True)
 
+
 def enqueue_event_message(event):
     """
     Enqueue an event message.
@@ -62,7 +64,8 @@ def enqueue_event_message(event):
     """
 
     if len(event.encode('utf-8')) != 16:
-        logger.error("Event message must be exactly 16 bytes, message is " + str(len(event.encode('utf-8'))) + " bytes long")
+        logger.error("Event message must be exactly 16 bytes, message is " +
+                     str(len(event.encode('utf-8'))) + " bytes long")
         return
 
     global event_packet_buffer
@@ -70,6 +73,7 @@ def enqueue_event_message(event):
     packet += str(base64.b64encode(struct.pack('d', time.time())))
     packet += event
     event_packet_buffer.append(packet)
+
 
 def enqueue_submodule_packet(packet):
     """
@@ -79,6 +83,7 @@ def enqueue_submodule_packet(packet):
     global telem_packet_buffer, packet_lock
     with packet_lock:
         telem_packet_buffer.append(packet)
+
 
 def enqueue_submodule_packets(packets):
     """
@@ -91,39 +96,44 @@ def enqueue_submodule_packets(packets):
             telem_packet_buffer.append(packet)
 
 
-def send(ignoreADCS=False):
+def send(ignoreADCS=False, radio="aprs"):
     """
     Concatenates packets to fit in max_packet_size (defined in config) and send through the APRS, dequing the packets in the process
     :param ignoreADCS: If true, ignores ADCS canTJBeSeen.
+    :param radio: Radio to send telemetry over, either "aprs" or "iridium"
     """
     global packetBuffers, event_packet_buffer, telem_packet_buffer, packet_lock
     squishedPackets = ""
 
     with packet_lock:
-        #packet_lock.acquire()
-        while len(event_packet_buffer)+len(telem_packet_buffer) > 0 and (adcs.can_TJ_be_seen() or ignoreADCS):
+        # packet_lock.acquire()
+        while len(event_packet_buffer) + len(telem_packet_buffer) > 0 and (adcs.can_TJ_be_seen() or ignoreADCS):
             for buffer in packetBuffers:
-                while len(buffer) > 0 and len(squishedPackets) < config['telemetry']['max_packet_size'] and (adcs.can_TJ_be_seen() or ignoreADCS):
-                    #test = buffer.pop()
-                    #print(test)
-                    #squishedPackets += test
+                while len(buffer) > 0 and len(squishedPackets) < config['telemetry']['max_packet_size'] and (
+                        adcs.can_TJ_be_seen() or ignoreADCS):
+                    # test = buffer.pop()
+                    # print(test)
+                    # squishedPackets += test
                     squishedPackets += buffer.pop()
 
-            #TODO: alternate between radios
+            # TODO: alternate between radios
             logger.debug(squishedPackets)
-            radio_output.send(squishedPackets)
+            radio_output.send(squishedPackets, radio)
             squishedPackets = ""
             time.sleep(6)
 
-    #packet_lock.release()
+    # packet_lock.release()
+
 
 def start():
     """
     Starts the telemetry send thread
     """
 
-    t2 = ThreadHandler(target=partial(telemetry_send), name="telemetry-telemetry_send")
+    t2 = ThreadHandler(target=partial(telemetry_send),
+                       name="telemetry-telemetry_send")
     t2.start()
+
 
 # TODO: Need to know what needs to be done in low power and emergency modes.
 def enter_emergency_mode():
@@ -132,4 +142,3 @@ def enter_emergency_mode():
 
 def enter_low_power_mode():
     pass
-
