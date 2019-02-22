@@ -133,7 +133,7 @@ def send(message):
         while len(response) > 0 and len(response) <= 2:
             response = write_to_serial("AT+SBDI").replace(",", " ")
             curTime = time.time()
-            if (curTime - startTime) > 300:
+            if (curTime - startTime) > 30:
                 break
         try:
             alert = int(response[1])
