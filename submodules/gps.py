@@ -7,6 +7,7 @@ import struct
 import sys
 import threading
 import time
+from datetime import datetime
 from collections import deque
 from functools import partial
 
@@ -291,10 +292,10 @@ def get_points(period):
 
         while runtime != period:
             packet = record_gps()
-            if point_is_good(packet):
-                telemetry_send(packet)
-                points.append(packet)
-                runtime += 1
+            #if point_is_good(packet):
+            telemetry_send(packet)
+            points.append(packet)
+            runtime += 1
 
         cache.append(points)
         send("unlogall")
@@ -347,27 +348,29 @@ def start():
     # REPLACE WITH /dev/ttyUSBx if 1 DOESNT WORK
     # serialPort = "/dev/ttyS3"
 
-    t1 = ThreadHandler(target=partial(get_points(gpsperiod)), name="gps-listen",
+    t1 = ThreadHandler(target=partial(get_points, period=gpsperiod), name="gps-listen",
                        parent_logger=logger)  # thread for parsing and caching log packets
     t2 = threading.Timer(float(updateinterval), update_cache)
 
-    # t2.start()
+    #t1 = ThreadHandler(target=get_points(gpsperiod), name="gps-listen",
+    #                    parent_logger=logger)  # thread for parsing and caching log packets
     t2.start()
-    t3.start()
+
 
 
 def telemetry_send(gps_packet):
     lat = gps_packet['lat']
     lon = gps_packet['lon']
     alt = gps_packet['alt']
-    t = gps_packet['time']
-    t = t.replace(tzinfo=datetime.timezone.utc).timestamp()
+    update_time(gps_packet['time'])
+    t = datetime.utcnow()
+    t = t.timestamp()
 
     packet = "G"
     packet += base64.b64encode(struct.pack('d', t)).decode("UTF-8")
-    packet += base64.b64encode(struct.pack('fff', lat,
-                                           lon, alt)).decode("UTF-8")
-
+    packet += base64.b64encode(struct.pack('fff', float(lat),
+                                           float(lon), float(alt))).decode("UTF-8")
+    print(packet)
     telemetry.enqueue_submodule_packet(packet)
 
 
