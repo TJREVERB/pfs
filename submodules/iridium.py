@@ -7,13 +7,13 @@ from core import config
 
 debug = True
 
-global ser
+ser = None
 
 # Initialize global variables
 logger = logging.getLogger("IRIDIUM")
 
 
-def write_to_serial(command):
+def write_to_serial(command: str) -> (str, bool):
     """
     Write a command to the serial port.
 
@@ -21,45 +21,48 @@ def write_to_serial(command):
     :return: Tuple consisting of (response text, boolean if error or not)
     """
 
-    # Append EOL if it isn't present already
-    if command[-2:] != '\r\n':
-        command += '\r\n'
+    # Remove unnecessary newlines that cut off the full command
+    command = command.replace("\r\n", "")
+    # Add the newline character to the end of the command
+    command = command + "\r\n"
 
-    ser.write(command.encode('UTF-8'))  # Encode the message with utf-8
+    # Encode the message with utf-8, write to serial
+    ser.write(command.encode('UTF-8'))
 
     response = ""  # Received response
     while ("OK" or "ERROR") not in response:  # Wait to get the 'OK' or 'ERROR' from Iridium
         response += ser.readline().decode('UTF-8')  # Append contents of serial
 
     # Determine if an "OK" or an "ERROR" was received
-    if "OK" in response:
+    if "OK" in response:  # "OK"
         response = response.replace("OK", "").strip()
         ser.flush()  # Flush the serial
         return response, True
-    else:
+    else:  # "ERROR"
         response = response.replace("ERROR", "").strip()
         ser.flush()  # Flush the serial
         return response, False
 
 
-def wait_for_signal():
+def wait_for_signal() -> None:
+    """
+    Wait for the Iridium to establish a connection with the constellation.
+    """
     response = 0
     while response == 0:
         response = int(write_to_serial("AT+CSQ")[0])
 
 
-def check(num_checks):
+def check(num_checks: int) -> bool:
     """
-    Check that the Iridium works and is registered
-    :param num_checks: Number of times to check if the Iridium is registered
+    Check that the Iridium works and is registered.
+    :param num_checks: Number of times to check if the Iridium is registered (before it returns)
     :return: True if check was successful, False if not
     """
 
     write_to_serial("AT")  # Test the Iridium
 
-    # Disable SBD Ring Alerts to get registration status
-    write_to_serial("AT+SBDMTA=0")
-
+    wait_for_signal()
     # Get the current registration status of the Iridium
     # Return OK and end lines when they should be removed in write_to_serial
     response = int(write_to_serial("AT+SBDREG?")[0].split(":")[1])
@@ -118,25 +121,25 @@ def listen():
         write_to_serial("AT+SBDMTA=0")
 
 
-def send(message):
+def send(message: str) -> bool:
     """
     Send a message using the Iridium network.
     :param message: The message to send in plain text
-    :return:
+    :return: True if message was sent, False if not
     """
 
     wait_for_signal()
-
     # Prepare message
-    response_write = write_to_serial(
-        "AT+SBDWT=" + message)  # Message write timed out
-    if not response_write[1]:
+    response_write = write_to_serial("AT+SBDWT=" + message)
+    if not response_write[1]:  # Message write timed out
         return False
 
+    wait_for_signal()
     # Send message
     response_sbdi = write_to_serial("AT+SBDI")
     if not response_sbdi[1]:
         return False
+
     response_sbdi_array = response_sbdi[0].split(
         ":")[1].strip().split(",")  # Array of SBDI response
 
@@ -150,19 +153,11 @@ def start():
     global ser
 
     # Opens the serial port for all methods to use with 19200 baud
-    ser = serial.Serial(
-        config['iridium']['serial_port'], baudrate=19200, timeout=120)
+    ser = serial.Serial(config['iridium']['serial_port'], baudrate=19200)
     # Clean serial port before proceeding
     ser.flush()
 
     check(5)  # Check that the Iridium (check 5 times)
     logging.debug("Check successful")
-
-    # Create all the background threads
-    # t1 = ThreadHandler(target=partial(listen),name="iridium-listen", parent_logger=logger)
-    # no threads recommended it breaks serial
-
-    # Start the threads
-    # t1.start() threads break serial
 
     time.sleep(1)

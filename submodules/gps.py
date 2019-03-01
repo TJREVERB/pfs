@@ -292,7 +292,7 @@ def get_points(period):
 
         while runtime != period:
             packet = record_gps()
-            #if point_is_good(packet):
+            # if point_is_good(packet):
             telemetry_send(packet)
             points.append(packet)
             runtime += 1
@@ -352,10 +352,9 @@ def start():
                        parent_logger=logger)  # thread for parsing and caching log packets
     t2 = threading.Timer(float(updateinterval), update_cache)
 
-    #t1 = ThreadHandler(target=get_points(gpsperiod), name="gps-listen",
+    # t1 = ThreadHandler(target=get_points(gpsperiod), name="gps-listen",
     #                    parent_logger=logger)  # thread for parsing and caching log packets
     t2.start()
-
 
 
 def telemetry_send(gps_packet):
