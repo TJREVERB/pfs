@@ -17,7 +17,7 @@ aprs:
 gps:
   #s3
   serial_port: /dev/ttyUSB1
-#telemetry:
-#    data_functions:
-#        - aprs.get_voltage
-#        - aprs.get_number-of_packeut
+telemetry:
+   send_interval: 30
+   buffer_size: 100
+   max_packet_size: 170
