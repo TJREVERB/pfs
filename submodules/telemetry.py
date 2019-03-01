@@ -97,7 +97,7 @@ def enqueue_submodule_packets(packets):
             telem_packet_buffer.append(packet)
 
 
-def send(ignoreADCS=False, radio="aprs"):
+def send(ignoreADCS=False, radio='aprs'):
     """
     Concatenates packets to fit in max_packet_size (defined in config) and send through the APRS, dequing the packets in the process
     :param ignoreADCS: If true, ignores ADCS canTJBeSeen.

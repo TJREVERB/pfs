@@ -16,6 +16,7 @@ def send(message: str, radio=None):
         radio = default_radio
     if radio == "aprs":
         aprs_mod.send(message)
+        #print("RADIO_OUTPUT:" + message)
     if radio == "iridium":
         iridium_mod.enqueue(message)
 
