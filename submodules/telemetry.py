@@ -14,6 +14,8 @@ from . import adcs
 from . import radio_output
 from .command_ingest import command
 
+logger = logging.getLogger("TELEMETRY")
+
 telem_packet_buffer = collections.deque(
     maxlen=config['telemetry']['buffer_size'])
 event_packet_buffer = collections.deque(
@@ -21,7 +23,6 @@ event_packet_buffer = collections.deque(
 packetBuffers = [event_packet_buffer, telem_packet_buffer]
 # TODO: Use an indexed system so that we have persistent log storage and querying
 packet_lock = Lock()
-logger = logging.getLogger("Telemetry")
 
 
 def telemetry_send():

@@ -11,6 +11,8 @@ from . import power
 
 config = None  # Prevents IDE from throwing errors about not finding `config`
 
+logger = logging.getLogger("ROOT")
+
 
 def load_config():
     """
@@ -36,8 +38,8 @@ def enter_normal_mode(reason: str = '') -> None:
     :param reason: Reason for entering normal mode.
     """
     global current_mode
-    logging.info(
-        f"Entering normal mode.{'  Reason: ' if reason else ''}{reason}")
+    logger.warning(
+        f"Entering normal mode{'  Reason: ' if reason else ''}{reason}")
     current_mode = mode.NORMAL
 
     # Trigger the module hooks
@@ -52,8 +54,8 @@ def enter_low_power_mode(reason: str = '') -> None:
     :param reason: Reason for entering low power mode.
     """
     global current_mode
-    logging.warning(
-        f"Entering low_power mode.{'  Reason: ' if reason else ''}{reason}")
+    logger.warning(
+        f"Entering low_power mode{'  Reason: ' if reason else ''}{reason}")
     current_mode = mode.LOW_POWER
 
     for module in submodules:  # Trigger the module hooks
@@ -67,8 +69,8 @@ def enter_emergency_mode(reason: str = '') -> None:
     :param reason: Reason for entering emergency power mode.
     """
     global current_mode
-    logging.critical(
-        f"Entering emergency mode.{'  Reason: ' if reason else ''}{reason}")
+    logger.warning(
+        f"Entering emergency mode{'  Reason: ' if reason else ''}{reason}")
     current_mode = mode.EMERGENCY
 
     for module in submodules:  # Trigger the module hooks
@@ -80,8 +82,8 @@ def start():
     global submodules
     # Load `config` from either default file or persistent config
     load_config()
-    logging.debug("Config:")
-    logging.debug(config)
+
+    logger.debug("Config: ", config)
 
     # Ensure that logs directory exists
     if not os.path.exists(config['core']['log_dir']):
@@ -89,9 +91,11 @@ def start():
 
     # Loop through all active modules in YAML config file, add them to `config`
     submodules = []
-    for module in config['core']['modules']:
-        logging.debug(f'Loading module {module}')
-        submodules.append(importlib.import_module(f'submodules.{module}'))
+    if config['core']['modules'] is not None:
+        for submodule in config['core']['modules']:
+            logger.debug(f'Loading module: {submodule}')
+            submodules.append(importlib.import_module(
+                f'submodules.{submodule}'))
 
     # Trigger module start
     for module in submodules:
@@ -99,7 +103,7 @@ def start():
             getattr(module, 'start')()
 
     enter_normal_mode()  # Enter normal mode
-    logging.debug("Entering main loop.")
+    logger.debug("Entering main loop")
 
     # MAIN LOOP
     while True:
