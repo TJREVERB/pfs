@@ -42,6 +42,12 @@ def write_to_serial(command):
         return response, False
 
 
+def wait_for_signal():
+    response = 0
+    while response == 0:
+        response = int(write_to_serial("AT+CSQ")[0])
+
+
 def check(num_checks):
     """
     Check that the Iridium works and is registered
@@ -50,9 +56,6 @@ def check(num_checks):
     """
 
     write_to_serial("AT")  # Test the Iridium
-
-    signalQuality = write_to_serial('AT+CSQ')  # Get current signal quality
-    logger.debug(signalQuality[0])
 
     # Disable SBD Ring Alerts to get registration status
     write_to_serial("AT+SBDMTA=0")
@@ -112,6 +115,7 @@ def listen():
                 except:
                     continue
             ringSetup = 0
+        write_to_serial("AT+SBDMTA=0")
 
 
 def send(message):
@@ -121,24 +125,25 @@ def send(message):
     :return:
     """
 
-    alert = 2
-    while alert == 2:
-        # Get last known signal strength
-        write_to_serial("AT+CSQ")
+    wait_for_signal()
 
-        # Prepare message
-        response_write = write_to_serial("AT+SBDWT=" + message)  # Message write timed out
-        if not response_write[1]: return False
+    # Prepare message
+    response_write = write_to_serial(
+        "AT+SBDWT=" + message)  # Message write timed out
+    if not response_write[1]:
+        return False
 
-        # Send message
-        response_sbdi = write_to_serial("AT+SBDI")
-        if not response_sbdi[1]: return False
-        response_sbdi_array = response_sbdi[0].split(":")[1].strip().split(",")  # Array of SBDI response
+    # Send message
+    response_sbdi = write_to_serial("AT+SBDI")
+    if not response_sbdi[1]:
+        return False
+    response_sbdi_array = response_sbdi[0].split(
+        ":")[1].strip().split(",")  # Array of SBDI response
 
-        if response_sbdi_array[0] == 2:
-            return True
-        else:
-            return False
+    if response_sbdi_array[0] == 2:  # Index 0 holds the success code
+        return True
+    else:
+        return False
 
 
 def start():
@@ -151,6 +156,7 @@ def start():
     ser.flush()
 
     check(5)  # Check that the Iridium (check 5 times)
+    logging.debug("Check successful")
 
     # Create all the background threads
     # t1 = ThreadHandler(target=partial(listen),name="iridium-listen", parent_logger=logger)
