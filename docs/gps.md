@@ -2,33 +2,45 @@
 ### Modes of Operation
 1. Threaded mode
     * Continously reads, parses, and caches gps data
+    * ONLY USED FOR TELEMETRY PURPOSES!
     * GPS reciever is always on
-    * Data accessed through `gps.get_data()`
+    * Should not be accessed by any other module!
 2. Get Single GPS
     * Returns a dictionary of data from a single gps reading
     * call `gps.getsinglegps()` returns [dictionary of gps readings](#reading-dictionary-values)
     * Assumes gps receiver is off, waits for gps to turn on and get signal lock
         * Will not always be instantaneous
- 3. Get Points
-    * Returns a list of [dictionaries](#reading-dictionary-values)
-    * Records points for a certain amount of time in seconds(passed as parameter) and returns all packets in dictionary form inside a list
-    * call `gps.get_points(duration)` returns list of dictionaries of readings
-    * duration is an integer
-    * Assumes gps receiver is off, waits for gps to turn on and get signal lock
-        * Will not always be instantaneous 
  4. [Caching Points](#gps-caching-feature)
-    * For every 'n' seconds gps.py calls `gps.get_points(duration)` and stores the result in a list called cache
-    * cache is a list of list of dictionaries 
+    * For every 'n' seconds gps.py calls `gps.get_points(duration)` and stores the result in a deque called cache
+    * cache is a deque of size 2(only stores latest 2 readings)
+        * Each reading may up to 300 actual packets of location data 
     * accessed by `gps.get_cache()`
 ### Callable Methods
 1. `gps.getsinglegps()` 
     * Turns on gps, waits for signal, starts gps logs, reads/parses data, returns dictionary of values
     * Same use as `get_data()` except `getsinglegps()` will be more recent and accurate
-2. `gps.get_points(period)`
-    * Turns on gps, waits for signal, start gps logs, records values for duration `period`, returns list of dictionary of all packets recorded
-3. `gps.get_data()`
+2. `gps.get_data()`
     * Returns the last cached [data object](#reading-dictionary-values)
     * Same use as `getsinglegps()` except data returned by `getData()` may be outdated since it is the last cached packet
+3. `gps.get_cache()`
+    * Returns the last two readings
+    * Deque object
+    * two(optimally) lists of dictionaries of points from the latest two readings    
+
+### GPS Caching Feature
+* Every 300 seconds gps.py will call `get_points(duration)` and update the cache with up to 300 packets
+* The cache is a `deque` object with a size of 2
+    * The cache will contain the latest 2 readings of up to 300 packets each   
+    #### Usage
+    * Refer to the [documentation on deques](https://docs.python.org/2/library/collections.html#collections.deque)
+    * Assume `data = gps.get_cache()`
+    * MAKE SURE TO CHECK `len(data)` IT MAY NOT ALWAYS BE 2
+    * `data[-1]` will return the latest reading
+    * `data[0]` will return second-to-latest reading
+    * `data[-1]` or `data[0]` will return a list of dictionaries
+        * [Reading Dictionaries](#reading-dictionary-values)
+
+
 ### Reading Dictionary Values
 * All data recorded from the gps are stored in dictionaries
     #### Usage
@@ -49,11 +61,11 @@
     * **IMPORTANT the velocity and position readings may not always be accurate**
         * if `data['position_status']` is -1 position readings are not accurate
         * if `data['velocity_status']` is -1 velocity readings are not accurate
-        * Refer to lines 143-148 in gps.py for more information
-    #### Usage with `get_points()`    
-    * Assume `data = gps.get_points(10)`
-    * `get_points(10)` will return a list of size 10 with 10 dictionaries inside. Each dictionary contains values from separate readingx
-    * Assume `n` is an integer between 0-9 inclusive 
+        * Refer to lines 141-143 in gps.py for more information
+    #### Usage with `get_cache()`    
+    * Assume `data = gps.get_cache()`
+    * `get_cache()` will return a list of size 10 with 10 dictionaries inside. Each dictionary contains values from separate readingx
+    * Assume `len(data) = 2` and 'n' is either 0 or -1
     * `data[n]['lat']` returns latitude of nth reading
     * `data[n]['lon']` returns longitude of nth reading
     * `data[n]['alt']` returns altitude of nth reading
@@ -70,22 +82,14 @@
     * **IMPORTANT the velocity and position readings may not always be accurate**
         * if `data[n]['position_status']` is -1 position readings are not accurate
         * if `data[n]['velocity_status']` is -1 velocity readings are not accurate
-        * Refer to lines 143-148 in gps.py for more information
-
-### GPS Caching Feature
-* Every 'n' seconds(not determined) gps.py will call `get_points(duration)` with a predetermined duration(not determined) and update the internal cache
-* cache is a list of list of dictionaries containing all previous readings from `get_points()` 
-    #### Usage
-    * Assume `data = gps.get_cache()`
-    * Assume `x` is between 0 to `len(data)` and y is between 0 and `len(data[x])`
-    * Same as `getsinglegps()`, `get_data()`, or `get_points(duration)` except:
-    * `data[x][y]['lat']` returns latitude of the yth reading of the xth cached data
-
+        * Refer to lines 141-143 in gps.py for more information
 
 ### Other Things
 * gps.py controls turning off and on the gps receiver
 * Try not to access variables directly
+* Failsafe
+    * Each point is checked for accuracy before being appended to the cache
+    * Cache readings may not always have 300 packets due to gps variability
 * `get_data()` - last cached data(can be outdated)
 * `getsinglegps()` - gets and returns a gps packet from the receiver
-* `get_points(duration)` - returns a list of length duration of recently read gps packets
-* `get_cache()` - have fun
+* `get_cache()` - deque of last two readings
