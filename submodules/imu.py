@@ -3,12 +3,13 @@ import time
 
 import smbus
 
+from . import telemetry
 from . import aprs
 
 from helpers.threadhandler import ThreadHandler
 from functools import partial
 
-bus = smbus.SMBus(0)
+bus = smbus.SMBus(1)
 address = 0x68
 
 
@@ -42,8 +43,20 @@ def gyr():
 def acc_gyr():
     global speriod, datasave
     while True:
-        acc()
-        gyr()
+        try:
+            print("-------------ACC")
+            acc()
+        except:
+            print("=========================ACCFAIL")
+            logging.error("ACC FAILED")
+            telemetry.enqueue_event_message("I:1")
+        try:
+            print("-------------GYR")
+            gyr()
+        except:
+            print("=========================GYRFAIL")
+            logging.error("GYR FAILED")
+            telemetry.enqueue_event_message("I:2")
         datapoint = ':'.join([str(x) for x in [ax, ay, az, gx, gy, gz]])
         datasave += [datapoint]
         # logging.debug('IMU ADD DATA POINT')

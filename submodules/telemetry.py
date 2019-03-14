@@ -61,19 +61,26 @@ def telemetry_burst_command():
 def enqueue_event_message(event):
     """
     Enqueue an event message.
-    :param event: message to enqueue, **MUST BE EXACTLY** 16 bytes
+    :param event: message to enqueue. Maximum 16 bytes. If over then throws exception, if under then pads with '='
     """
 
-    if len(event.encode('utf-8')) != 16:
-        logger.error("Event message must be exactly 16 bytes, message is " +
-                     str(len(event.encode('utf-8'))) + " bytes long")
+    if len(event.encode('utf-8')) > 16:
+        logger.error("Event message larger than 16 bytes, message is " +
+                str(len(event.encode('utf-8'))) + " bytes long")
         return
+    elif len(event.encode('utf-8')) != 16:
+        #logger.error("Event message must be exactly 16 bytes, message is " +
+        #             str(len(event.encode('utf-8'))) + " bytes long")
+        #return
+        while (len(event.encode('utf-8')) != 16):
+            event += "="
 
-    global event_packet_buffer
-    packet = "Z"
-    packet += str(base64.b64encode(struct.pack('d', time.time())))
-    packet += event
-    event_packet_buffer.append(packet)
+    global event_packet_buffer, packet_lock
+    with packet_lock:
+        packet = "Z"
+        packet += str(base64.b64encode(struct.pack('d', time.time())))
+        packet += str(base64.b64encode(event))
+        event_packet_buffer.append(packet)
 
 
 def enqueue_submodule_packet(packet):
@@ -125,6 +132,12 @@ def send(ignoreADCS=False, radio='aprs'):
 
     # packet_lock.release()
 
+@command("clear")
+def clear_buffers():
+    global packet_lock, event_packet_buffer, telem_packet_buffer
+    with packet_lock:
+        event_packet_buffer.clear()
+        telem_packet_buffer.clear()
 
 def start():
     """
