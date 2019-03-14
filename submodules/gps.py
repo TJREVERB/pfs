@@ -369,7 +369,7 @@ def telemetry_send(gps_packet):
     packet += base64.b64encode(struct.pack('d', t)).decode("UTF-8")
     packet += base64.b64encode(struct.pack('fff', float(lat),
                                            float(lon), float(alt))).decode("UTF-8")
-    #print(packet)
+    # print(packet)
     telemetry.enqueue_submodule_packet(packet)
 
 
