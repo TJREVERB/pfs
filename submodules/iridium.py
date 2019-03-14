@@ -1,9 +1,12 @@
 import logging
+import threading
 import time
+from functools import partial
 
 import serial
 
 from core import config
+from helpers.threadhandler import ThreadHandler
 
 debug = True
 
@@ -11,6 +14,7 @@ ser = None
 
 # Initialize global variables
 logger = logging.getLogger("IRIDIUM")
+read_lock = threading.Lock()
 
 
 def write_to_serial(command: str) -> (str, bool):
@@ -30,8 +34,10 @@ def write_to_serial(command: str) -> (str, bool):
     ser.write(command.encode('UTF-8'))
 
     response = ""  # Received response
+    read_lock.acquire()
     while ("OK" or "ERROR") not in response:  # Wait to get the 'OK' or 'ERROR' from Iridium
         response += ser.readline().decode('UTF-8')  # Append contents of serial
+    read_lock.release()
 
     # Determine if an "OK" or an "ERROR" was received
     if "OK" in response:  # "OK"
@@ -78,10 +84,9 @@ def check(num_checks: int) -> bool:
 
 
 def listen():
+    # Turn SBD ring alerts on
     write_to_serial("AT+SBDMTA=1")
-    signalStrength = 0
     ringSetup = 0
-    iteration = 0
     while ringSetup != 2:
         print("Just inside ring setup loop")
         ring = ser.readline().decode('UTF-8')
@@ -160,4 +165,6 @@ def start():
     check(5)  # Check that the Iridium (check 5 times)
     logging.debug("Check successful")
 
-    time.sleep(1)
+    listen_thread = ThreadHandler(target=partial(
+        listen), name="iridium-listen", parent_logger=logger)
+    listen_thread.start()
