@@ -83,7 +83,13 @@ def check(num_checks: int) -> bool:
     return False  # Check failed all times, return False
 
 
-def listen():
+def listen() -> None:
+    """
+    Listen for an SBD ring.
+    If a ring is present, retrieve the message, and dispatch it to *command_ingest.*
+    This function is meant to be run in a Thread.
+    """
+
     # Turn SBD ring alerts on
     write_to_serial("AT+SBDMTA=1")
 
@@ -100,6 +106,11 @@ def listen():
 
 
 def retrieve() -> str:
+    """
+    Retrieve the content of a message that is Mobile Terminated (MT).
+    :return: Text content of the message, empty string if failed or no message to retrieve
+    """
+
     wait_for_signal()
 
     # "Sync" with the GSS, retrieving and sending messages
