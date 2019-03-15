@@ -1,11 +1,11 @@
 import logging
 import threading
-import time
 from functools import partial
 
 import serial
 
 from core import config
+from submodules import command_ingest
 from helpers.threadhandler import ThreadHandler
 
 debug = True
@@ -94,43 +94,23 @@ def listen():
             ring = ser.readline().decode('UTF-8')
             read_lock.release()
             if "SBDRING" in ring:
-                retrieve()
+                message = retrieve()
+                if message:  # Evaluates to True if message not empty
+                    command_ingest.dispatch(message)
 
 
-def retrieve():
-    # FIXME: This method is temporarily holding the code that was previously in listen()
+def retrieve() -> str:
+    wait_for_signal()
 
-    bytesLeft = 1
-    ser.timeout = 120
-    while bytesLeft != 0:
-        print("checking bytes left")
-        write_to_serial("AT+SBDIXA")
-        resp = "A"
-        while len(resp) < 2:
-            print("response length loop")
-            test = ser.readline().decode('UTF-8')
-            resp = test.split(': ')
+    # "Sync" with the GSS, retrieving and sending messages
+    sync_resp = write_to_serial("AT+SBDIXA")[0]
+    sync_resp_list = sync_resp.strip(",")
 
-        try:
-            print("splitting response")
-            resp = resp[1].split(', ')
-        except:
-            print("index out of bounds exception \r\n closing program")
-            exit(-1)
-        bytesLeft = int(resp[0])
-
-    write_to_serial("AT+SBDRT")
-    print("About to show message")
-    while True:
-        try:
-            print(ser.readline().decode('UTF-8').split(":")[1])
-
-            print("done")
-            break
-        except:
-            continue
-    ringSetup = 0
-    write_to_serial("AT+SBDMTA=0")
+    if sync_resp_list[2] == 1:  # Message successfully received
+        message = write_to_serial("AT+SBDRT")
+        return message[0]  # Return the actual message content
+    else:
+        return ""  # Return nothing; either there was no message or retrieval failed
 
 
 def send(message: str) -> bool:

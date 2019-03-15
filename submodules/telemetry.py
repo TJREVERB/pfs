@@ -66,12 +66,12 @@ def enqueue_event_message(event):
 
     if len(event.encode('utf-8')) > 16:
         logger.error("Event message larger than 16 bytes, message is " +
-                str(len(event.encode('utf-8'))) + " bytes long")
+                     str(len(event.encode('utf-8'))) + " bytes long")
         return
     elif len(event.encode('utf-8')) != 16:
-        #logger.error("Event message must be exactly 16 bytes, message is " +
+        # logger.error("Event message must be exactly 16 bytes, message is " +
         #             str(len(event.encode('utf-8'))) + " bytes long")
-        #return
+        # return
         while (len(event.encode('utf-8')) != 16):
             event += "="
 
@@ -132,12 +132,14 @@ def send(ignoreADCS=False, radio='aprs'):
 
     # packet_lock.release()
 
+
 @command("clear")
 def clear_buffers():
     global packet_lock, event_packet_buffer, telem_packet_buffer
     with packet_lock:
         event_packet_buffer.clear()
         telem_packet_buffer.clear()
+
 
 def start():
     """
