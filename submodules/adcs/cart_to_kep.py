@@ -17,7 +17,7 @@ import numpy as np
 import math
 
 
-def cart2kep(r, vel):
+def cart_to_kep(r, vel):
     r = [float(i) for i in r]
     vel = [float(i) for i in vel]
     G = 6.67408 * (10**(-11))  # Gravitational constant(N kg^-2 m^2)
@@ -69,4 +69,4 @@ def cart2kep(r, vel):
 
 # r = [3000000., 5000000., 1000000.]
 # vel = [3000., 3000., 5000.]
-# print(cart2kep(r, vel))
+# print(cart_to_kep(r, vel))

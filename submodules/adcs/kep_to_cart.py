@@ -2,7 +2,7 @@ from orbital.utilities import Position, Velocity
 from orbital import earth, KeplerianElements, utilities
 import numpy as np
 """
-Function kep2cart(KOE), returns Cartesian position/velocity vectors
+Function kep_to_cart(KOE), returns Cartesian position/velocity vectors
 [[R],[V]] from Keplerian orbital elements (KOE), using the EGM-96 value
 of Earth's gravitational constant, GM = 3.986004415E+14 m^3/sec^2. All
 angles are in radians. Position vector given in meters, velocity vector
@@ -35,7 +35,7 @@ pip install orbitalpy
 """
 
 
-def kep2cart(KOE):
+def kep_to_cart(KOE):
     orbitx = KeplerianElements(a=KOE[0], e=KOE[1], i=KOE[2], raan=KOE[3],
                                arg_pe=KOE[4], M0=KOE[5], body=earth)
     cart = np.array([list(orbitx.r), list(orbitx.v)])
@@ -46,7 +46,7 @@ def kep2cart(KOE):
 Test input:
     KOE = [7712185.793304873, 0.0009998565957693001, 1.1070000000336715,
             2.356199994947052, 1.5708534575885496, 6.283131851920631]
-    print(kep2cart(KOE))
+    print(kep_to_cart(KOE))
 Test output:
     [[-2.43706002e+06 -2.43712690e+06  6.89057919e+06]
      [ 5.08864926e+03 -5.08857647e+03 -2.36413505e-02]]

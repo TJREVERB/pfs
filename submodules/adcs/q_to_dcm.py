@@ -1,9 +1,9 @@
-# Function q2dcm(q), returns array R
+# Function q_to_dcm(q), returns array R
 # Created by Anonto Zaman, Translated to Python by Jason Chen
 # Converts from a quaternion [vector;scalar] to a direction cosine matrix
 
 
-def q2dcm(q):
+def q_to_dcm(q):
     R = np.zeros((3, 3))
 
     R[0, 0] = q[0]**2-q[1]**2-q[2]**2+q[3]**2

@@ -6,7 +6,7 @@ https://github.com/dannyzed/julian/blob/master/julian/julian.py
 """
 
 
-def utc2jul(epoch):
+def utc_to_jul(epoch):
     a = math.floor((14-(epoch.month))/12)
     y = epoch.year + 4800 - a
     m = epoch.month + 12*a - 3
@@ -16,4 +16,4 @@ def utc2jul(epoch):
         epoch.second / 86400 - 2415020.5  # Subtracting dates since Jan 1, 1900
     # + dt.microsecond / 86400000000
     return jd
-# print(utc2jul(dt.utcnow()))
+# print(utc_to_jul(dt.utcnow()))

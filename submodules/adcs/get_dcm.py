@@ -5,7 +5,7 @@
 from numpy import linalg
 import numpy as np
 
-# print getDCM([1,2,3,4], [1,2,3,4], [1,2,3,4], [1,2,3,4])
+# print get_dcm([1,2,3,4], [1,2,3,4], [1,2,3,4], [1,2,3,4])
 
 # bV and sV converted on board
 # Know instantaneous time, at any measurement (possibly from the GPS)
@@ -14,7 +14,7 @@ import numpy as np
 # ecef2eci (should be from a toolbox)
 
 
-def q2dcm(q):
+def q_to_dcm(q):
     R = np.zeros((3, 3))
 
     R[0, 0] = q[0] ^ 2-q[1] ^ 2-q[2] ^ 2+q[3] ^ 2
@@ -30,7 +30,7 @@ def q2dcm(q):
     R[2, 2] = -q[0] ^ 2-q[1] ^ 2+q[2] ^ 2+q[3] ^ 2
 
     return R
-# def getDCM(bV, sV, bI, sI):
+# def get_dcm(bV, sV, bI, sI):
 #  for i in bV:
 #    i = i*1.00
 #  for i in sV:
@@ -41,7 +41,7 @@ def q2dcm(q):
 #    i = i*1.00
 
 
-def getDCM(bV, sV, bI, sI):
+def get_dcm(bV, sV, bI, sI):
     bV = np.matrix([bV])
     #sV = np.matrix([sV])
     bI = np.matrix([bI])
@@ -64,24 +64,24 @@ def getDCM(bV, sV, bI, sI):
     return ivDCM
 
 # q = normalize([0.1 0.2 -0.3 1].getH())
-# R = q2dcm(q)
+# R = q_to_dcm(q)
 # bi = normalize([1 2 3].getH())
 # si = normalize([-1 3 -2].getH())
 # bv = R*bi
 # sv = R*si
-# RR = getDCM(bv, sv, bi, si)
+# RR = get_dcm(bv, sv, bi, si)
 # dR = R - RR
 
-# getDCM([1,2,3],[1,2,3],[1,2,3],[1,2,3])
-# getDCM([1,2],[1,2],[1,2],[1,2])
-# getDCM([0.1,0.2,0.3],[0.1,0.2,0.3],[0.1,0.2,0.3],[0.1,0.2,0.3])
-# getDCM([0.1,0.2,0.3,0.4],[0.1,0.2,0.3,0.4],[0.1,0.2,0.3,0.4],[0.1,0.2,0.3,0.4])
-# getDCM([1.0,2.0,3.0],[1.0,2.0,3.0],[1.0,2.0,3.0],[1.0,2.0,3.0])
-# getDCM([1.0,2.0,3.0,4.0],[1.0,2.0,3.0,4.0],[1.0,2.0,3.0,4.0],[1.0,2.0,3.0,4.0])
-# getDCM([0.001,0.002,0.003],[0.001,0.002,0.003],[0.001,0.002,0.003],[0.001,0.002,0.003])
-# getDCM([10.0,20.0,30.0],[10.0,20.0,30.0],[10.0,20.0,30.0],[10.0,20.0,30.0])
-# getDCM([1.0],[1.0],[1.0],[1.0])
-# getDCM([1.0,2.0,3.0,4.0,5.0],[1.0,2.0,3.0,4.0,5.0],[1.0,2.0,3.0,4.0,5.0],[1.0,2.0,3.0,4.0,5.0])
+# get_dcm([1,2,3],[1,2,3],[1,2,3],[1,2,3])
+# get_dcm([1,2],[1,2],[1,2],[1,2])
+# get_dcm([0.1,0.2,0.3],[0.1,0.2,0.3],[0.1,0.2,0.3],[0.1,0.2,0.3])
+# get_dcm([0.1,0.2,0.3,0.4],[0.1,0.2,0.3,0.4],[0.1,0.2,0.3,0.4],[0.1,0.2,0.3,0.4])
+# get_dcm([1.0,2.0,3.0],[1.0,2.0,3.0],[1.0,2.0,3.0],[1.0,2.0,3.0])
+# get_dcm([1.0,2.0,3.0,4.0],[1.0,2.0,3.0,4.0],[1.0,2.0,3.0,4.0],[1.0,2.0,3.0,4.0])
+# get_dcm([0.001,0.002,0.003],[0.001,0.002,0.003],[0.001,0.002,0.003],[0.001,0.002,0.003])
+# get_dcm([10.0,20.0,30.0],[10.0,20.0,30.0],[10.0,20.0,30.0],[10.0,20.0,30.0])
+# get_dcm([1.0],[1.0],[1.0],[1.0])
+# get_dcm([1.0,2.0,3.0,4.0,5.0],[1.0,2.0,3.0,4.0,5.0],[1.0,2.0,3.0,4.0,5.0],[1.0,2.0,3.0,4.0,5.0])
 
 
 # SHD: I recommend having a test program to test the logic of this function.
@@ -90,10 +90,10 @@ def getDCM(bV, sV, bI, sI):
 # lines again and save this function before actually executing the line in
 # the Command window.
 # q = [.1 .2 -.3 1]‘;q=q/norm(q); # Made-up quaternion from inertial to vehicle frame
-# R = q2dcm(q);
+# R = q_to_dcm(q);
 # bi = [1 2 3]‘;bi=bi/norm(bi); # Made-up b vector in inertial frame
 # si = [-1 3 -2]’;si=si/norm(si); # Made-up s vector in inertial frame
 # bv = R*bi;
 # sv = R*si;
-# RR = getDCM(bv,sv,bi,si); # Run the made-up vectors through the routine
+# RR = get_dcm(bv,sv,bi,si); # Run the made-up vectors through the routine
 # dR = R-RR # This should be close to zero

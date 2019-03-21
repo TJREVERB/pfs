@@ -11,7 +11,7 @@ import math
 from math import sin, cos
 
 
-def sunsensors(theta, phi, m):
+def sun_sensors(theta, phi, m):
     #   Finds largest input voltage from the 5 sun sensors
     """
     NO BUENO, NEED TO DO WEIGHT AVERAGING OF THE SUN SENSOR MEASUREMENTS

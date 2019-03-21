@@ -1,7 +1,7 @@
 # Main ADCS Driver
 # Python Methods Used:
 
-from  import getDCM
+from import getDCM
 from kep2cart import kep2cart
 from decyear import decyear
 from kepel import kepel
@@ -114,7 +114,7 @@ def main():
     # needed to incremement revnum
     # print(tle_dummy.get_xyz(epoch)['xyz_pos'])
     # print(tle_dummy.get_xyz(epoch)['xyz_vel'])
-    # poskep = cart2kep(tle_dummy.get_xyz(epoch)['xyz_pos'], tle_dummy.get_xyz(epoch)['xyz_vel'])
+    # poskep = cart_to_kep(tle_dummy.get_xyz(epoch)['xyz_pos'], tle_dummy.get_xyz(epoch)['xyz_vel'])
     # print(poskep)
     # if (poskep[4]>0 and config['adcs']['tledata']['oldargp']<=0):
     #     with open("config_adcs.yaml") as f:
@@ -126,9 +126,9 @@ def main():
     # config = load_config('config_adcs.yaml')
     # config['adcs']['tledata']['oldargp'] = poskep[4]
 
-    # write_config('config_adcs.yaml', utc2jul(epoch))  # config['adcs']['sc']['jd0'] = utc2jul(epoch)
-    # Instantiates the wrldmagm object.
-    gm = wrldmagm(config['adcs']['wrldmagm'])
+    # write_config('config_adcs.yaml', utc_to_jul(epoch))  # config['adcs']['sc']['jd0'] = utc_to_jul(epoch)
+    # Instantiates the WrldMagM object.
+    gm = wrldmagm(config['adcs']['WrldMagM'])
 
     # Calculate the magnetic field vector in ECEF. Altitude is multiplied to convert meters to feet.
     magECEF = gm.wrldmagm(lla['lat'], lla['lon'], lla['alt'], date.today())
@@ -149,9 +149,9 @@ def main():
     print(bI)
     print(sI)
 
-    # bV and sV data are taken from the onboard magnetometer and sunsensors.
+    # bV and sV data are taken from the onboard magnetometer and sun_sensors.
 
-    # DCM = getDCM.getDCM(bV, sV, bI, sI)
+    # DCM = get_dcm.get_dcm(bV, sV, bI, sI)
     #
 
 

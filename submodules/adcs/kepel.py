@@ -6,7 +6,7 @@ meters. All angles in radians. r and v MUST BE numpy arrays.
 Returns an array, KOE.
 Retrieved from:
 https://github.com/RazerM/orbital/blob/0.7.0/orbital/utilities.py#L252
-Refer to kep2cart.py for orbitalpy and astropy installation instructions.
+Refer to kep_to_cart.py for orbitalpy and astropy installation instructions.
 Created by Jason Chen 10/8/18
 """
 import numpy as np
