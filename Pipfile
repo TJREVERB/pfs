@@ -12,6 +12,10 @@ pysmbus = "*"
 smbus2 = "==0.2.1"
 PyYAML = "==3.13"
 pyserial = "*"
+numpy = "*"
+pymap3d = "*"
+orbitalpy = "*"
+pyorbital = "*"
 
 [requires]
 python_version = "3.7"

@@ -1,6 +1,4 @@
 import math
-from math import floor
-from datetime import datetime as dt
 """
 https://github.com/dannyzed/julian/blob/master/julian/julian.py
 """

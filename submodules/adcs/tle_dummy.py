@@ -1,9 +1,4 @@
-from datetime import datetime
-import numpy as np
-from pyorbital import tlefile
-from pyorbital.orbital import Orbital
-from pyorbital.orbital import OrbitElements
-from datetime import datetime
+from pyorbital.orbital import OrbitElements, Orbital
 
 
 def get_lla(t):

@@ -14,10 +14,7 @@ import math
 from numpy import dot, arccos as acos
 from numpy.linalg import norm
 from scipy.constants import pi
-from math import radians
-from orbital import KeplerianElements, elements, utilities, earth
-from orbital.utilities import (Position, Velocity, angular_momentum,
-                               node_vector, eccentricity_vector, specific_orbital_energy)
+from orbital.utilities import angular_momentum, node_vector, eccentricity_vector, specific_orbital_energy
 
 
 def kepel(r, v):

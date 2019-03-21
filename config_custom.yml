@@ -1,9 +1,10 @@
 core:
   modules:
-  - aprs
-  - command_ingest
-  - gps
-  - iridium
+#  - aprs
+#  - command_ingest
+#  - gps
+#  - iridium
+    - adcs
   log_dir: logs
   config_save_interval: 60
 aprs:

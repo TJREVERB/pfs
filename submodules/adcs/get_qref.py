@@ -1,6 +1,6 @@
 # BEING WORKED ON BY AYUSH
 import numpy as np
-from getDCM import getDCM
+from .get_dcm import get_dcm
 from numpy import linalg as LA
 import math
 

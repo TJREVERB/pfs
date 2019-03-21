@@ -2,6 +2,8 @@
 # Created by Anonto Zaman, Translated to Python by Jason Chen
 # Converts from a quaternion [vector;scalar] to a direction cosine matrix
 
+import numpy as np
+
 
 def q_to_dcm(q):
     R = np.zeros((3, 3))

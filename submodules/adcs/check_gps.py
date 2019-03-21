@@ -1,7 +1,7 @@
 # Written by Bharath Dileepkumar
 # March 21, 2018
 
-import tle_dummy
+from . import tle_dummy
 
 
 def check_gps(lat, long, alt, time):

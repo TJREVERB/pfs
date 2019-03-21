@@ -1,33 +1,31 @@
 # Main ADCS Driver
 # Python Methods Used:
 
-from import getDCM
-from kep2cart import kep2cart
-from decyear import decyear
-from kepel import kepel
-from q2dcm import q2dcm
-from sun_vec import sun_vec
-from sunsensors import sunsensors
-from utc2jul import utc2jul
-from wrldmagm import wrldmagm
-from cart2kep import cart2kep
+from .get_dcm import get_dcm
+from .kep_to_cart import kep_to_cart
+from .dec_year import dec_year
+from .kepel import kepel
+from .q_to_dcm import q_to_dcm
+from .sun_vec import sun_vec
+from .sun_sensors import sun_sensors
+from .utc_to_jul import utc_to_jul
+from .wrldmagm import WrldMagM
+from .cart_to_kep import cart_to_kep
 
-import gps_dummy
-import tle_dummy
-import tle_points
+from . import gps_dummy
+from . import tle_dummy
+from . import tle_points
 
 import time
 import numpy as np
-from numpy import linalg
-from math import floor, pi, sin, cos, pi, radians
 from datetime import datetime, date
-from orbital import earth, KeplerianElements, utilities
-from orbital.utilities import Position, Velocity
 from pymap3d import ecef2eci
 
 import logging
 import threading
 import yaml
+
+logger = logging.Logger("ADCS")
 
 
 def load_config(config_file):
@@ -77,7 +75,7 @@ def main():
             epoch = data[i]['time']  # Datetime object representing the epoch.
 
             # Convert state vectors into an array representing the KOE.
-            koe_array = cart2kep(r, vel)
+            koe_array = cart_to_kep(r, vel)
             koe_list = koe_array.tolist()
             # koe_array = np.insert(koe_array, 0, epoch)  # Add the datetime object epoch to the beginning.
             koe_list.insert(0, epoch)
@@ -128,7 +126,7 @@ def main():
 
     # write_config('config_adcs.yaml', utc_to_jul(epoch))  # config['adcs']['sc']['jd0'] = utc_to_jul(epoch)
     # Instantiates the WrldMagM object.
-    gm = wrldmagm(config['adcs']['WrldMagM'])
+    gm = WrldMagM(config['adcs']['WrldMagM'])
 
     # Calculate the magnetic field vector in ECEF. Altitude is multiplied to convert meters to feet.
     magECEF = gm.wrldmagm(lla['lat'], lla['lon'], lla['alt'], date.today())
@@ -143,7 +141,7 @@ def main():
     bI = bI.getH()
 
     # Sun vector in intertial frame.
-    sI = sun_vec(utc2jul(epoch)-utc2jul(datetime(1980, 1, 6, 0, 0, 0)))
+    sI = sun_vec(utc_to_jul(epoch)-utc_to_jul(datetime(1980, 1, 6, 0, 0, 0)))
     sI = sI/np.linalg.norm(sI)  # Normalize sI.
 
     print(bI)

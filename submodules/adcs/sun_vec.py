@@ -16,7 +16,6 @@
 # Bryan Zhang 10/11/2018
 
 import numpy as np
-import math
 from math import sin, pi, cos
 
 

@@ -7,7 +7,6 @@
 #   Bryan Zhang 11/30/2018
 
 import numpy as np
-import math
 from math import sin, cos
 
 
