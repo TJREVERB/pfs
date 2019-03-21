@@ -1,7 +1,7 @@
 # Main ADCS Driver
 # Python Methods Used:
 
-from getDCM import getDCM
+from  import getDCM
 from kep2cart import kep2cart
 from decyear import decyear
 from kepel import kepel
