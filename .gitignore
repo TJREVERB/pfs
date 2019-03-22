@@ -7,7 +7,7 @@
 venv/
 
 # Custom configuration file
-config-custom.yml
+config_custom.yml
 
 # Unneeded Python files
 __pycache__/
