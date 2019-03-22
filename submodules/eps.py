@@ -25,9 +25,9 @@ def pin_on(device_name):
 
 
 def reboot_device(device_name, sleeptime):
-    eps.pin_off(device_name)
+    pin_off(device_name)
     time.sleep(sleeptime)
-    eps.pin_on(device_name)
+    pin_on(device_name)
     time.sleep(sleeptime)
 
 
