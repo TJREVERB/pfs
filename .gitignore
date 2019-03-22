@@ -12,3 +12,6 @@ config_custom.yml
 # Unneeded Python files
 __pycache__/
 *.pyc
+
+# ADCS TLE backup file
+backup_tle.txt
