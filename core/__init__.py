@@ -20,7 +20,7 @@ def load_config():
     If `config_custom.yml` exists, use that (this is user-configurable).
     Else, use `config_default.yml`. This should not be changed while testing.
     """
-    global config
+
     # `config_custom.yml` (custom configuration file) exists
     if os.path.exists('config_custom.yml'):
         # TODO: be resilient to I/O errors (e.g. persistent storage is ded)
@@ -30,6 +30,8 @@ def load_config():
         # Custom configuration does not exist, use `config_default.yml`
         with open('config_default.yml') as f:
             config = yaml.load(f)
+
+    return config
 
 
 def enter_normal_mode(reason: str = '') -> None:
@@ -81,7 +83,7 @@ def enter_emergency_mode(reason: str = '') -> None:
 def start():
     global submodules
     # Load `config` from either default file or persistent config
-    load_config()
+    config = load_config()
 
     logger.debug("Config: ", config)
 

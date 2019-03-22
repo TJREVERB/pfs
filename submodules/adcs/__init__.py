@@ -1,5 +1,4 @@
-# Main ADCS Driver
-# Python Methods Used:
+from pathlib import Path
 
 from .get_dcm import get_dcm
 from .kep_to_cart import kep_to_cart
@@ -11,37 +10,19 @@ from .sun_sensors import sun_sensors
 from .utc_to_jul import utc_to_jul
 from .wrldmagm import WrldMagM
 from .cart_to_kep import cart_to_kep
+from core import load_config
 
 from . import gps_dummy
 from . import tle_dummy
 from . import tle_points
 
-import time
 import numpy as np
 from datetime import datetime, date
 from pymap3d import ecef2eci
 
 import logging
-import threading
-import yaml
 
 logger = logging.Logger("ADCS")
-
-
-def load_config(config_file):
-    with open(config_file, 'r') as stream:
-        try:
-            return yaml.safe_load(stream)
-        except yaml.YAMLError as error:
-            print(error)
-
-
-def write_config(config_file, data):
-    with open(config_file, 'w') as stream:
-        try:
-            yaml.dump(data, stream, default_flow_style=False)
-        except yaml.YAMLError as error:
-            print(error)
 
 
 def gps_is_on():
@@ -56,9 +37,9 @@ def generate_tle(koe):
     return {}
 
 
-def main():
+def start():
     global epoch
-    config = load_config('config_adcs.yaml')  # Load the data from the YAML.
+    config = load_config()  # Load the data from the YAML.
     # If GPS is on, get Cartesian (position, velocity) vectors and UTC time from the GPS.
     # Convert Cartesian coordinates and time to a Keplerian Elements array.
     # Generate a new TLE using the KOE.
@@ -126,7 +107,8 @@ def main():
 
     # write_config('config_adcs.yaml', utc_to_jul(epoch))  # config['adcs']['sc']['jd0'] = utc_to_jul(epoch)
     # Instantiates the WrldMagM object.
-    gm = WrldMagM(config['adcs']['WrldMagM'])
+    gm = WrldMagM((Path(__file__).parent.resolve() /
+                   config['adcs']['wrldmagm']))
 
     # Calculate the magnetic field vector in ECEF. Altitude is multiplied to convert meters to feet.
     magECEF = gm.wrldmagm(lla['lat'], lla['lon'], lla['alt'], date.today())
@@ -151,13 +133,3 @@ def main():
 
     # DCM = get_dcm.get_dcm(bV, sV, bI, sI)
     #
-
-
-if __name__ == "__main__":
-    start = time.time()
-    t1 = threading.Thread(target=main, args=(), daemon=True)
-    t1.start()
-    t1.join()
-    print("Calculation complete for ", epoch.strftime(
-        "%Y-%m-%d %H:%M:%S"), " UTC.")
-    print("Elapsed time: ", round(time.time()-start, 3), "sec")

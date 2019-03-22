@@ -1,19 +1,9 @@
-# Written by Ayush Rautwar
-
-import re
-import time
+from pathlib import Path
 from datetime import datetime
 import math
-import yaml
 from decimal import Decimal
 
-
-def load_config(config_file):
-    with open(config_file, 'r') as stream:
-        try:
-            return yaml.safe_load(stream)
-        except yaml.YAMLError as error:
-            print(error)
+from core import load_config
 
 
 def checksum(line):
@@ -30,9 +20,9 @@ def checksum(line):
 
 
 def propagate(poskep):
-    config = load_config("config_adcs.yaml")
+    config = load_config()
     GM = 3.986004418*(10**14)
-    file = open("tjreverb_tle.txt", "r")
+    file = open((Path(__file__).parent.resolve() / "tjreverb_tle.txt"), "r")
     lines = file.readlines()
     eachline = list()
     for line in lines:
