@@ -9,10 +9,11 @@ import time
 
 import core
 from core import config
-from . import command_ingest
-from . import eps
-from . import gps
-from . import radio_output
+from helpers.helpers import is_simulate
+from submodules import command_ingest
+from submodules import eps
+from submodules import gps
+from submodules import radio_output
 
 from helpers.threadhandler import ThreadHandler
 from functools import partial
@@ -57,8 +58,13 @@ def send_heartbeat():
         # GPS coords
         packet += base64.b64encode(struct.pack('fff',
                                                gps.lat, gps.lon, gps.alt))
-        # Battery percentage... as a 24 bit int :(
-        battery_level = eps.get_battery_level()
+
+        # Battery percentage as a 24-bit int
+        if not is_simulate("eps"):
+            battery_level = eps.get_battery_level()
+        else:
+            battery_level = None
+
         enc = struct.pack('I', int((2 ** 24 - 1) * battery_level))[:3]
         packet += base64.b64encode(enc)
         # Command stats

@@ -10,7 +10,7 @@ from functools import partial
 logger = logging.getLogger("EPS")
 address = 43
 epsdict = {'gps': 1, 'magnetorquer': 2, 'aprs': 4, 'iridium': 3,
-           'antenna': 5, 'a': 6, 'b': 7, 'e': 8, 'd': 9, 'e': 10}
+           'antenna': 5, 'a': 6, 'b': 7, 'c': 8, 'd': 9, 'e': 10}
 
 
 def pin_on(device_name):
@@ -21,8 +21,11 @@ def pin_on(device_name):
             logger.error("Pin is already ON.")  # FIXME should say pin_on was successful, not pin was already on
             return True
         else:  # FIXME s how if pin_on was unsuccessful in turning on the device
-            logger.debug("Pin communication successful. \
-            Pin is now ON.")
+            if get_PDM_status(device_name) == 1:  # PDM is ON
+                logger.error("Pin is already ON.")
+            else:
+                logger.debug("Pin communication successful. \
+                Pin is now ON.")
 
 
 def reboot_device(device_name, sleeptime):
@@ -50,7 +53,7 @@ def get_PDM_status(device_name):
         return bus.read_byte(address)  # RETURNS A BYTE, NOT A BIT. OK?
 
 
-def isModuleOn(device_name):
+def is_module_on(device_name):
     with SMBusWrapper(1) as bus:
         PDM_val = [epsdict[device_name]]
         if get_PDM_status(device_name).equals(0):
@@ -70,19 +73,19 @@ def set_system_watchdog_timeout(timeout):
         bus.write_i2c_block_data(address, 0x06, timeout)
 
 
-def get_BCR1_volts():
+def get_bcr1_volts():
     with SMBusWrapper(1) as bus:
         bus.write_i2c_block_data(address, 0x10, 0x00)
         return bus.read_byte(address)
 
 
-def get_BCR1_amps_A():
+def get_bcr1_amps_a():
     with SMBusWrapper(1) as bus:
         bus.write_i2c_block_data(address, 0x10, 0x01)
         return bus.read_byte(address)
 
 
-def get_BCR1_amps_B():
+def get_bcr1_amps_b():
     with SMBusWrapper(1) as bus:
         bus.write_i2c_block_data(address, 0x10, 0x02)
         return bus.read_byte(address)

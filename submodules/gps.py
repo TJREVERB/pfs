@@ -106,6 +106,7 @@ def getsinglegps():
             return gpsdata
         else:
             return None #FIXME MAYBE CHANGE TO ACTUAL VAL
+
     # end pseudo
 
 
@@ -312,6 +313,7 @@ def get_points(period):
         telemetry_send(error_packet) #FIXME A PACKET THAT SHOWS THAT THE EPS WAS UNABLE TO TURN ON THE GPS
 
 
+
 def get_cache():
     return cache
 
@@ -353,7 +355,8 @@ def start():
         logger.info("Serial started on " + ser.name)
     else:
         ser = serial.Serial(config['gps']['serial_port'], 9600, timeout=10)
-        # eps.pin_on('gps')
+        if not is_simulate("eps"):
+            eps.pin_on('gps')
 
     # REPLACE WITH /dev/ttyUSBx if 1 DOESNT WORK
     # serialPort = "/dev/ttyS3"
@@ -379,6 +382,7 @@ def telemetry_send(gps_packet):
     packet += base64.b64encode(struct.pack('d', t)).decode("UTF-8")
     packet += base64.b64encode(struct.pack('fff', float(lat),
                                            float(lon), float(alt))).decode("UTF-8")
+
     telemetry.enqueue_submodule_packet(packet)
 
 
@@ -436,6 +440,7 @@ def enter_normal_mode():
     if not is_simulate('gps'):
         pass
     eps.pin_on("gps") #TODO: BE ABLE TO FORCE EPS TO TURN ON GPS?
+
     start_loop()
 
 

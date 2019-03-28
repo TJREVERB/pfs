@@ -9,8 +9,8 @@ import serial
 from core import config
 from helpers.helpers import is_simulate
 from helpers.threadhandler import ThreadHandler
-from . import command_ingest
-from . import eps
+from submodules import command_ingest
+from submodules import eps
 from .command_ingest import command
 
 # Placeholder values for `telemetry.py`
@@ -57,7 +57,7 @@ def telemetry_watchdog():
         if time.time() - last_telem_time > config['aprs']['telem_timeout']:
             logger.error("APRS is dead, restarting APRS")
             if not is_simulate('eps'):
-                eps.reboot_device('aprs', 3)
+                eps.reboot('aprs', 3)
         else:
             logger.debug("Watchdog pass APRS")
 
@@ -127,14 +127,14 @@ def start():
     # Create all the background threads
     t1 = ThreadHandler(target=partial(listen),
                        name="aprs-listen", parent_logger=logger)
-    #t2 = ThreadHandler(target=partial(send),
+    # t2 = ThreadHandler(target=partial(send),
     #                   name="aprs-send_loop", parent_logger=logger)
     t3 = ThreadHandler(target=partial(telemetry_watchdog),
                        name="aprs-telemetry_watchdog", parent_logger=logger)
 
     # Start the background threads
     t1.start()
-    #t2.start()
+    # t2.start()
     t3.start()
 
     # Turn the power on.  TODO: Power check before turn-on.

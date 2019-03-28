@@ -104,7 +104,7 @@ def dispatch(body: str) -> None:
 #              'e': gps.getsinglegps, 'f': gps.enter_normal_mode, 'g': gps.enter_low_power_mode,
 #              'h': gps.enter_emergency_mode}
 #     # m_adcs = {'a': adcs.enter_normal_mode, 'b': adcs.enter_low_power_mode, 'c': adcs.enter_emergency_mode}
-#     # m_eps = {'a': eps.pin_on, 'b': eps.pin_off, 'c': eps.get_PDM_status, 'd': eps.get_board_status, 'e': eps.set_system_watchdog_timeout, 'f': eps.get_BCR1_volts, 'g': eps.get_BCR1_amps_A, 'h': eps.get_BCR1_amps_B, 'i': eps.get_board_telem, 'j': eps.enter_normal_mode, 'k': eps.enter_low_power_mode, 'l': eps.enter_emergency_mode}
+#     # m_eps = {'a': eps.pin_on, 'b': eps.pin_off, 'c': eps.get_pdm_status, 'd': eps.get_board_status, 'e': eps.set_system_watchdog_timeout, 'f': eps.get_bcr1_volts, 'g': eps.get_bcr1_amps_a, 'h': eps.get_bcr1_amps_b, 'i': eps.get_board_telem, 'j': eps.enter_normal_mode, 'k': eps.enter_low_power_mode, 'l': eps.enter_emergency_mode}
 #     # m_imu = {'a': imu.enter_normal_mode, 'b': imu.enter_low_power_mode, 'c': imu.enter_emergency_mode}
 #     # m_iridium = {}  # BLANK - nothing useful is in iridium.py
 #     # m_housekeeping = {'a': housekeeping.enter_normal_mode, 'b': housekeeping.enter_low_power_mode, 'c': housekeeping.enter_emergency_mode}
