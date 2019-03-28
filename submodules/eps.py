@@ -10,24 +10,24 @@ from functools import partial
 logger = logging.getLogger("EPS")
 address = 43
 epsdict = {'gps': 1, 'magnetorquer': 2, 'aprs': 4, 'iridium': 3,
-           'antenna': 5, 'a': 6, 'b': 7, 'e': 8, 'd': 9, 'e': 10}
+           'antenna': 5, 'a': 6, 'b': 7, 'c': 8, 'd': 9, 'e': 10}
 
 
 def pin_on(device_name):
     with SMBusWrapper(1) as bus:
         PDM_val = [epsdict[device_name]]
         bus.write_i2c_block_data(address, 0x12, PDM_val)
-        if get_PDM_status(device_name) == 1:  # PDM is ON
+        if get_pdm_status(device_name) == 1:  # PDM is ON
             logger.error("Pin is already ON.")
         else:
             logger.debug("Pin communication successful. \
             Pin is now ON.")
 
 
-def reboot_device(device_name, sleeptime):
-    eps.pin_off(device_name)
+def reboot(device_name, sleeptime):
+    pin_off(device_name)
     time.sleep(sleeptime)
-    eps.pin_on(device_name)
+    pin_on(device_name)
     time.sleep(sleeptime)
 
 
@@ -35,24 +35,24 @@ def pin_off(device_name):
     with SMBusWrapper(1) as bus:
         PDM_val = [epsdict[device_name]]
         bus.write_i2c_block_data(address, 0x13, PDM_val)
-        if get_PDM_status(device_name) == 1:  # PDM is OFF
+        if get_pdm_status(device_name) == 1:  # PDM is OFF
             logger.error("Pin is already OFF.")
         else:
             logger.debug("Pin communication successful. \
             Pin is now OFF.")
 
 
-def get_PDM_status(device_name):
+def get_pdm_status(device_name):
     with SMBusWrapper(1) as bus:
         PDM_val = [epsdict[device_name]]
         bus.write_i2c_block_data(address, 0x0E, PDM_val)
         return bus.read_byte(address)  # RETURNS A BYTE, NOT A BIT. OK?
 
 
-def isModuleOn(device_name):
+def is_module_on(device_name):
     with SMBusWrapper(1) as bus:
         PDM_val = [epsdict[device_name]]
-        if(get_PDM_status(device_name).equals(0)):
+        if(get_pdm_status(device_name).equals(0)):
             return False
         else:
             return True
@@ -69,19 +69,19 @@ def set_system_watchdog_timeout(timeout):
         bus.write_i2c_block_data(address, 0x06, timeout)
 
 
-def get_BCR1_volts():
+def get_bcr1_volts():
     with SMBusWrapper(1) as bus:
         bus.write_i2c_block_data(address, 0x10, 0x00)
         return bus.read_byte(address)
 
 
-def get_BCR1_amps_A():
+def get_bcr1_amps_a():
     with SMBusWrapper(1) as bus:
         bus.write_i2c_block_data(address, 0x10, 0x01)
         return bus.read_byte(address)
 
 
-def get_BCR1_amps_B():
+def get_bcr1_amps_b():
     with SMBusWrapper(1) as bus:
         bus.write_i2c_block_data(address, 0x10, 0x02)
         return bus.read_byte(address)

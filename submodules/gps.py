@@ -88,7 +88,9 @@ def getsinglegps():
     if not is_simulate('gps'):
         pass
     with signal_lock:
-        # eps.pin_on("gps")
+        if not is_simulate('eps'):
+            eps.pin_on("gps")
+
         t1.pause()
         send("unlogall")
         send("ANTENNAPOWER ON")
@@ -101,7 +103,9 @@ def getsinglegps():
         gpsdata = record_gps()
         cached_data_obj = gpsdata
         send("ANTENNAPOWER OFF")
-        # eps.pin_off('gps')
+
+        if not is_simulate('eps'):
+            eps.pin_off('gps')
         return gpsdata
     # end pseudo
 
@@ -280,7 +284,8 @@ def get_points(period):
     :param period: Amount of time in seconds of data needed
     :return: list of dictionaries of all data recorded
     """
-    # eps.pin_on('gps')
+    if not is_simulate("eps"):
+        eps.pin_on('gps')
     with signal_lock:
         logger.info("PARSING " + str(period) + " POINTS")
         send("ANTENNAPOWER ON")
@@ -299,7 +304,8 @@ def get_points(period):
 
         cache.append(points)
         send("unlogall")
-        # eps.pin_off('gps')
+        if not is_simulate("eps"):
+            eps.pin_off('gps')
 
 
 def get_cache():
@@ -343,7 +349,8 @@ def start():
         logger.info("Serial started on " + ser.name)
     else:
         ser = serial.Serial(config['gps']['serial_port'], 9600, timeout=10)
-        # eps.pin_on('gps')
+        if not is_simulate("eps"):
+            eps.pin_on('gps')
 
     # REPLACE WITH /dev/ttyUSBx if 1 DOESNT WORK
     # serialPort = "/dev/ttyS3"
@@ -424,7 +431,8 @@ def enter_normal_mode():
     # time.sleep(600)
     if not is_simulate('gps'):
         pass
-    # eps.pin_on("gps")
+    if not is_simulate("eps"):
+        eps.pin_on("gps")
     start_loop()
 
 

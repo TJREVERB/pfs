@@ -1,5 +1,7 @@
-# GPS DOCS
-### Modes of Operation
+# GPS
+
+## Modes of Operation
+
 1. Threaded mode
     * Continously reads, parses, and caches gps data
     * ONLY USED FOR TELEMETRY PURPOSES!
@@ -15,7 +17,9 @@
     * cache is a deque of size 2(only stores latest 2 readings)
         * Each reading may up to 300 actual packets of location data 
     * accessed by `gps.get_cache()`
-### Callable Methods
+    
+## Callable Methods
+
 1. `gps.getsinglegps()` 
     * Turns on gps, waits for signal, starts gps logs, reads/parses data, returns dictionary of values
     * Same use as `get_data()` except `getsinglegps()` will be more recent and accurate
@@ -27,11 +31,14 @@
     * Deque object
     * two(optimally) lists of dictionaries of points from the latest two readings    
 
-### GPS Caching Feature
+## GPS Caching Feature
+
 * Every 300 seconds gps.py will call `get_points(duration)` and update the cache with up to 300 packets
 * The cache is a `deque` object with a size of 2
     * The cache will contain the latest 2 readings of up to 300 packets each   
-    #### Usage
+    
+    ### Usage
+    
     * Refer to the [documentation on deques](https://docs.python.org/2/library/collections.html#collections.deque)
     * Assume `data = gps.get_cache()`
     * MAKE SURE TO CHECK `len(data)` IT MAY NOT ALWAYS BE 2
@@ -40,10 +47,12 @@
     * `data[-1]` or `data[0]` will return a list of dictionaries
         * [Reading Dictionaries](#reading-dictionary-values)
 
+## Reading Dictionary Values
 
-### Reading Dictionary Values
 * All data recorded from the gps are stored in dictionaries
-    #### Usage
+
+    ### Usage
+    
     * Assume `data = gps.get_data()` or `data = gps.getsinglegps()`
     * `data['lat']` returns latitude
     * `data['lon']` returns longitude
@@ -62,7 +71,9 @@
         * if `data['position_status']` is -1 position readings are not accurate
         * if `data['velocity_status']` is -1 velocity readings are not accurate
         * Refer to lines 141-143 in gps.py for more information
-    #### Usage with `get_cache()`    
+        
+    ### Usage with `get_cache()`    
+    
     * Assume `data = gps.get_cache()`
     * `get_cache()` will return a list of size 10 with 10 dictionaries inside. Each dictionary contains values from separate readingx
     * Assume `len(data) = 2` and 'n' is either 0 or -1
@@ -84,7 +95,8 @@
         * if `data[n]['velocity_status']` is -1 velocity readings are not accurate
         * Refer to lines 141-143 in gps.py for more information
 
-### Other Things
+## Other Things
+
 * gps.py controls turning off and on the gps receiver
 * Try not to access variables directly
 * Failsafe
