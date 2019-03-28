@@ -17,9 +17,10 @@ def pin_on(device_name):
     with SMBusWrapper(1) as bus:
         PDM_val = [epsdict[device_name]]
         bus.write_i2c_block_data(address, 0x12, PDM_val)
-        if get_PDM_status(device_name) == 1:  # PDM is ON
-            logger.error("Pin is already ON.")
-        else:
+        if get_PDM_status(device_name) == 1:  # PDM is ON #FIXME WON'T THIS ALWAYS BE TRUE?
+            logger.error("Pin is already ON.")  # FIXME should say pin_on was successful, not pin was already on
+            return True
+        else:  # FIXME s how if pin_on was unsuccessful in turning on the device
             logger.debug("Pin communication successful. \
             Pin is now ON.")
 
@@ -36,7 +37,7 @@ def pin_off(device_name):
         PDM_val = [epsdict[device_name]]
         bus.write_i2c_block_data(address, 0x13, PDM_val)
         if get_PDM_status(device_name) == 1:  # PDM is OFF
-            logger.error("Pin is already OFF.")
+            logger.error("Pin is already OFF.")  # FIXME same things as pin_off
         else:
             logger.debug("Pin communication successful. \
             Pin is now OFF.")
@@ -52,7 +53,7 @@ def get_PDM_status(device_name):
 def isModuleOn(device_name):
     with SMBusWrapper(1) as bus:
         PDM_val = [epsdict[device_name]]
-        if(get_PDM_status(device_name).equals(0)):
+        if get_PDM_status(device_name).equals(0):
             return False
         else:
             return True
