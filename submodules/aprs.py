@@ -9,8 +9,8 @@ import serial
 from core import config
 from helpers.helpers import is_simulate
 from helpers.threadhandler import ThreadHandler
-from . import command_ingest
-from . import eps
+from submodules import command_ingest
+from submodules import eps
 from .command_ingest import command
 
 # Placeholder values for `telemetry.py`

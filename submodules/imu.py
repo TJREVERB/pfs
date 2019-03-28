@@ -3,8 +3,8 @@ import time
 
 import smbus
 
-from . import telemetry
-from . import aprs
+from submodules import telemetry
+from submodules import aprs
 
 from helpers.threadhandler import ThreadHandler
 from functools import partial

@@ -10,8 +10,8 @@ from threading import Lock
 
 from core import config
 from helpers.threadhandler import ThreadHandler
-from . import adcs
-from . import radio_output
+from submodules import adcs
+from submodules import radio_output
 from .command_ingest import command
 
 logger = logging.getLogger("TELEMETRY")

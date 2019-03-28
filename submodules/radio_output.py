@@ -1,5 +1,5 @@
-from . import aprs as aprs_mod
-from . import iridium as iridium_mod
+from submodules import aprs
+from submodules import iridium
 
 default_radio: str = "aprs"
 aprs = "aprs"
@@ -15,10 +15,10 @@ def send(message: str, radio=None):
     if radio is None:
         radio = default_radio
     if radio == "aprs":
-        aprs_mod.send(message)
+        aprs.send(message)
         #print("RADIO_OUTPUT:" + message)
     if radio == "iridium":
-        iridium_mod.enqueue(message)
+        iridium.enqueue(message)
 
 
 def send_immediate_raw(packet):
