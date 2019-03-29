@@ -13,19 +13,23 @@ epsdict = {'gps': 1, 'magnetorquer': 2, 'aprs': 4, 'iridium': 3,
            'antenna': 5, 'a': 6, 'b': 7, 'c': 8, 'd': 9, 'e': 10}
 
 
-def pin_on(device_name):
+def pin_on(device_name): #FIXME Add functionality to force eps to turn on?
     with SMBusWrapper(1) as bus:
         PDM_val = [epsdict[device_name]]
-        bus.write_i2c_block_data(address, 0x12, PDM_val)
-        if get_PDM_status(device_name) == 1:  # PDM is ON #FIXME WON'T THIS ALWAYS BE TRUE?
-            logger.error("Pin is already ON.")  # FIXME should say pin_on was successful, not pin was already on
+
+        if get_PDM_status(device_name) == 1:
+            logger.error("Pin is already ON.")
             return True
-        else:  # FIXME s how if pin_on was unsuccessful in turning on the device
-            if get_PDM_status(device_name) == 1:  # PDM is ON
-                logger.error("Pin is already ON.")
-            else:
+        else:
+            bus.write_i2c_block_data(address, 0x12, PDM_val)
+
+            if get_PDM_status(device_name) == 1:  # PDM is ON #FIXME WON'T THIS ALWAYS BE TRUE?
                 logger.debug("Pin communication successful. \
-                Pin is now ON.")
+                Pin is now ON.") # FIXME should say pin_on was successful, not pin was already on
+                return True
+            else:
+                logger.error("Pin communication unsuccessful")
+                return False
 
 
 def reboot_device(device_name, sleeptime):
@@ -38,12 +42,19 @@ def reboot_device(device_name, sleeptime):
 def pin_off(device_name):
     with SMBusWrapper(1) as bus:
         PDM_val = [epsdict[device_name]]
-        bus.write_i2c_block_data(address, 0x13, PDM_val)
-        if get_PDM_status(device_name) == 1:  # PDM is OFF
-            logger.error("Pin is already OFF.")  # FIXME same things as pin_off
+
+        if get_PDM_status(device_name) == 0:
+            logger.error("Pin is already OFF.")
+            return True
         else:
-            logger.debug("Pin communication successful. \
-            Pin is now OFF.")
+            bus.write_i2c_block_data(address, 0x13, PDM_val)
+
+            if get_PDM_status(device_name) == 0:  # PDM is OFF #FIXME WHY EQUAL TO 1 INSTEAD OF 0
+                logger.debug("Pin communication successful. \
+                  Pin is now OFF.")            # FIXME same things as pin_off
+            else:
+                logger.error("Pin communication unsuccessful")
+                return False
 
 
 def get_PDM_status(device_name):
