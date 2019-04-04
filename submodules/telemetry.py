@@ -61,19 +61,14 @@ def telemetry_burst_command():
 def enqueue_event_message(event):
     """
     Enqueue an event message.
-    :param event: message to enqueue. Maximum 16 bytes. If over then throws exception, if under then pads with '='
+    Event messages are a code representing the error, for instance "I01" for IMU error #1 which is to be looked up in a table upon receipt.
+    :param event: message to enqueue following code above. There is a table of codes in Google Sheets. Maximum three bytes.
     """
 
-    if len(event.encode('utf-8')) > 16:
-        logger.error("Event message larger than 16 bytes, message is " +
+    if len(event.encode('utf-8')) != 3:
+        logger.error("Event message larger than 3 bytes, message is " +
                      str(len(event.encode('utf-8'))) + " bytes long")
         return
-    elif len(event.encode('utf-8')) != 16:
-        # logger.error("Event message must be exactly 16 bytes, message is " +
-        #             str(len(event.encode('utf-8'))) + " bytes long")
-        # return
-        while (len(event.encode('utf-8')) != 16):
-            event += "="
 
     global event_packet_buffer, packet_lock
     with packet_lock:

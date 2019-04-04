@@ -44,19 +44,15 @@ def acc_gyr():
     global speriod, datasave
     while True:
         try:
-            print("-------------ACC")
             acc()
         except:
-            print("=========================ACCFAIL")
             logging.error("ACC FAILED")
-            telemetry.enqueue_event_message("I:1")
+            telemetry.enqueue_event_message("I01")
         try:
-            print("-------------GYR")
             gyr()
         except:
-            print("=========================GYRFAIL")
             logging.error("GYR FAILED")
-            telemetry.enqueue_event_message("I:2")
+            telemetry.enqueue_event_message("I02")
         datapoint = ':'.join([str(x) for x in [ax, ay, az, gx, gy, gz]])
         datasave += [datapoint]
         # logging.debug('IMU ADD DATA POINT')
