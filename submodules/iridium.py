@@ -154,6 +154,7 @@ def send(message: str) -> bool:
 
 
 def start():
+    logger.debug("At start of iridium")
     global ser
 
     # Opens the serial port for all methods to use with 19200 baud
