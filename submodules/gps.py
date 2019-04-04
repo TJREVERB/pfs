@@ -89,7 +89,25 @@ def getsinglegps():
     if is_simulate('gps'):
         pass
     with signal_lock:
-        if eps.pin_on("gps"):
+        if not eps.is_module_on('gps'):
+            if eps.pin_on("gps"):
+                t1.pause()
+                send("unlogall")
+                send("ANTENNAPOWER ON")
+                send("ASSIGNALL AUTO")
+                send("FIX AUTO")
+
+                if not has_signal():
+                    wait_for_signal()
+
+                gpsdata = record_gps()
+                cached_data_obj = gpsdata
+                send("ANTENNAPOWER OFF")
+                eps.pin_off('gps')
+                return gpsdata
+            else:
+                return None
+        else:
             t1.pause()
             send("unlogall")
             send("ANTENNAPOWER ON")
@@ -104,8 +122,6 @@ def getsinglegps():
             send("ANTENNAPOWER OFF")
             eps.pin_off('gps')
             return gpsdata
-        else:
-            return None #FIXME MAYBE CHANGE TO ACTUAL VAL
 
     # end pseudo
 
@@ -197,11 +213,11 @@ def capture_packet(packet_type):
     :param packet_type: either 'gps' or 'vel' to return either a gps or velocity packet
     :return: genuine packet of data
     """
-    if not eps.isModuleOn('gps'):
+    if not eps.is_module_on('gps'):
         if not eps.pin_on('gps'):
-            return error_packet #FIXME SHOWS EPS WAS UNABLE TO TURN ON GPS
+            return error_packet
     acquired = False
-    while not acquired and eps.isModuleOn('gps'):
+    while not acquired and eps.is_module_on('gps'):
         try:
             packet = ser.readline()
             packet = packet.decode("utf-8")
@@ -301,10 +317,10 @@ def get_points(period):
 
             while runtime != period:
                 packet = record_gps()
-                # if point_is_good(packet):
-                telemetry_send(packet)
-                points.append(packet)
-                runtime += 1
+                if point_is_good(packet):
+                    telemetry_send(packet)
+                    points.append(packet)
+                    runtime += 1
 
             cache.append(points)
             send("unlogall")
@@ -401,7 +417,7 @@ def wait_for_signal():  # Temporary way of waiting for signal lock by waiting fo
     send("ASSIGNALL AUTO")
     send("log gpgga ontime 1")
     line = b''
-    if not eps.isModuleOn('gps'):
+    if not eps.is_module_on('gps'):
         if not eps.pin_on('gps'):
             return False
     acquired = False
