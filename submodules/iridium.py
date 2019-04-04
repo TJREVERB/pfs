@@ -162,7 +162,7 @@ def start():
     ser.flush()
 
     check(5)  # Check that the Iridium (check 5 times)
-    logging.debug("Check successful")
+    logger.debug("Check successful")
 
     listen_thread = ThreadHandler(target=partial(listen), name="iridium-listen", parent_logger=logger)
     listen_thread.start()
