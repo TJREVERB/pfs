@@ -102,6 +102,7 @@ def listen() -> None:
             if "SBDRING" in ring:
                 message = retrieve()
                 if message:  # Evaluates to True if message not empty
+                    logger.debug(message)
                     command_ingest.dispatch(message)
 
 
@@ -163,6 +164,5 @@ def start():
     check(5)  # Check that the Iridium (check 5 times)
     logging.debug("Check successful")
 
-    listen_thread = ThreadHandler(target=partial(
-        listen), name="iridium-listen", parent_logger=logger)
+    listen_thread = ThreadHandler(target=partial(listen), name="iridium-listen", parent_logger=logger)
     listen_thread.start()
