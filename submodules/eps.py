@@ -13,7 +13,7 @@ epsdict = {'gps': 1, 'magnetorquer': 2, 'aprs': 4, 'iridium': 3,
            'antenna': 5, 'a': 6, 'b': 7, 'c': 8, 'd': 9, 'e': 10}
 
 
-def pin_on(device_name): #FIXME Add functionality to force eps to turn on?
+def pin_on(device_name):
     with SMBusWrapper(1) as bus:
         PDM_val = [epsdict[device_name]]
 
@@ -23,9 +23,9 @@ def pin_on(device_name): #FIXME Add functionality to force eps to turn on?
         else:
             bus.write_i2c_block_data(address, 0x12, PDM_val)
 
-            if get_PDM_status(device_name) == 1:  # PDM is ON #FIXME WON'T THIS ALWAYS BE TRUE?
+            if get_PDM_status(device_name) == 1:  # PDM is ON
                 logger.debug("Pin communication successful. \
-                Pin is now ON.") # FIXME should say pin_on was successful, not pin was already on
+                Pin is now ON.")
                 return True
             else:
                 logger.error("Pin communication unsuccessful")
