@@ -19,8 +19,7 @@ def checksum(line):
     return b % 10
 
 
-def propagate(poskep):
-    config = load_config()
+def propagate(poskep, lastmeanmot, lastmeananom, lasttime, revnum):
     GM = 3.986004418*(10**14)
     file = open((Path(__file__).parent.resolve() / "tjreverb_tle.txt"), "r")
     lines = file.readlines()
@@ -55,21 +54,13 @@ def propagate(poskep):
     eachline[2][5] = argp[0].rjust(3, " ") + "." + argp[1].ljust(4, '0')
     # print(eachline[2][5])
 
-    alt = 400  # will be gps altitude
+    alt = 400  #TODO: gps alt
     meanmot = (GM/((alt+6378000)**3))**(1/2)/(2*math.pi)*(24*60*60)  # gps alt
     meanmot = str(round(meanmot, 8)).split(".")
     meanmot = meanmot[0].rjust(2, " ") + "." + \
         str(round(int(meanmot[1]), 8)).ljust(8, '0')
     m1 = meanmot
     meanmot = float(meanmot)
-
-    yamllastyear = config["adcs"]["tledata"]["lastyear"]  # test values
-    yamllastday = config["adcs"]["tledata"]["lastday"]  # test values
-
-    if yamllastyear % 4 == 0 and yamllastyear % 100 != 0:
-        days = 366
-    else:
-        days = 365
 
     #E = (float)(2*math.atan(math.tan(poskep[6]/2)/((1+poskep[2])/(1-poskep[2])**(1/2))))
     E = 2*math.atan2(math.tan((poskep[6]/180*math.pi)/2),
@@ -80,15 +71,12 @@ def propagate(poskep):
     #print (E)
     eachline[2][6] = str(meananom).lstrip('0').split(".")[0].rjust(
         3, " ") + "." + str(round(meananom, 4)).split(".")[1].ljust(4, '0')
-    # write new mean anomaly, last year, and last day to config yaml file
+    # TODO: write new mean anomaly, last year, and last day to config yaml file
     # print(eachline[2][6])
 
-    yamlmeanmot = config["adcs"]["tledata"]["meanmot"]  # test value
-
-    firstd = (meanmot - yamlmeanmot)/((days*abs(yamllastyear-d.year) +
-                                       (float(parts[0]+"."+parts[1].split(".")[1])-yamllastday)))
+    firstd = (meanmot - lastmeanmot)/((poskep[0]-lasttime).total_seconds()/(60*60*24))
     firstd = firstd/2  # apparently tle is half of this
-    # write meanmot to yaml
+    # TODO: write meanmot to yaml
     randomsign = ""
     if(str(firstd) == "-"):
         randomsign = "-"
@@ -107,9 +95,9 @@ def propagate(poskep):
     eachline[1][7] = "0"
     #print (eachline[1][7])
 
-    yamlrevnum = str(config['adcs']['tledata']['revnum'])  # test value
+    strrevnum = str(revnum)  # test value
 
-    eachline[2][7] = m1+yamlrevnum.rjust(5, '0')
+    eachline[2][7] = m1+strrevnum.rjust(5, '0')
     # every time mean anomaly is 0 update yamlrevnum+1
     # print(eachline[2][7])
     lines = [eachline[1], eachline[2]]
@@ -132,7 +120,7 @@ def propagate(poskep):
             out = out+p+" "
         out = out + "\n"
     file.close()
-    return(out)
+    return(out, meanmot, meananom, poskep[0])
     #upfile = open("tjreverb_tle.txt","w")
     # upfile.write(out)
     # upfile.close()
