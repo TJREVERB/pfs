@@ -4,8 +4,6 @@ from .get_q_ref import *
 from .get_dcm import get_dcm
 from .get_theta_err import get_theta_err
 from .get_q_err import get_q_err
-from .kep_to_cart import kep_to_cart
-from .dec_year import dec_year
 from .sun_vec import sun_vec
 from .sun_sensors import sun_sensors
 from .utc_to_jul import utc_to_jul
