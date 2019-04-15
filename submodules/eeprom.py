@@ -27,3 +27,5 @@ adr = 0
 for val in insert:
     write (adr, val)
     adr +=1
+
+print(read(0, 50))
