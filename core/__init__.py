@@ -94,6 +94,28 @@ def start():
     # Loop through all active modules in YAML config file, add them to `config`
     submodules = []
     if config['core']['modules'] is not None:
+        if config['core']['modules']['A'] is not None:
+            level_a = []
+            for submodule in config['core']['modules']['A']:
+                logger.debug(f'Loading module: {submodule}')
+                level_a.append(importlib.import_module(
+                    f'submodules.{submodule}'))
+            submodules.append(level_a)
+        if config['core']['modules']['B'] is not None:
+            level_b = []
+            for submodule in config['core']['modules']['B']:
+                logger.debug(f'Loading module: {submodule}')
+                level_b.append(importlib.import_module(
+                    f'submodules.{submodule}'))
+            submodules.append(level_b)
+        if config['core']['modules']['C'] is not None:
+            level_c = []
+            for submodule in config['core']['modules']['C']:
+                logger.debug(f'Loading module: {submodule}')
+                level_c.append(importlib.import_module(
+                    f'submodules.{submodule}'))
+            submodules.append(level_c);
+
         for submodule in config['core']['modules']:
             logger.debug(f'Loading module: {submodule}')
             submodules.append(importlib.import_module(
