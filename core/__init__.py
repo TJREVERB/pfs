@@ -8,9 +8,11 @@ import yaml
 from helpers.threadhandler import ThreadHandler
 from . import mode
 from . import power
+from submodules import eps
+from submodules import eeprom
 
 config = None  # Prevents IDE from throwing errors about not finding `config`
-
+STARTUP_THRESHOLD = 65 #FIXME ADD ACTUAL VALUE(AMOUNT OF VOLTS REQUIRED TO STARTUP)
 logger = logging.getLogger("ROOT")
 
 
@@ -80,6 +82,18 @@ def enter_emergency_mode(reason: str = '') -> None:
             getattr(module, 'enter_emergency_mode')()
 
 
+
+def check_first_boot(): #TODO: IF EMPROM SAYS FIRST BOOT WAIT 30 MINUTES ELSE CONTINUE
+    if eeprom.get("FIRST_BOOT") is None or eeprom.get("FIRST_BOOT") == True:
+        eeprom.add("FIRST BOOT", True)
+        time.sleep(1800)
+
+
+def cold_start(): #TODO WAIT UNTIL POWER THRESHOLD IS REACHED
+    while(eps.get_bcr1_volts() < STARTUP_THRESHOLD):
+        continue
+
+
 def start():
     global submodules
     # Load `config` from either default file or persistent config
@@ -114,25 +128,39 @@ def start():
                 logger.debug(f'Loading module: {submodule}')
                 level_c.append(importlib.import_module(
                     f'submodules.{submodule}'))
-            submodules.append(level_c);
+            submodules.append(level_c)
+        logger.debug(submodules)
 
-        for submodule in config['core']['modules']:
-            logger.debug(f'Loading module: {submodule}')
-            submodules.append(importlib.import_module(
-                f'submodules.{submodule}'))
 
     # Trigger module start
-    for module in submodules:
+    for module in submodules[0]:
+        logger.debug(f'Starting level A module {module}')
         if hasattr(module, 'start'):
             getattr(module, 'start')()
+    check_first_boot()
+    for module in submodules[1]:
+        logger.debug(f'Starting level B module {module}')
+        if hasattr(module, 'start'):
+            getattr(module,'start')()
+    cold_start()
+    for module in submodules[2]:
+        logger.debug(f'Starting level C module {module}')
+        if hasattr(module,'start'):
+            getattr(module,'start')
 
     enter_normal_mode()  # Enter normal mode
     logger.debug("Entering main loop")
 
     # MAIN LOOP
     while True:
-        time.sleep(1)
-
+        if(eps.get_bcr1_volts() >= NORMAL_THRESHOLD):
+            enter_normal_mode()
+        elif(eps.get_bcr1_volts() < NORMAL_THRESHOLD):
+            if(eps.get_bcr1_volts() > LOW_THRESHOLD):
+                enter_low_power_mode()
+            if(eps.get_bcr1_volts() < LOW_THRESHOLD):
+                enter_emergency_mode()
+            #TODO: ADD MORE CASES
 
 current_mode = mode.NORMAL  # Default power mode
 submodules = []  # List of all active modules

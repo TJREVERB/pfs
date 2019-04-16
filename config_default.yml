@@ -3,10 +3,10 @@ core:
         A:
             - eprom
             - eps
-           # - imu
-           # - imtq
+            - imu
+            - imtq
         B:
-           # - antenna_deployer
+            - antenna_deployer
         C:
             - aprs
             - command_ingest
