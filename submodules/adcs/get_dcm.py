@@ -42,9 +42,9 @@ def q_to_dcm(q):
 
 
 def get_dcm(bV, sV, bI, sI):
-    bV = np.matrix([bV])
+    #bV = np.matrix([bV])
     #sV = np.matrix([sV])
-    bI = np.matrix([bI])
+    #bI = np.matrix([bI])
     #sI = np.matrix([sI])
 
     bV = np.reshape(bV, (1, -1))/linalg.norm(bV)
@@ -55,7 +55,7 @@ def get_dcm(bV, sV, bI, sI):
     vu2 = np.asmatrix(np.cross(bV, sV))
     vu2 = np.asmatrix(vu2/linalg.norm(vu2))
     vmV = np.hstack(
-        (bV.getH(), vu2.getH(), np.asmatrix(np.cross(bV, vu2)).getH()))
+        (np.asmatrix(bV).getH(), vu2.getH(), np.asmatrix(np.cross(bV, vu2)).getH()))
     iu2 = np.asmatrix(np.cross(bI, sI))
     iu2 = np.asmatrix(iu2/linalg.norm(iu2))
     imV = np.hstack(

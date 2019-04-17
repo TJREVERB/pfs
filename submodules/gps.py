@@ -53,9 +53,6 @@ def get_velocity_packet():
     global cached_xyz_obj
     send("log bestxyz ontime 1")
     time.sleep(1)
-    # temp = ser.readline()[2:-5]
-    # xyz_packet = ser.readline()[0:-5].decode("ascii")
-
     xyz_packet = capture_packet('vel')
     xyz_packet = parse_xyz_packet(xyz_packet)
     cached_xyz_obj = xyz_packet

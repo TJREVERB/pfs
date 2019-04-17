@@ -86,6 +86,11 @@ def get_bcr1_amps_b():
         bus.write_i2c_block_data(address, 0x10, 0x02)
         return bus.read_byte(address)
 
+def get_battery_bus_volts():                                      # TODO: Verify
+    with SMBusWrapper(1) as bus:
+        bus.write_i2c_block_data(address, 0x10, 0x23)
+        return bus.read_byte(address)
+
 
 def get_board_telem(data):
     with SMBusWrapper(1) as bus:
