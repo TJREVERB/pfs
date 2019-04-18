@@ -8,7 +8,7 @@ python3 -c "import eeprom; eeprom.start()"  # Run eeprom/__init__.start()
 ```
 To store a yaml file in the eeprom, run the following (default eeprom address is 0x50 and default yaml file to read from is config.yaml():
 ```
-python3 -c "import eeprom; eeprom.store_yaml()"  # Run eeprom/__init__.start()
+python3 -c "import eeprom; eeprom.store_yaml()"  # Run eeprom/__init__.store_yaml()
 ```
 Upcoming updates:
  - Easier variable storage and access
