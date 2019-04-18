@@ -2,7 +2,7 @@
 
 ## Development
 
-To create a yaml file from the bytes stored in the eeprom, run the following (default eeprom address is 0x50 and default yaml file to write to is new_yaml.yaml():
+To create a yaml file from the bytes stored in the eeprom, run the following (default eeprom address is 0x50 and default yaml file to write to is new_yaml.yaml:
 ```
 python3 -c "import eeprom; eeprom.start()"  # Run eeprom/__init__.start()
 ```
