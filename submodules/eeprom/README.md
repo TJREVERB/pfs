@@ -13,7 +13,7 @@ python3 -c "import eeprom; eeprom.store_yaml()"  # Run eeprom/__init__.store_yam
 Upcoming updates:
  - Easier variable storage and access
  - Count feature to detect number of variables stored
- - All code on one file
+ - All code in one file
  
  Notes:
   - Data is seperated by "!"
