@@ -1,1 +1,3 @@
-pass
+STARTUP = 0
+NORMAL = 0
+LOW = 0
