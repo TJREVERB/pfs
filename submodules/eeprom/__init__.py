@@ -11,5 +11,5 @@ def store_yaml(address=0x50, filename="config.yaml"):
 def regen_yaml(address=0x50, size=1024):
   read_yaml(address, size)
   
-def count():
-  pass
+def count(address=0x50):
+  read_yaml(address, 16384)
