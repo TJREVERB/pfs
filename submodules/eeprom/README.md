@@ -16,5 +16,5 @@ Upcoming updates:
  - All code on one file
  
  Notes:
-  - Data chunks are seperated by "!"
+  - Data is seperated by "!"
   - Yaml files must not include double quotes
