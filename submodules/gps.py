@@ -19,12 +19,13 @@ from core import config
 from helpers.helpers import is_simulate
 from helpers.threadhandler import ThreadHandler
 from submodules import telemetry
+from submodules import eps
 
 logger = logging.getLogger("GPS")
 
 signal_lock = threading.Lock()
 ser_master, ser_slave = pty.openpty()  # Serial ports for when in simulate mode
-
+error_packet = {}#FIXME SOME PACKET TO SHOW ERROR OCCURED
 
 # Return a GPS position packet as returned by gpgga
 
@@ -82,28 +83,43 @@ def getsinglegps():
     :return: latitude,longitude,altitude,x/y/z velocity and position, and status code in dictionary format
     """
     global cached_data_obj
-    if not is_simulate('gps'):
+    if is_simulate('gps'):
         pass
     with signal_lock:
-        if not is_simulate('eps'):
-            eps.pin_on("gps")
+        if not eps.is_module_on('gps'):
+            if eps.pin_on("gps"):
+                t1.pause()
+                send("unlogall")
+                send("ANTENNAPOWER ON")
+                send("ASSIGNALL AUTO")
+                send("FIX AUTO")
 
-        t1.pause()
-        send("unlogall")
-        send("ANTENNAPOWER ON")
-        send("ASSIGNALL AUTO")
-        send("FIX AUTO")
+                if not has_signal():
+                    wait_for_signal()
 
-        if not has_signal():
-            wait_for_signal()
+                gpsdata = record_gps()
+                cached_data_obj = gpsdata
+                send("ANTENNAPOWER OFF")
+                eps.pin_off('gps')
+                return gpsdata
+            else:
+                return None
+        else:
+            t1.pause()
+            send("unlogall")
+            send("ANTENNAPOWER ON")
+            send("ASSIGNALL AUTO")
+            send("FIX AUTO")
 
-        gpsdata = record_gps()
-        cached_data_obj = gpsdata
-        send("ANTENNAPOWER OFF")
+            if not has_signal():
+                wait_for_signal()
 
-        if not is_simulate('eps'):
+            gpsdata = record_gps()
+            cached_data_obj = gpsdata
+            send("ANTENNAPOWER OFF")
             eps.pin_off('gps')
-        return gpsdata
+            return gpsdata
+
     # end pseudo
 
 
@@ -194,8 +210,11 @@ def capture_packet(packet_type):
     :param packet_type: either 'gps' or 'vel' to return either a gps or velocity packet
     :return: genuine packet of data
     """
+    if not eps.is_module_on('gps'):
+        if not eps.pin_on('gps'):
+            return error_packet
     acquired = False
-    while not acquired:
+    while not acquired and eps.is_module_on('gps'):
         try:
             packet = ser.readline()
             packet = packet.decode("utf-8")
@@ -225,6 +244,7 @@ def capture_packet(packet_type):
         except serial.SerialException:
             acquired = False
             continue
+    return error_packet
 
 
 def merge(x, y):  # parsing helper method
@@ -281,28 +301,30 @@ def get_points(period):
     :param period: Amount of time in seconds of data needed
     :return: list of dictionaries of all data recorded
     """
-    if not is_simulate("eps"):
-        eps.pin_on('gps')
-    with signal_lock:
-        logger.info("PARSING " + str(period) + " POINTS")
-        send("ANTENNAPOWER ON")
-        send("ASSIGNALL AUTO")
-        send("FIX AUTO")
-        wait_for_signal()
-        runtime = 0
-        points = []
+    if eps.pin_on('gps'):
+        with signal_lock:
+            logger.info("PARSING " + str(period) + " POINTS")
+            send("ANTENNAPOWER ON")
+            send("ASSIGNALL AUTO")
+            send("FIX AUTO")
+            if not wait_for_signal():
+                telemetry_send(error_packet)#FIXME SHOWS EPS NOT ABLE TO TURN ON GPS
+            runtime = 0
+            points = []
 
-        while runtime != period:
-            packet = record_gps()
-            # if point_is_good(packet):
-            telemetry_send(packet)
-            points.append(packet)
-            runtime += 1
+            while runtime != period:
+                packet = record_gps()
+                if point_is_good(packet):
+                    telemetry_send(packet)
+                    points.append(packet)
+                    runtime += 1
 
-        cache.append(points)
-        send("unlogall")
-        if not is_simulate("eps"):
+            cache.append(points)
+            send("unlogall")
             eps.pin_off('gps')
+    else:
+        telemetry_send(error_packet) #FIXME A PACKET THAT SHOWS THAT THE EPS WAS UNABLE TO TURN ON THE GPS
+
 
 
 def get_cache():
@@ -373,7 +395,7 @@ def telemetry_send(gps_packet):
     packet += base64.b64encode(struct.pack('d', t)).decode("UTF-8")
     packet += base64.b64encode(struct.pack('fff', float(lat),
                                            float(lon), float(alt))).decode("UTF-8")
-    # print(packet)
+
     telemetry.enqueue_submodule_packet(packet)
 
 
@@ -392,7 +414,9 @@ def wait_for_signal():  # Temporary way of waiting for signal lock by waiting fo
     send("ASSIGNALL AUTO")
     send("log gpgga ontime 1")
     line = b''
-
+    if not eps.is_module_on('gps'):
+        if not eps.pin_on('gps'):
+            return False
     acquired = False
     while not acquired:
         if GPIO.input(26) == 1:
@@ -428,8 +452,8 @@ def enter_normal_mode():
     # time.sleep(600)
     if not is_simulate('gps'):
         pass
-    if not is_simulate("eps"):
-        eps.pin_on("gps")
+    eps.pin_on("gps") #TODO: BE ABLE TO FORCE EPS TO TURN ON GPS?
+
     start_loop()
 
 
