@@ -114,10 +114,10 @@ def board_check():
 
 
 def start():
-    global address, bus
+    global address, bus, state
 
     bus = smbus.SMBus(1)
-
+    state = 'NORMAL'
     # for key,val in epsdict.items():
     #    if val > 0:
     #        pin_off(key)
@@ -140,12 +140,15 @@ def start():
 
 # TODO: Update these methods. Currently only holds placeholder methods.
 def enter_normal_mode():
-    pass
+    global state
+    state = 'NORMAL'
 
 
 def enter_low_power_mode():
-    pass
+    global state
+    state = 'LOW'
 
 
 def enter_emergency_mode():
-    pass
+    global state
+    state = 'EMERGENCY'
