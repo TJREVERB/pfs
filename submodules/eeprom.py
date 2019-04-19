@@ -7,8 +7,8 @@ import time
 
 def start():
     global bus
-    make_file()
     bus = smbus.SMBus(1)  # /dev/i2c-1
+    make_file()
 
 
 def store_yaml(address=0x50, filename="config.yaml"):
