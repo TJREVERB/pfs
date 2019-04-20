@@ -112,38 +112,38 @@ def start():
                 logger.debug(f'Loading module: {submodule}')
                 level_a.append(importlib.import_module(
                     f'submodules.{submodule}'))
-            submodules.append(level_a)
+            submodules.extend(level_a)
         if config['core']['modules']['B'] is not None:
             level_b = []
             for submodule in config['core']['modules']['B']:
                 logger.debug(f'Loading module: {submodule}')
                 level_b.append(importlib.import_module(
                     f'submodules.{submodule}'))
-            submodules.append(level_b)
+            submodules.extend(level_b)
         if config['core']['modules']['C'] is not None:
             level_c = []
             for submodule in config['core']['modules']['C']:
                 logger.debug(f'Loading module: {submodule}')
                 level_c.append(importlib.import_module(
                     f'submodules.{submodule}'))
-            submodules.append(level_c)
+            submodules.extend(level_c)
         logger.debug(submodules)
 
     # Trigger module start
-    for module in submodules[0]:
-        logger.debug(f'Starting level A module {module}')
-        if hasattr(module, 'start'):
-            getattr(module, 'start')()
+    for i in range(len(level_a)):
+        logger.debug(f'Starting level A module {submodules[i]}')
+        if hasattr(submodules[i], 'start'):
+            getattr(submodules[i], 'start')()
     check_first_boot()
-    for module in submodules[1]:
-        logger.debug(f'Starting level B module {module}')
-        if hasattr(module, 'start'):
-            getattr(module, 'start')()
+    for i in range(len(level_b)):
+        logger.debug(f'Starting level B module {submodules[i]}')
+        if hasattr(submodules[i], 'start'):
+            getattr(submodules[i], 'start')()
     cold_start()
-    for module in submodules[2]:
-        logger.debug(f'Starting level C module {module}')
-        if hasattr(module, 'start'):
-            getattr(module, 'start')
+    for i in range(len(level_c)):
+        logger.debug(f'Starting level C module {submodules[i]}')
+        if hasattr(submodules[i], 'start'):
+            getattr(submodules[i], 'start')
 
     enter_normal_mode()  # Enter normal mode
     logger.debug("Entering main loop")
