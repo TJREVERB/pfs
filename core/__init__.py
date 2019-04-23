@@ -82,14 +82,16 @@ def enter_emergency_mode(reason: str = '') -> None:
 
 
 def check_first_boot():  # TODO: IF EMPROM SAYS FIRST BOOT WAIT 30 MINUTES ELSE CONTINUE
-    if eeprom.get("FIRST_BOOT") is None or eeprom.get("FIRST_BOOT") == True:
-        eeprom.add("FIRST BOOT", True) #FIXME eeprom stuff
-        time.sleep(1800)
+    #if eeprom.get("FIRST_BOOT") is None or eeprom.get("FIRST_BOOT") == True:
+    #    eeprom.add("FIRST BOOT", True) #FIXME eeprom stuff
+    #    time.sleep(1800)
+    pass
 
 
 def cold_start():  # TODO WAIT UNTIL POWER THRESHOLD IS REACHED
-    while eps.get_bcr1_volts() < power.STARTUP:
-        continue
+    #while eps.get_bcr1_volts() < power.STARTUP:
+    #    continue
+    pass
 
 
 def start():
@@ -105,23 +107,23 @@ def start():
 
     # Loop through all active modules in YAML config file, add them to `config`
     submodules = []
+    level_a = []
+    level_b = []
+    level_c = []
     if config['core']['modules'] is not None:
         if config['core']['modules']['A'] is not None:
-            level_a = []
             for submodule in config['core']['modules']['A']:
                 logger.debug(f'Loading module: {submodule}')
                 level_a.append(importlib.import_module(
                     f'submodules.{submodule}'))
             submodules.extend(level_a)
         if config['core']['modules']['B'] is not None:
-            level_b = []
             for submodule in config['core']['modules']['B']:
                 logger.debug(f'Loading module: {submodule}')
                 level_b.append(importlib.import_module(
                     f'submodules.{submodule}'))
             submodules.extend(level_b)
         if config['core']['modules']['C'] is not None:
-            level_c = []
             for submodule in config['core']['modules']['C']:
                 logger.debug(f'Loading module: {submodule}')
                 level_c.append(importlib.import_module(
