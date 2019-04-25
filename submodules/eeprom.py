@@ -4,6 +4,21 @@ import smbus
 import ast
 import time
 
+def remove_var(address=0x50, what)
+    data = read()
+    data = data[0:data.indexOf(what)]+data[data.indexOf("!", data.indexOf(what)+1)+1:len(data)]
+    write_var(0x50, data)
+    
+def write_var(address=0x50, what):
+    device_address = int(address)
+    data = read() + what + "!"
+    chunks = []
+    i = 0
+    while i * 16 < len(data):
+        chunk = data[i * 16:(i + 1) * 16]
+        print(write(bus, device_address, i * 16, chunk))
+        time.sleep(0.1)  # needs some time to finish write, or fails [Errno 5] Input/output error
+        i += 1
 
 def start():
     global bus
@@ -16,7 +31,7 @@ def store_yaml(address=0x50, filename="config.yaml"):
 
 
 def regen_yaml(address=0x50, size=1024):
-    read_yaml(address, size)
+    read(address, size)
 
 
 def count():
@@ -25,11 +40,11 @@ def count():
 
 def make_file():
     stream = open("new_yaml.yaml", "w")
-    yaml.dump(read_yaml(), stream)
-    print(yaml.dump(read_yaml()))
+    yaml.dump(read(), stream)
+    print(yaml.dump(read()))
 
 
-def read_yaml(address=0x50, size=1024):
+def read(address=0x50, size=130144, data_num=0):
     device_address = int(address)
     size = int(size)
 
@@ -43,8 +58,9 @@ def read_yaml(address=0x50, size=1024):
         # byte2 = bus.read_i2c_block_data(device_address, i, 16)
         out = out + str(chr(byte))
     # out = out + str(list(map(chr, byte2)))
-
-    return ast.literal_eval(out[0:out.index("!")].replace("''", ""))
+    if(data_num==0):
+        return ast.literal_eval(out[0:out.rfind("!")].replace("''", ""))
+    return ast.literal_eval(out[0:StringUtils.ordinalIndexOf(out, "!", data_num)].replace("''", ""))
 
 
 def write_yaml(address=0x50, filename="config.yaml"):
@@ -52,7 +68,6 @@ def write_yaml(address=0x50, filename="config.yaml"):
         config = yaml.load(f)
 
     device_address = int(address)
-    # data = sys.stdin.read()
     data = str(config) + "!"
     chunks = []
     i = 0
