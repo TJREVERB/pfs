@@ -42,6 +42,7 @@ def write_to_serial(command: str) -> (str, bool):
     # Determine if an "OK" or an "ERROR" was received
     if "OK" in response:  # "OK"
         response = response.replace("OK", "").strip()
+
         ser.flush()  # Flush the serial
         return response, True
     else:  # "ERROR"
@@ -56,7 +57,7 @@ def wait_for_signal() -> None:
     """
     response = 0
     while response == 0:
-        response = int(write_to_serial("AT+CSQ")[0])
+        response = int(write_to_serial("AT+CSQ")[0].split(":")[1])
 
 
 def check(num_checks: int) -> bool:
@@ -158,12 +159,13 @@ def start():
     global ser
 
     # Opens the serial port for all methods to use with 19200 baud
-    ser = serial.Serial(config['iridium']['serial_port'], baudrate=19200)
+    ser = serial.Serial(config['iridium']['serial_port'],baudrate=19200)
     # Clean serial port before proceeding
     ser.flush()
 
     check(5)  # Check that the Iridium (check 5 times)
     logger.debug("Check successful")
 
-    listen_thread = ThreadHandler(target=partial(listen), name="iridium-listen", parent_logger=logger)
-    listen_thread.start()
+    send("hi")
+    # listen_thread = ThreadHandler(target=partial(listen), name="iridium-listen", parent_logger=logger)
+    # listen_thread.start()

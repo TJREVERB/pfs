@@ -95,11 +95,11 @@ def cold_start():  # TODO WAIT UNTIL POWER THRESHOLD IS REACHED
 
 
 def start():
-    global submodules
+    global submodules, config
     # Load `config` from either default file or persistent config
     config = load_config()
 
-    logger.debug("Config: ", config)
+    # logger.debug(f"Config: {config}")
 
     # Ensure that logs directory exists
     if not os.path.exists(config['core']['log_dir']):
