@@ -10,7 +10,7 @@ from threading import Lock
 
 from core import config
 from helpers.threadhandler import ThreadHandler
-from submodules import adcs
+#from submodules import adcs
 from submodules import radio_output
 from .command_ingest import command
 
@@ -34,7 +34,8 @@ def telemetry_send():
     time.sleep(60)  # Don't send packets straight away
 
     while True:
-        if (adcs.can_TJ_be_seen() == True and len(telem_packet_buffer) + len(event_packet_buffer) > 0):
+        # TODO if (adcs.can_TJ_be_seen() == True and len(telem_packet_buffer) + len(event_packet_buffer) > 0):
+        if (len(telem_packet_buffer) + len(event_packet_buffer) > 0):
             telemetry_send_once()
         time.sleep(config['telemetry']['send_interval'])
 
@@ -110,10 +111,11 @@ def send(ignoreADCS=False, radio='aprs'):
 
     with packet_lock:
         # packet_lock.acquire()
-        while len(event_packet_buffer) + len(telem_packet_buffer) > 0 and (adcs.can_TJ_be_seen() or ignoreADCS):
+        # TODO while len(event_packet_buffer) + len(telem_packet_buffer) > 0 and (adcs.can_TJ_be_seen() or ignoreADCS):
+        while len(event_packet_buffer) + len(telem_packet_buffer) > 0:
             for buffer in packetBuffers:
-                while len(buffer) > 0 and len(squishedPackets) < config['telemetry']['max_packet_size'] and (
-                        adcs.can_TJ_be_seen() or ignoreADCS):
+                # TODO while len(buffer) > 0 and len(squishedPackets) < config['telemetry']['max_packet_size'] and (adcs.can_TJ_be_seen() or ignoreADCS):
+                while len(buffer) > 0 and len(squishedPackets) < config['telemetry']['max_packet_size']:
                     # test = buffer.pop()
                     # print(test)
                     # squishedPackets += test
