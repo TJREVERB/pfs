@@ -8,9 +8,10 @@ import yaml
 from helpers.threadhandler import ThreadHandler
 from . import mode
 from . import power
+from submodules import eps
+from submodules import eeprom
 
 config = None  # Prevents IDE from throwing errors about not finding `config`
-
 logger = logging.getLogger("ROOT")
 
 
@@ -80,6 +81,19 @@ def enter_emergency_mode(reason: str = '') -> None:
             getattr(module, 'enter_emergency_mode')()
 
 
+def check_first_boot():  # TODO: IF EMPROM SAYS FIRST BOOT WAIT 30 MINUTES ELSE CONTINUE
+    #if eeprom.get("FIRST_BOOT") is None or eeprom.get("FIRST_BOOT") == True:
+    #    eeprom.add("FIRST BOOT", True) #FIXME eeprom stuff
+    #    time.sleep(1800)
+    pass
+
+
+def cold_start():  # TODO WAIT UNTIL POWER THRESHOLD IS REACHED
+    #while eps.get_bcr1_volts() < power.STARTUP:
+    #    continue
+    pass
+
+
 def start():
     global submodules, config
     # Load `config` from either default file or persistent config
@@ -93,23 +107,59 @@ def start():
 
     # Loop through all active modules in YAML config file, add them to `config`
     submodules = []
+    level_a = []
+    level_b = []
+    level_c = []
     if config['core']['modules'] is not None:
-        for submodule in config['core']['modules']:
-            logger.debug(f'Loading module: {submodule}')
-            submodules.append(importlib.import_module(
-                f'submodules.{submodule}'))
+        if config['core']['modules']['A'] is not None:
+            for submodule in config['core']['modules']['A']:
+                logger.debug(f'Loading module: {submodule}')
+                level_a.append(importlib.import_module(
+                    f'submodules.{submodule}'))
+            submodules.extend(level_a)
+        if config['core']['modules']['B'] is not None:
+            for submodule in config['core']['modules']['B']:
+                logger.debug(f'Loading module: {submodule}')
+                level_b.append(importlib.import_module(
+                    f'submodules.{submodule}'))
+            submodules.extend(level_b)
+        if config['core']['modules']['C'] is not None:
+            for submodule in config['core']['modules']['C']:
+                logger.debug(f'Loading module: {submodule}')
+                level_c.append(importlib.import_module(
+                    f'submodules.{submodule}'))
+            submodules.extend(level_c)
+        logger.debug(submodules)
 
     # Trigger module start
-    for module in submodules:
-        if hasattr(module, 'start'):
-            getattr(module, 'start')()
+    for i in range(len(level_a)):
+        logger.debug(f'Starting level A module {submodules[i]}')
+        if hasattr(submodules[i], 'start'):
+            getattr(submodules[i], 'start')()
+    check_first_boot()
+    for i in range(len(level_b)):
+        logger.debug(f'Starting level B module {submodules[i]}')
+        if hasattr(submodules[i], 'start'):
+            getattr(submodules[i], 'start')()
+    cold_start()
+    for i in range(len(level_c)):
+        logger.debug(f'Starting level C module {submodules[i]}')
+        if hasattr(submodules[i], 'start'):
+            getattr(submodules[i], 'start')
 
     enter_normal_mode()  # Enter normal mode
     logger.debug("Entering main loop")
 
     # MAIN LOOP
     while True:
-        time.sleep(1)
+        if eps.get_bcr1_volts() >= power.NORMAL:
+            enter_normal_mode()
+        elif eps.get_bcr1_volts() < power.NORMAL:
+            if eps.get_bcr1_volts() > power.LOW:
+                enter_low_power_mode()
+            if eps.get_bcr1_volts() < power.LOW:
+                enter_emergency_mode()
+            # TODO: ADD MORE CASES
 
 
 current_mode = mode.NORMAL  # Default power mode
