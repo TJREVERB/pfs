@@ -1,12 +1,19 @@
 core:
     modules:
-        - eps
-        - aprs
-        - command_ingest
-        - gps
-        - adcs
-        - housekeeping
-        - telemetry
+        A:
+            - eprom
+            - eps
+            - imu
+            - imtq
+        B:
+            - antenna_deployer
+        C:
+            - aprs
+            - command_ingest
+            - gps
+            - adcs
+            - housekeeping
+            - telemetry
     log_dir: logs
     config_save_interval: 60
 adcs:

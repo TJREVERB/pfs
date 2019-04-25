@@ -4,6 +4,7 @@ import smbus
 from smbus2 import SMBusWrapper
 
 from helpers.threadhandler import ThreadHandler
+from core import mode
 from functools import partial
 
 # Initialize global variables
@@ -13,46 +14,63 @@ epsdict = {'gps': 1, 'magnetorquer': 2, 'aprs': 4, 'iridium': 3,
            'antenna': 5, 'a': 6, 'b': 7, 'c': 8, 'd': 9, 'e': 10}
 
 
-def pin_on(device_name):
+def pin_on(device_name) -> bool:
+    if state != mode.NORMAL:
+        return False
     with SMBusWrapper(1) as bus:
         PDM_val = [epsdict[device_name]]
-        bus.write_i2c_block_data(address, 0x12, PDM_val)
-        if get_pdm_status(device_name) == 1:  # PDM is ON
+
+        if get_PDM_status(device_name) == 1:
             logger.error("Pin is already ON.")
+            return True
         else:
-            logger.debug("Pin communication successful. \
-            Pin is now ON.")
+            bus.write_i2c_block_data(address, 0x12, PDM_val)
+
+            if get_PDM_status(device_name) == 1:  # PDM is ON
+                logger.debug("Pin communication successful. \
+                Pin is now ON.")
+                return True
+            else:
+                logger.error("Pin communication unsuccessful")
+                return False
 
 
-def reboot(device_name, sleeptime):
+def reboot_device(device_name, sleeptime) -> None:
     pin_off(device_name)
     time.sleep(sleeptime)
     pin_on(device_name)
     time.sleep(sleeptime)
 
 
-def pin_off(device_name):
+def pin_off(device_name) -> bool:
     with SMBusWrapper(1) as bus:
         PDM_val = [epsdict[device_name]]
-        bus.write_i2c_block_data(address, 0x13, PDM_val)
-        if get_pdm_status(device_name) == 1:  # PDM is OFF
+
+        if get_PDM_status(device_name) == 0:
             logger.error("Pin is already OFF.")
+            return True
         else:
-            logger.debug("Pin communication successful. \
-            Pin is now OFF.")
+            bus.write_i2c_block_data(address, 0x13, PDM_val)
+
+            if get_PDM_status(device_name) == 0:  # PDM is OFF
+                logger.debug("Pin communication successful. \
+                  Pin is now OFF.")
+            else:
+                logger.error("Pin communication unsuccessful")
+                return False
 
 
-def get_pdm_status(device_name):
+def get_PDM_status(device_name):
     with SMBusWrapper(1) as bus:
         PDM_val = [epsdict[device_name]]
         bus.write_i2c_block_data(address, 0x0E, PDM_val)
         return bus.read_byte(address)  # RETURNS A BYTE, NOT A BIT. OK?
 
 
-def is_module_on(device_name):
+def is_module_on(device_name) -> bool:
     with SMBusWrapper(1) as bus:
         PDM_val = [epsdict[device_name]]
-        if(get_pdm_status(device_name).equals(0)):
+        if get_PDM_status(device_name).equals(0):
             return False
         else:
             return True
@@ -98,8 +116,8 @@ def get_board_telem(data):
         return bus.read_byte(address)
 
 
-def led_on_off():
-    looptime = 20  # change me - was 30
+def led_on_off() -> None:
+    looptime = 20  #FIXME: Was 30
     while True:
         pin_on('aprs')
         time.sleep(looptime)
@@ -107,17 +125,17 @@ def led_on_off():
         time.sleep(looptime)
 
 
-def board_check():
+def board_check() -> None:
     while True:
         logger.debug(get_board_telem(0x23))
         time.sleep(7)
 
 
 def start():
-    global address, bus
+    global address, bus, state
 
     bus = smbus.SMBus(1)
-
+    state = 'NORMAL'
     # for key,val in epsdict.items():
     #    if val > 0:
     #        pin_off(key)
@@ -140,12 +158,15 @@ def start():
 
 # TODO: Update these methods. Currently only holds placeholder methods.
 def enter_normal_mode():
-    pass
+    global state
+    state = mode.NORMAL
 
 
 def enter_low_power_mode():
-    pass
+    global state
+    state = mode.LOW_POWER
 
 
 def enter_emergency_mode():
-    pass
+    global state
+    state = mode.EMERGENCY
