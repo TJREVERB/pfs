@@ -17,8 +17,8 @@ import serial
 
 from core import config
 from core.mode import Mode
-from helpers.helpers import is_simulate
-from helpers.threadhandler import ThreadHandler
+from core.helpers import is_simulate
+from core.threadhandler import ThreadHandler
 from submodules import telemetry
 from submodules import eps
 
