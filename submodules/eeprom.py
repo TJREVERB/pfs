@@ -44,7 +44,7 @@ def make_file():
     print(yaml.dump(read()))
 
 
-def read(address=0x50, size=130144, data_num=0):
+def read(address=0x50, size=128000, data_num=0):
     device_address = int(address)
     size = int(size)
 
