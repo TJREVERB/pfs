@@ -1,15 +1,12 @@
 import importlib
 import logging
 import os
-import time
 
 import yaml
 
-from helpers.threadhandler import ThreadHandler
-from . import mode
-from . import power
+from core.mode import Mode
 from submodules import eps
-from submodules import eeprom
+from . import power
 
 config = None  # Prevents IDE from throwing errors about not finding `config`
 logger = logging.getLogger("ROOT")
@@ -40,10 +37,10 @@ def enter_normal_mode(reason: str = '') -> None:
     Enter normal power mode.
     :param reason: Reason for entering normal mode.
     """
-    global current_mode
+    global mode
     logger.warning(
         f"Entering normal mode{'  Reason: ' if reason else ''}{reason}")
-    current_mode = mode.NORMAL
+    mode = Mode.NORMAL
 
     # Trigger the module hooks
     for module in submodules:
@@ -56,10 +53,10 @@ def enter_low_power_mode(reason: str = '') -> None:
     Enter low power mode.
     :param reason: Reason for entering low power mode.
     """
-    global current_mode
+    global mode
     logger.warning(
         f"Entering low_power mode{'  Reason: ' if reason else ''}{reason}")
-    current_mode = mode.LOW_POWER
+    mode = Mode.LOW_POWER
 
     for module in submodules:  # Trigger the module hooks
         if hasattr(module, 'enter_low_power_mode'):
@@ -71,10 +68,10 @@ def enter_emergency_mode(reason: str = '') -> None:
     Enter emergency power mode.
     :param reason: Reason for entering emergency power mode.
     """
-    global current_mode
+    global mode
     logger.warning(
         f"Entering emergency mode{'  Reason: ' if reason else ''}{reason}")
-    current_mode = mode.EMERGENCY
+    mode = Mode.EMERGENCY
 
     for module in submodules:  # Trigger the module hooks
         if hasattr(module, 'enter_emergency_mode'):
@@ -82,14 +79,14 @@ def enter_emergency_mode(reason: str = '') -> None:
 
 
 def check_first_boot():  # TODO: IF EMPROM SAYS FIRST BOOT WAIT 30 MINUTES ELSE CONTINUE
-    #if eeprom.get("FIRST_BOOT") is None or eeprom.get("FIRST_BOOT") == True:
+    # if eeprom.get("FIRST_BOOT") is None or eeprom.get("FIRST_BOOT") == True:
     #    eeprom.add("FIRST BOOT", True) #FIXME eeprom stuff
     #    time.sleep(1800)
     pass
 
 
 def cold_start():  # TODO WAIT UNTIL POWER THRESHOLD IS REACHED
-    #while eps.get_bcr1_volts() < power.STARTUP:
+    # while eps.get_bcr1_volts() < power.STARTUP:
     #    continue
     pass
 
@@ -162,5 +159,5 @@ def start():
             # TODO: ADD MORE CASES
 
 
-current_mode = mode.NORMAL  # Default power mode
+mode = Mode.NORMAL  # Default power mode
 submodules = []  # List of all active modules

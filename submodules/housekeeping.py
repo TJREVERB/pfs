@@ -19,7 +19,7 @@ from helpers.threadhandler import ThreadHandler
 from functools import partial
 
 
-def on_startup():
+def start():
     t = ThreadHandler(target=partial(send_heartbeat), name="send_heartbeat")
     t.start()
 
@@ -52,7 +52,7 @@ def send_heartbeat():
         packet = "HK"
         # Time, mode, TLM rate
         f1 = struct.pack("f", time.time())
-        f1 += bytes(core.current_mode)
+        f1 += bytes(core.mode)
         f1 += bytes(config['housekeeping']['beacon_interval'])
         packet += base64.b64encode(f1)
         # GPS coords
