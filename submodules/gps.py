@@ -16,6 +16,7 @@ import pynmea2
 import serial
 
 from core import config
+from core.mode import Mode
 from helpers.helpers import is_simulate
 from helpers.threadhandler import ThreadHandler
 from submodules import telemetry
@@ -346,11 +347,12 @@ def start():
     Initializes all variables and starts all thread on boot
     :return:
     """
-    global t1, t2, ser, cached_nmea_obj, cached_xyz_obj, cached_data_obj, cache, gpsperiod
+    global t1, t2, ser, cached_nmea_obj, cached_xyz_obj, cached_data_obj, cache, gpsperiod, state
     # cached_nmea_obj = (None,None)
     cached_nmea_obj = None  # cached lat/lon/alt/gps object
     cached_xyz_obj = None  # cached velocity object
     cached_data_obj = None  # final data packet
+    state = None
     # deque of (lists of dictionaries -returned by get k points)
     cache = deque([], 2)
 
@@ -450,9 +452,11 @@ def enter_normal_mode():
     # UPDATE GPS MODULE INTERNAL COORDINATES EVERY 10 MINUTES
     # update_internal_coords() IF THIS METHOD IS NECESSARY MESSAGE ME(Anup)
     # time.sleep(600)
+    global state
+    state = Mode.NORMAL
     if not is_simulate('gps'):
         pass
-    eps.pin_on("gps") #TODO: BE ABLE TO FORCE EPS TO TURN ON GPS?
+    eps.pin_on("gps")
 
     start_loop()
 
@@ -461,14 +465,22 @@ def enter_low_power_mode():
     # UPDATE GPS MODULE INTERNAL COORDINATES EVERY HOUR
     # update_internal_coords() IF THIS METHOD IS NECESSARY MESSAGE ME(Anup)
     # time.sleep(3600)
-    pass
+    global state
+    state = Mode.LOW_POWER
+    send('UNLOGALL')
+    send('ANTENNAPOWER OFF')
+    send('ASSIGNALL IDLE')
+    eps.pin_off("gps")
 
 
 def enter_emergency_mode():
     # ALL GPS FUNCTIONS OFF. LOWEST POWER POSSIBLE
+    global state
+    state = Mode.EMERGENCY
     send('UNLOGALL')
     send('ANTENNAPOWER OFF')
     send('ASSIGNALL IDLE')
+    eps.pin_off("gps")
 
 
 if __name__ == '__main__':

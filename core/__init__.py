@@ -5,8 +5,8 @@ import os
 import yaml
 
 from core.mode import Mode
+from core.power import Power
 from submodules import eps
-from . import power
 
 config = None  # Prevents IDE from throwing errors about not finding `config`
 logger = logging.getLogger("ROOT")
@@ -85,10 +85,12 @@ def check_first_boot():  # TODO: IF EMPROM SAYS FIRST BOOT WAIT 30 MINUTES ELSE 
     pass
 
 
-def cold_start():  # TODO WAIT UNTIL POWER THRESHOLD IS REACHED
-    # while eps.get_bcr1_volts() < power.STARTUP:
-    #    continue
-    pass
+def cold_start():  # Waits till startup voltage is reached before continuing
+    while eps.get_battery_bus_volts() < Power.STARTUP:
+        if eps.get_battery_bus_volts() >= Power.STARTUP:
+            return
+        else:
+            continue
 
 
 def start():
@@ -144,18 +146,15 @@ def start():
         if hasattr(submodules[i], 'start'):
             getattr(submodules[i], 'start')
 
-    enter_normal_mode()  # Enter normal mode
+    enter_normal_mode()  # Enter normal mode FIXME: enter low power?
     logger.debug("Entering main loop")
 
     # MAIN LOOP
     while True:
-        if eps.get_bcr1_volts() >= power.NORMAL:
-            enter_normal_mode()
-        elif eps.get_bcr1_volts() < power.NORMAL:
-            if eps.get_bcr1_volts() > power.LOW:
-                enter_low_power_mode()
-            if eps.get_bcr1_volts() < power.LOW:
-                enter_emergency_mode()
+        if eps.get_battery_bus_volts() >= Power.NORMAL:
+            enter_normal_mode(f'Battery level at sufficient state: {eps.get_battery_bus_volts()}')
+        elif eps.get_battery_bus_volts() < Power.NORMAL:
+            enter_low_power_mode(f'Battery level at critical state: {eps.get_battery_bus_volts()}')
             # TODO: ADD MORE CASES
 
 
