@@ -66,7 +66,7 @@ def read(address=0x50, size=8192, data_num=0):
     # out = out + str(list(map(chr, byte2)))
     if(data_num == 0):
         return ast.literal_eval(out[0:out.rfind("!")].replace("''", ""))
-    return ast.literal_eval(out[0:StringUtils.ordinalIndexOf(out, "!", data_num)].replace("''", ""))
+    return ast.literal_eval(out[0:iter_find(out, "!")[data_num-1]].replace("''", ""))
 
 
 def write_yaml(address=0x50, filename="config.yaml"):
@@ -92,3 +92,7 @@ def write(bus, device_address, memory_address, data):
           (device_address, memory_address, len(data)))
     print(bytes)
     return bus.write_i2c_block_data(device_address, cmd, bytes)
+
+
+def iter_find(haystack, needle):
+    return [i for i in range(0, len(haystack)) if haystack[i:].startswith(needle)]
