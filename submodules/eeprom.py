@@ -4,7 +4,7 @@ import smbus
 import ast
 import time
 
-def remove_var(address=0x50, what)
+def remove_var(address=0x50, what):
     data = read()
     data = data[0:data.indexOf(what)]+data[data.indexOf("!", data.indexOf(what)+1)+1:len(data)]
     write_var(0x50, data)
