@@ -6,6 +6,7 @@ import smbus
 from submodules import telemetry
 from submodules import aprs
 
+from core.mode import Mode
 from core.threadhandler import ThreadHandler
 from functools import partial
 
