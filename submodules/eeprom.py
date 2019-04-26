@@ -1,6 +1,6 @@
 import yaml
 import sys
-import smbus
+import smbus2 as smbus
 import ast
 import time
 
