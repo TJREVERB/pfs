@@ -6,63 +6,69 @@ import smbus
 from submodules import telemetry
 from submodules import aprs
 
+from core.mode import Mode  # Most likely not necessary
+
 from helpers.threadhandler import ThreadHandler
 from functools import partial
 
 bus = smbus.SMBus(1)
-address = 0x68
+address = 0x68  # TODO: Double check here: http://www.invensense.com/wp-content/uploads/2017/11/RM-MPU-9250A-00-v1.6.pdf
 
+
+def get_current_data():
+    global current_data
+    return current_data
 
 def imu_beacon():
-    global datasave
+    global current_data
     while True:
-        if len(datasave) > 9:
-            for x in datasave:
-                aprs.send(x)
-            datasave = []
-            logging.debug('IMU DATASAVE CLEAR')
+        while state == Mode.NORMAL:
+            if current_data != None:
+                aprs.send(current_data)
+                logging.debug('IMU DATASAVE CLEAR')
         time.sleep(1)
 
 
-def acc():
-    global ax, ay, az, datasave
+def acc():  # TODO: NEED TO CONVERT BYTE DATA FOR ADCS
+    global ax, ay, az
     ax = bus.read_byte_data(address, 0x3B)
     ay = bus.read_byte_data(address, 0x3D)
     az = bus.read_byte_data(address, 0x3F)
-    # print("acc", ax, ay, az)
+    return ax, ay, az
 
 
-def gyr():
-    global gx, gy, gz, datasave
+def gyr():  # TODO: NEED TO CONVERT BYTE DATA FOR ADCS
+    global gx, gy, gz
     gx = bus.read_byte_data(address, 0x43)
     gy = bus.read_byte_data(address, 0x45)
     gz = bus.read_byte_data(address, 0x47)
-    # print("gyr", gx, gy, gz)
+    return gx, gy, gz
 
 
 def acc_gyr():
-    global speriod, datasave
-    while True:
-        try:
-            acc()
-        except:
-            logging.error("ACC FAILED")
-            telemetry.enqueue_event_message("I01")
-        try:
-            gyr()
-        except:
-            logging.error("GYR FAILED")
-            telemetry.enqueue_event_message("I02")
-        datapoint = ':'.join([str(x) for x in [ax, ay, az, gx, gy, gz]])
-        datasave += [datapoint]
-        # logging.debug('IMU ADD DATA POINT')
-        time.sleep(speriod)
+    global current_data
+    while True: 
+        while state == Mode.NORMAL:
+            try:
+                acc()
+            except:
+                logging.error("ACC FAILED")
+                telemetry.enqueue_event_message("I01")
+            try:
+                gyr()
+            except:
+                logging.error("GYR FAILED")
+                telemetry.enqueue_event_message("I02")
+            current_data = ':'.join([str(x) for x in [ax, ay, az, gx, gy, gz]])
+            logging.debug('IMU ADD DATA POINT')
+        time.sleep(1) # Limit data points to pull once per second.
 
 
 def start():
-    global speriod, datasave
-    enter_normal_mode()
-    datasave = []
+    global current_data, state
+    
+    state = None
+    current_data = None
 
     t1 = ThreadHandler(target=partial(acc_gyr), name="imu-acc_gyr")
     t1.start()
@@ -72,21 +78,22 @@ def start():
 
 
 def enter_normal_mode():
-    global speriod
-    speriod = 10
+    global state
+    state = Mode.NORMAL
 
 
 def enter_low_power_mode():
-    global speriod
-    speriod = 20
+    global state
+    state = Mode.LOW_POWER
 
 
 def enter_emergency_mode():
-    global speriod
-    speriod = 60
+    global state
+    state = Mode.EMERGENCY
 
 
 if __name__ == '__main__':
     start()
+
     while True:
         time.sleep(1)

@@ -159,4 +159,5 @@ def start():
 
 
 mode = Mode.NORMAL  # Default power mode
-submodules = []  # List of all active modules
+# TODO: List of all active modules:
+submodules = []
