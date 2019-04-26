@@ -26,7 +26,7 @@ logger = logging.getLogger("GPS")
 
 signal_lock = threading.Lock()
 ser_master, ser_slave = pty.openpty()  # Serial ports for when in simulate mode
-error_packet = {}#FIXME SOME PACKET TO SHOW ERROR OCCURED
+error_packet = {}  # FIXME SOME PACKET TO SHOW ERROR OCCURED
 
 # Return a GPS position packet as returned by gpgga
 
@@ -309,7 +309,8 @@ def get_points(period):
             send("ASSIGNALL AUTO")
             send("FIX AUTO")
             if not wait_for_signal():
-                telemetry_send(error_packet)#FIXME SHOWS EPS NOT ABLE TO TURN ON GPS
+                # FIXME SHOWS EPS NOT ABLE TO TURN ON GPS
+                telemetry_send(error_packet)
             runtime = 0
             points = []
 
@@ -324,8 +325,8 @@ def get_points(period):
             send("unlogall")
             eps.pin_off('gps')
     else:
-        telemetry_send(error_packet) #FIXME A PACKET THAT SHOWS THAT THE EPS WAS UNABLE TO TURN ON THE GPS
-
+        # FIXME A PACKET THAT SHOWS THAT THE EPS WAS UNABLE TO TURN ON THE GPS
+        telemetry_send(error_packet)
 
 
 def get_cache():

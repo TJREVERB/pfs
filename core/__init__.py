@@ -152,9 +152,11 @@ def start():
     # MAIN LOOP
     while True:
         if eps.get_battery_bus_volts() >= Power.NORMAL:
-            enter_normal_mode(f'Battery level at sufficient state: {eps.get_battery_bus_volts()}')
+            enter_normal_mode(
+                f'Battery level at sufficient state: {eps.get_battery_bus_volts()}')
         elif eps.get_battery_bus_volts() < Power.NORMAL:
-            enter_low_power_mode(f'Battery level at critical state: {eps.get_battery_bus_volts()}')
+            enter_low_power_mode(
+                f'Battery level at critical state: {eps.get_battery_bus_volts()}')
             # TODO: ADD MORE CASES
 
 

@@ -54,7 +54,7 @@ def propagate(poskep, lastmeanmot, lastmeananom, lasttime, revnum):
     eachline[2][5] = argp[0].rjust(3, " ") + "." + argp[1].ljust(4, '0')
     # print(eachline[2][5])
 
-    alt = 400  #TODO: gps alt
+    alt = 400  # TODO: gps alt
     meanmot = (GM/((alt+6378000)**3))**(1/2)/(2*math.pi)*(24*60*60)  # gps alt
     meanmot = str(round(meanmot, 8)).split(".")
     meanmot = meanmot[0].rjust(2, " ") + "." + \
@@ -74,7 +74,8 @@ def propagate(poskep, lastmeanmot, lastmeananom, lasttime, revnum):
     # TODO: write new mean anomaly, last year, and last day to config yaml file
     # print(eachline[2][6])
 
-    firstd = (meanmot - lastmeanmot)/((poskep[0]-lasttime).total_seconds()/(60*60*24))
+    firstd = (meanmot - lastmeanmot) / \
+        ((poskep[0]-lasttime).total_seconds()/(60*60*24))
     firstd = firstd/2  # apparently tle is half of this
     # TODO: write meanmot to yaml
     randomsign = ""

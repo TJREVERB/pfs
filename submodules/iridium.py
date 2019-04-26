@@ -157,7 +157,7 @@ def start():
     global ser
 
     # Opens the serial port for all methods to use with 19200 baud
-    ser = serial.Serial(config['iridium']['serial_port'],baudrate=19200)
+    ser = serial.Serial(config['iridium']['serial_port'], baudrate=19200)
     # Clean serial port before proceeding
     ser.flush()
 

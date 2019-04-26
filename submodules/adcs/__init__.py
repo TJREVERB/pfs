@@ -29,6 +29,7 @@ logger = logging.Logger("ADCS")
 def gps_is_on():
     return True
 
+
 def start():
     global epoch
     global revnum
@@ -36,12 +37,11 @@ def start():
     global lasttime
     global lastmeanmot
 
-    revnum =0
-    lasttime=datetime(2018, 4, 4)
-    lastmeananom=0
-    lastmeanmot=15.5
+    revnum = 0
+    lasttime = datetime(2018, 4, 4)
+    lastmeananom = 0
+    lastmeanmot = 15.5
     gain = 2*(10**(-5))
-
 
     config = load_config()  # Load the data from the YAML.
     # If GPS is on, get Cartesian (position, velocity) vectors and UTC time from the GPS.
@@ -54,7 +54,8 @@ def start():
         if gps_dummy.data_is_valid(data):  # If the data is valid:
             i = len(data)-1  # Get the last dictionary in the cache.
             # Position state vector.
-            r = [data[i]['x_pos'], data[i]['y_pos'], data[i]['z_pos']]  # ECI frame
+            r = [data[i]['x_pos'], data[i]['y_pos'],
+                 data[i]['z_pos']]  # ECI frame
             # Velocity state vector.
             vel = [data[i]['x_vel'], data[i]['y_vel'], data[i]['z_vel']]
             epoch = data[i]['time']  # Datetime object representing the epoch.
@@ -66,12 +67,14 @@ def start():
             koe_list.insert(0, epoch)
             # koe_array = np.append(koe_array, data['adcs']['tledata']['bstardrag'])  # Append the B-star drag coefficient
             koe_list.append(config['adcs']['sc']['bstardrag'])
-            temp_tle, lastmeanmot, lastmeananom, lasttime = tle_points.propagate(koe_list, lastmeanmot, lastmeananom, lasttime, revnum)  # Generate the new TLE.
+            temp_tle, lastmeanmot, lastmeananom, lasttime = tle_points.propagate(
+                koe_list, lastmeanmot, lastmeananom, lasttime, revnum)  # Generate the new TLE.
 
             # print(koe_list)
             # print(temp_tle)
 
-            tjreverbtle = open(config['adcs']['tlefiles']['tjreverb'], "w")  # Open the main TJREVERB TLE for writing.
+            # Open the main TJREVERB TLE for writing.
+            tjreverbtle = open(config['adcs']['tlefiles']['tjreverb'], "w")
             tjreverbtle.write(temp_tle)  # Write the new TLE to TJREVERB TLE.
             tjreverbtle.close()  # Close the file.
 
@@ -133,26 +136,27 @@ def start():
     print(sI)
 
     # bV and sV data are taken from the onboard magnetometer and sunsensors.
-    bV = [1,1,2]
-    sV = [1,2,1]
+    bV = [1, 1, 2]
+    sV = [1, 2, 1]
 
     dcm = get_dcm(bV, sV, bI, sI)
     print("DCM: "+str(dcm))
     q = dcm_to_q(dcm)
     print("Quaternion: "+str(q))
     qref = get_q_ref_nadir(poskep)
-    print("Reference Quaternion: "+str(qref))                      
-    qerr = get_q_err(q, qref)      
-    print("Quaternion Error: "+str(qerr))                    
+    print("Reference Quaternion: "+str(qref))
+    qerr = get_q_err(q, qref)
+    print("Quaternion Error: "+str(qerr))
     thetaerr = get_theta_err(qerr)
     print("Theta Error (radians): "+str(thetaerr.getH()))
-    mmax = [.2,.2,.2]
-    mtrans = np.matrix([[1,0,0],[0,1,0],[0,0,1]])
-    ctcomm=-1*gain*thetaerr.getH()
-    #print(ctcomm)
-    magdip = get_mc(ctcomm.getH(),np.matrix([bV]).getH(),np.matrix([mmax]),mtrans)
+    mmax = [.2, .2, .2]
+    mtrans = np.matrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+    ctcomm = -1*gain*thetaerr.getH()
+    # print(ctcomm)
+    magdip = get_mc(ctcomm.getH(), np.matrix(
+        [bV]).getH(), np.matrix([mmax]), mtrans)
     print("Magnetic Dipole (sent to imtq): "+str(magdip))
-    ctprod = np.cross(magdip,bV)
+    ctprod = np.cross(magdip, bV)
     print("Control Torque Produced: "+str(ctprod))
 
     # isisimtq.py_k_imtq_start_actuation_dipole(imtq_axis_data(magdip[0], magdip[1], magdip[2]), 800)
