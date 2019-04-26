@@ -41,7 +41,7 @@ def count():
 def make_file():
     stream = open("new_yaml.yaml", "w")
     yaml.dump(read(), stream)
-    print(yaml.dump(read()))
+    print(yaml.dump(read(0x50, 128000, 1)))
 
 
 def read(address=0x50, size=128000, data_num=0):
