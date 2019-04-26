@@ -3,6 +3,7 @@ import sys
 import smbus2 as smbus
 import ast
 import time
+import stringutils as StringUtils
 
 def remove_var(what, address=0x50):
     data = read()
