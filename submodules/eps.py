@@ -6,7 +6,7 @@ import smbus
 from smbus2 import SMBusWrapper
 
 from core.mode import Mode
-from helpers.threadhandler import ThreadHandler
+from core.threadhandler import ThreadHandler
 
 # Initialize global variables
 logger = logging.getLogger("EPS")

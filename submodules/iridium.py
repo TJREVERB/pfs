@@ -1,6 +1,5 @@
 import logging
 import threading
-from functools import partial
 
 import serial
 
@@ -8,7 +7,6 @@ from core.mode import Mode
 
 from core import config
 from submodules import command_ingest
-from helpers.threadhandler import ThreadHandler
 
 debug = True
 
@@ -165,7 +163,7 @@ def start():
     state = None
 
     # Opens the serial port for all methods to use with 19200 baud
-    ser = serial.Serial(config['iridium']['serial_port'],baudrate=19200)
+    ser = serial.Serial(config['iridium']['serial_port'], baudrate=19200)
     # Clean serial port before proceeding
     ser.flush()
 

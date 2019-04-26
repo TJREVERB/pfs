@@ -4,11 +4,16 @@ import smbus
 import ast
 import time
 
+
 def remove_var(address=0x50, what)
-    data = read()
-    data = data[0:data.indexOf(what)]+data[data.indexOf("!", data.indexOf(what)+1)+1:len(data)]
-    write_var(0x50, data)
-    
+
+
+data = read()
+data = data[0:data.indexOf(
+    what)]+data[data.indexOf("!", data.indexOf(what)+1)+1:len(data)]
+write_var(0x50, data)
+
+
 def write_var(address=0x50, what):
     device_address = int(address)
     data = read() + what + "!"
@@ -17,8 +22,10 @@ def write_var(address=0x50, what):
     while i * 16 < len(data):
         chunk = data[i * 16:(i + 1) * 16]
         print(write(bus, device_address, i * 16, chunk))
-        time.sleep(0.1)  # needs some time to finish write, or fails [Errno 5] Input/output error
+        # needs some time to finish write, or fails [Errno 5] Input/output error
+        time.sleep(0.1)
         i += 1
+
 
 def start():
     global bus
@@ -58,7 +65,7 @@ def read(address=0x50, size=130144, data_num=0):
         # byte2 = bus.read_i2c_block_data(device_address, i, 16)
         out = out + str(chr(byte))
     # out = out + str(list(map(chr, byte2)))
-    if(data_num==0):
+    if(data_num == 0):
         return ast.literal_eval(out[0:out.rfind("!")].replace("''", ""))
     return ast.literal_eval(out[0:StringUtils.ordinalIndexOf(out, "!", data_num)].replace("''", ""))
 
@@ -74,13 +81,15 @@ def write_yaml(address=0x50, filename="config.yaml"):
     while i * 16 < len(data):
         chunk = data[i * 16:(i + 1) * 16]
         print(write(bus, device_address, i * 16, chunk))
-        time.sleep(0.1)  # needs some time to finish write, or fails [Errno 5] Input/output error
+        # needs some time to finish write, or fails [Errno 5] Input/output error
+        time.sleep(0.1)
         i += 1
 
 
 def write(bus, device_address, memory_address, data):
     cmd = memory_address >> 8
     bytes = [memory_address & 0xff] + list(map(ord, data))
-    print("writing to %.2x at %.4x bytes %d" % (device_address, memory_address, len(data)))
+    print("writing to %.2x at %.4x bytes %d" %
+          (device_address, memory_address, len(data)))
     print(bytes)
     return bus.write_i2c_block_data(device_address, cmd, bytes)

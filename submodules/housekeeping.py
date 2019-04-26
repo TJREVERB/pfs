@@ -10,13 +10,13 @@ import time
 import core
 from core.mode import Mode
 from core import config
-from helpers.helpers import is_simulate
+from core.helpers import is_simulate
 from submodules import command_ingest
 from submodules import eps
 from submodules import gps
 from submodules import radio_output
 
-from helpers.threadhandler import ThreadHandler
+from core.threadhandler import ThreadHandler
 from functools import partial
 
 
