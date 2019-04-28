@@ -45,10 +45,10 @@ def count():
 def make_file():
     stream = open("new_yaml.yaml", "w")
     #yaml.dump(read(), stream)
-    print(yaml.dump(read(0x50, 8192, 1), stream))
+    print(yaml.dump(ast.literal_eval(read(0x50, 8192, 1)), stream))
 
 
-def read(address=0x50, size=8192, data_num=0):
+def read(address=0x50, size=8192, data_num=0, s = ""):
     device_address = int(address)
     size = int(size)
 
@@ -63,8 +63,8 @@ def read(address=0x50, size=8192, data_num=0):
         out = out + str(chr(byte))
     # out = out + str(list(map(chr, byte2)))
     if(data_num == 0):
-        return ast.literal_eval(out[0:out.rfind("!")].replace("''", ""))
-    return ast.literal_eval(out[0:iter_find(out, "!")[data_num-1]].replace("''", ""))
+        return out[0:out.rfind("!")].replace("''", "")
+    return out[0:iter_find(out, "!")[data_num-1]].replace("''", "")
 
 
 def write_yaml(address=0x50, filename="config.yaml"):
