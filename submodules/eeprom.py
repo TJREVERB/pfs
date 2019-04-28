@@ -66,7 +66,7 @@ def read(address=0x50, size=8192, data_num=0, s = ""):
         return out[0:out.rfind("!")].replace("''", "")
     if(data_num ==1):
         return out[0:iter_find(out, "!")[0]].replace("''", "")
-    return out[iter_find(out, "!")[data_num-2]:iter_find(out, "!")[data_num-1]].replace("''", "")
+    return out[iter_find(out, "!")[data_num-2]+1:iter_find(out, "!")[data_num-1]].replace("''", "")
 
 
 def write_yaml(address=0x50, filename="config.yaml"):
