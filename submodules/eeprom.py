@@ -6,14 +6,14 @@ import time
 
 def remove_var(what, address=0x50):
     data = read()
-    data = data[0:data.indexOf(
-        what)]+data[data.indexOf("!", data.indexOf(what)+1)+1:len(data)]
-    write_var(0x50, data)
+    data = data[0:data.index(
+        what)]+data[data.index("!", data.index(what)+1)+1:len(data)]
+   # write(bus, 0x50, 0, data) TODO: Fix
 
 
 def write_var(what, address=0x50):
     device_address = int(address)
-    data = read() + what + "!"
+    data = read()+ "!" + what + "!"
     chunks = []
     i = 0
     while i * 16 < len(data):
@@ -27,7 +27,7 @@ def write_var(what, address=0x50):
 def start():
     global bus
     bus = smbus.SMBus(1)  # /dev/i2c-1
-    make_file()
+   # make_file()
 
 
 def store_yaml(address=0x50, filename="config.yaml"):
@@ -45,7 +45,7 @@ def count():
 def make_file():
     stream = open("new_yaml.yaml", "w")
     #yaml.dump(read(), stream)
-    print(yaml.dump(ast.literal_eval(read(0x50, 8192, 1)), stream))
+    yaml.dump(ast.literal_eval(read(0x50, 8192, 1)), stream)
 
 
 def read(address=0x50, size=8192, data_num=0, s = ""):
@@ -64,7 +64,9 @@ def read(address=0x50, size=8192, data_num=0, s = ""):
     # out = out + str(list(map(chr, byte2)))
     if(data_num == 0):
         return out[0:out.rfind("!")].replace("''", "")
-    return out[0:iter_find(out, "!")[data_num-1]].replace("''", "")
+    if(data_num ==1):
+        return out[0:iter_find(out, "!")[0]].replace("''", "")
+    return out[iter_find(out, "!")[data_num-2]:iter_find(out, "!")[data_num-1]].replace("''", "")
 
 
 def write_yaml(address=0x50, filename="config.yaml"):
