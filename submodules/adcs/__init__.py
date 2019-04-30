@@ -112,15 +112,16 @@ def start():
 
     # write_config('config_adcs.yaml', utc_to_jul(epoch))  # config['adcs']['sc']['jd0'] = utc_to_jul(epoch)
     # Instantiates the WrldMagM object.
+    lol = datetime.utcnow()
     gm = WrldMagM((Path(__file__).parent.resolve() /
                    config['adcs']['wrldmagm']))
 
     # Calculate the magnetic field vector in ECEF. Altitude is multiplied to convert meters to feet.
     magECEF = gm.wrldmagm(lla['lat'], lla['lon'], lla['alt'], date.today())
-
     magECEF = np.squeeze(np.asarray(magECEF))
-    magECI = ecef2eci(magECEF, epoch)
-
+    print((lol-datetime.utcnow()).total_seconds())
+    magECI = ecef2eci(magECEF, epoch, False)
+    # print((lol-datetime.utcnow()).total_seconds())
     # Magnetic field in inertial frame, converts teslas to nanoteslas.
     bI = 1.0*(10e-09) * magECI
     bI = bI/np.linalg.norm(bI)
