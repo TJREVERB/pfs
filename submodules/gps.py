@@ -211,11 +211,8 @@ def capture_packet(packet_type):
     :param packet_type: either 'gps' or 'vel' to return either a gps or velocity packet
     :return: genuine packet of data
     """
-    if not eps.is_module_on('gps'):
-        if not eps.pin_on('gps'):
-            return error_packet
     acquired = False
-    while not acquired and eps.is_module_on('gps'):
+    while not acquired
         try:
             packet = ser.readline()
             packet = packet.decode("utf-8")
