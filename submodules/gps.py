@@ -302,7 +302,8 @@ def get_points(period):
     :param period: Amount of time in seconds of data needed
     :return: list of dictionaries of all data recorded
     """
-    if eps.pin_on('gps'):
+
+    while(state==Mode.LOW_POWER):
         with signal_lock:
             logger.info("PARSING " + str(period) + " POINTS")
             send("ANTENNAPOWER ON")
