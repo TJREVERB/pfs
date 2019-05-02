@@ -18,14 +18,13 @@ def get_current_data():
     global current_data
     return current_data
 
+
 def imu_beacon():
     global current_data
-    while True:
-        while state == Mode.NORMAL:
-            if current_data != None:
-                aprs.send(current_data)
-                logging.debug('IMU DATASAVE CLEAR')
-        time.sleep(1)
+    while state == Mode.NORMAL:
+        if current_data is not None:
+            aprs.send(current_data)
+            logging.debug('IMU DATASAVE CLEAR')
 
 
 def acc():  # TODO: NEED TO CONVERT BYTE DATA FOR ADCS
@@ -46,26 +45,24 @@ def gyr():  # TODO: NEED TO CONVERT BYTE DATA FOR ADCS
 
 def acc_gyr():
     global current_data
-    while True: 
-        while state == Mode.NORMAL:
-            try:
-                acc()
-            except:
-                logging.error("ACC FAILED")
-                telemetry.enqueue_event_message("I01")
-            try:
-                gyr()
-            except:
-                logging.error("GYR FAILED")
-                telemetry.enqueue_event_message("I02")
-            current_data = ':'.join([str(x) for x in [ax, ay, az, gx, gy, gz]])
-            logging.debug('IMU ADD DATA POINT')
-        time.sleep(1) # Limit data points to pull once per second.
+    while state == Mode.NORMAL:
+        try:
+            acc()
+        except:
+            logging.error("ACC FAILED")
+            telemetry.enqueue_event_message("I01")
+        try:
+            gyr()
+        except:
+            logging.error("GYR FAILED")
+            telemetry.enqueue_event_message("I02")
+        current_data = ':'.join([str(x) for x in [ax, ay, az, gx, gy, gz]])
+        logging.debug('IMU ADD DATA POINT')
 
 
 def start():
     global current_data, state
-    
+
     state = None
     current_data = None
 

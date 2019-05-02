@@ -37,10 +37,10 @@ def enter_normal_mode(reason: str = '') -> None:
     Enter normal power mode.
     :param reason: Reason for entering normal mode.
     """
-    global mode
+    global state
     logger.warning(
         f"Entering normal mode{'  Reason: ' if reason else ''}{reason}")
-    mode = Mode.NORMAL
+    state = Mode.NORMAL
 
     # Trigger the module hooks
     for module in submodules:
@@ -53,10 +53,10 @@ def enter_low_power_mode(reason: str = '') -> None:
     Enter low power mode.
     :param reason: Reason for entering low power mode.
     """
-    global mode
+    global state
     logger.warning(
         f"Entering low_power mode{'  Reason: ' if reason else ''}{reason}")
-    mode = Mode.LOW_POWER
+    state = Mode.LOW_POWER
 
     for module in submodules:  # Trigger the module hooks
         if hasattr(module, 'enter_low_power_mode'):
@@ -68,10 +68,10 @@ def enter_emergency_mode(reason: str = '') -> None:
     Enter emergency power mode.
     :param reason: Reason for entering emergency power mode.
     """
-    global mode
+    global state
     logger.warning(
         f"Entering emergency mode{'  Reason: ' if reason else ''}{reason}")
-    mode = Mode.EMERGENCY
+    state = Mode.EMERGENCY
 
     for module in submodules:  # Trigger the module hooks
         if hasattr(module, 'enter_emergency_mode'):
@@ -94,9 +94,10 @@ def cold_start():  # Waits till startup voltage is reached before continuing
 
 
 def start():
-    global submodules, config
+    global submodules, config, state
     # Load `config` from either default file or persistent config
     config = load_config()
+    state = None
 
     # logger.debug(f"Config: {config}")
 
@@ -130,23 +131,24 @@ def start():
             submodules.extend(level_c)
         logger.debug(submodules)
 
+    enter_low_power_mode()
     # Trigger module start
-    for i in range(len(level_a)):
+    for i in range(0,len(level_a)):
         logger.debug(f'Starting level A module {submodules[i]}')
         if hasattr(submodules[i], 'start'):
             getattr(submodules[i], 'start')()
     check_first_boot()
-    for i in range(len(level_b)):
+    for i in range(len(level_a), len(level_b)):
         logger.debug(f'Starting level B module {submodules[i]}')
         if hasattr(submodules[i], 'start'):
             getattr(submodules[i], 'start')()
     cold_start()
-    for i in range(len(level_c)):
+    for i in range(len(level_c), len(level_c)):
         logger.debug(f'Starting level C module {submodules[i]}')
         if hasattr(submodules[i], 'start'):
             getattr(submodules[i], 'start')
 
-    enter_normal_mode()  # Enter normal mode FIXME: enter low power?
+    # enter_normal_mode()  # Enter normal mode FIXME: enter low power?
     logger.debug("Entering main loop")
 
     # MAIN LOOP
