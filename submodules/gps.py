@@ -204,7 +204,6 @@ def get_data():
     """
     return cached_data_obj
 
-
 def capture_packet(packet_type):
     """
     Ensures a data packet is read from the gps. Excludes all incorrect data
@@ -212,7 +211,7 @@ def capture_packet(packet_type):
     :return: genuine packet of data
     """
     acquired = False
-    while not acquired
+    while not acquired and state == Mode.NORMAL
         try:
             packet = ser.readline()
             packet = packet.decode("utf-8")
@@ -302,6 +301,7 @@ def get_points(period):
 
     while(state==Mode.LOW_POWER):
         with signal_lock:
+            eps.pin_on('gps')
             logger.info("PARSING " + str(period) + " POINTS")
             send("ANTENNAPOWER ON")
             send("ASSIGNALL AUTO")
@@ -322,9 +322,6 @@ def get_points(period):
             cache.append(points)
             send("unlogall")
             eps.pin_off('gps')
-    else:
-        # FIXME A PACKET THAT SHOWS THAT THE EPS WAS UNABLE TO TURN ON THE GPS
-        telemetry_send(error_packet)
 
 
 def get_cache():
@@ -369,8 +366,7 @@ def start():
         logger.info("Serial started on " + ser.name)
     else:
         ser = serial.Serial(config['gps']['serial_port'], 9600, timeout=10)
-        if not is_simulate("eps"):
-            eps.pin_on('gps')
+        #eps.pin_on('gps')
 
     # REPLACE WITH /dev/ttyUSBx if 1 DOESNT WORK
     # serialPort = "/dev/ttyS3"
@@ -402,7 +398,6 @@ def telemetry_send(gps_packet):
 
 def has_signal():
     return GPIO.input(26) == 1
-
 
 def wait_for_signal():  # Temporary way of waiting for signal lock by waiting for an actual reading from gpgga log
     """
