@@ -4,6 +4,20 @@ import smbus2 as smbus
 import ast
 import time
 
+global size = 8192
+
+def clear():
+    device_address = int(address)
+    data = "."
+    i = 0
+    while i * 16 < size:
+        chunk = "................"
+        print(write(bus, device_address, i * 16, chunk))
+        # needs some time to finish write, or fails [Errno 5] Input/output error
+        time.sleep(0.1)
+        i += 1
+
+
 def remove_var(what, address=0x50):
     data = read()
     data = data[0:data.index(
