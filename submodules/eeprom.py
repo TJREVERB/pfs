@@ -7,7 +7,7 @@ import time
 global size
 global bus
 
-def clear():
+def clear(address):
     device_address = int(address)
     data = "."
     i = 0
