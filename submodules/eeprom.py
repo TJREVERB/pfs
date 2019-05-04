@@ -4,9 +4,6 @@ import smbus2 as smbus
 import ast
 import time
 
-global size
-global bus
-
 def clear(address):
     device_address = int(address)
     data = "."
@@ -39,7 +36,9 @@ def write_var(what, address=0x50):
         i += 1
 
 
-def start():
+def start():  
+    global size
+    global bus
     size = 8192
     bus = smbus.SMBus(1)  # /dev/i2c-1
    # make_file()
