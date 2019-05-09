@@ -1,9 +1,11 @@
 from pathlib import Path
 
-from .get_q_ref import *
+from .get_q_ref_nadir import get_q_ref_nadir
 from .get_dcm import get_dcm
 from .get_theta_err import get_theta_err
 from .get_q_err import get_q_err
+from .kep_to_cart import kep_to_cart
+from .dec_year import dec_year
 from .sun_vec import sun_vec
 from .sun_sensors import sun_sensors
 from .utc_to_jul import utc_to_jul
@@ -110,15 +112,16 @@ def start():
 
     # write_config('config_adcs.yaml', utc_to_jul(epoch))  # config['adcs']['sc']['jd0'] = utc_to_jul(epoch)
     # Instantiates the WrldMagM object.
+    lol = datetime.utcnow()
     gm = WrldMagM((Path(__file__).parent.resolve() /
                    config['adcs']['wrldmagm']))
 
     # Calculate the magnetic field vector in ECEF. Altitude is multiplied to convert meters to feet.
     magECEF = gm.wrldmagm(lla['lat'], lla['lon'], lla['alt'], date.today())
-
     magECEF = np.squeeze(np.asarray(magECEF))
-    magECI = ecef2eci(magECEF, epoch)
-
+    print((lol-datetime.utcnow()).total_seconds())
+    magECI = ecef2eci(magECEF, epoch, False)
+    # print((lol-datetime.utcnow()).total_seconds())
     # Magnetic field in inertial frame, converts teslas to nanoteslas.
     bI = 1.0*(10e-09) * magECI
     bI = bI/np.linalg.norm(bI)
@@ -146,11 +149,11 @@ def start():
     print("Quaternion Error: "+str(qerr))                    
     thetaerr = get_theta_err(qerr)
     print("Theta Error (radians): "+str(thetaerr.getH()))
-    mmax = [.2,.2,.2]
+    mmax = .2
     mtrans = np.matrix([[1,0,0],[0,1,0],[0,0,1]])
     ctcomm=-1*gain*thetaerr.getH()
     #print(ctcomm)
-    magdip = get_mc(ctcomm.getH(),np.matrix([bV]).getH(),np.matrix([mmax]),mtrans)
+    magdip = get_mc(ctcomm.getH(),np.matrix([bV]).getH(),mmax,mtrans)
     print("Magnetic Dipole (sent to imtq): "+str(magdip))
     ctprod = np.cross(magdip,bV)
     print("Control Torque Produced: "+str(ctprod))

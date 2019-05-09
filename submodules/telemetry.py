@@ -8,8 +8,10 @@ import time
 from functools import partial
 from threading import Lock
 
+from core.mode import Mode
+
 from core import config
-from helpers.threadhandler import ThreadHandler
+from core.threadhandler import ThreadHandler
 #from submodules import adcs
 from submodules import radio_output
 from .command_ingest import command
@@ -34,10 +36,12 @@ def telemetry_send():
     time.sleep(60)  # Don't send packets straight away
 
     while True:
-        # TODO if (adcs.can_TJ_be_seen() == True and len(telem_packet_buffer) + len(event_packet_buffer) > 0):
-        if (len(telem_packet_buffer) + len(event_packet_buffer) > 0):
-            telemetry_send_once()
-        time.sleep(config['telemetry']['send_interval'])
+        while state == Mode.NORMAL:
+            # TODO if (adcs.can_TJ_be_seen() == True and len(telem_packet_buffer) + len(event_packet_buffer) > 0):
+            if (len(telem_packet_buffer) + len(event_packet_buffer) > 0):
+                telemetry_send_once()
+            time.sleep(config['telemetry']['send_interval'])
+        time.sleep(1)
 
 
 def telemetry_send_once():
@@ -142,16 +146,23 @@ def start():
     """
     Starts the telemetry send thread
     """
+    global state
+    state = None
 
-    t2 = ThreadHandler(target=partial(telemetry_send),
-                       name="telemetry-telemetry_send")
+    t2 = ThreadHandler(target=partial(telemetry_send), name="telemetry-telemetry_send")
     t2.start()
 
 
-# TODO: Need to know what needs to be done in low power and emergency modes.
-def enter_emergency_mode():
-    pass  # TODO: change config
+def enter_normal_mode():
+    global state
+    state = Mode.NORMAL
 
 
 def enter_low_power_mode():
-    pass
+    global state
+    state = Mode.LOW_POWER
+
+
+def enter_emergency_mode():
+    global state
+    state = Mode.EMERGENCY

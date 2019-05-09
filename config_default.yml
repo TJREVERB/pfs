@@ -1,15 +1,15 @@
 core:
     modules:
         A:
-            - eprom
             - eps
+            - eprom
+            - command_ingest
             - imu
             - imtq
         B:
             - antenna_deployer
         C:
             - aprs
-            - command_ingest
             - gps
             - adcs
             - housekeeping

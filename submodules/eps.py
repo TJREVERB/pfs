@@ -1,21 +1,23 @@
 import logging
 import time
+from functools import partial
+
 import smbus
 from smbus2 import SMBusWrapper
 
-from helpers.threadhandler import ThreadHandler
-from core import mode
-from functools import partial
+from core.mode import Mode
+from core.threadhandler import ThreadHandler
 
 # Initialize global variables
 logger = logging.getLogger("EPS")
 address = 43
 epsdict = {'gps': 1, 'magnetorquer': 2, 'aprs': 4, 'iridium': 3,
            'antenna': 5, 'a': 6, 'b': 7, 'c': 8, 'd': 9, 'e': 10}
+mode = Mode.NORMAL
 
 
 def pin_on(device_name) -> bool:
-    if state != mode.NORMAL:
+    if state != Mode.NORMAL:
         return False
     with SMBusWrapper(1) as bus:
         PDM_val = [epsdict[device_name]]
@@ -104,7 +106,8 @@ def get_bcr1_amps_b():
         bus.write_i2c_block_data(address, 0x10, 0x02)
         return bus.read_byte(address)
 
-def get_battery_bus_volts():                                      # TODO: Verify
+
+def get_battery_bus_volts():  # TODO: Verify
     with SMBusWrapper(1) as bus:
         bus.write_i2c_block_data(address, 0x10, 0x23)
         return bus.read_byte(address)
@@ -117,7 +120,7 @@ def get_board_telem(data):
 
 
 def led_on_off() -> None:
-    looptime = 20  #FIXME: Was 30
+    looptime = 20  # FIXME: Was 30
     while True:
         pin_on('aprs')
         time.sleep(looptime)
@@ -159,14 +162,14 @@ def start():
 # TODO: Update these methods. Currently only holds placeholder methods.
 def enter_normal_mode():
     global state
-    state = mode.NORMAL
+    state = Mode.NORMAL
 
 
 def enter_low_power_mode():
     global state
-    state = mode.LOW_POWER
+    state = Mode.LOW_POWER
 
 
 def enter_emergency_mode():
     global state
-    state = mode.EMERGENCY
+    state = Mode.EMERGENCY

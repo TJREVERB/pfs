@@ -7,8 +7,11 @@ from functools import partial
 import serial
 
 from core import config
+from core.mode import Mode
 from helpers.helpers import is_simulate
 from helpers.threadhandler import ThreadHandler
+from core.helpers import is_simulate
+from core.threadhandler import ThreadHandler
 from submodules import command_ingest
 from submodules import eps
 from .command_ingest import command
@@ -39,7 +42,8 @@ def send(msg: str) -> None:
     :param msg: Message to send into the APRS queue.
     """
     global last_message_time
-
+    # TODO: Need Normal Mode logic? @Ethan
+    
     # Wait until `message_spacing` seconds after the last received message
     while time.time() - last_message_time < config['aprs']['message_spacing']:
         time.sleep(1)
@@ -53,13 +57,15 @@ def telemetry_watchdog():
     Watches for "hardware beacon" sent out by APRS. Ensures that the radio is still alive.
     """
     while True:
-        time.sleep(config['aprs']['telem_timeout'])
-        if time.time() - last_telem_time > config['aprs']['telem_timeout']:
-            logger.error("APRS is dead, restarting APRS")
-            if not is_simulate('eps'):
-                eps.reboot('aprs', 3)
-        else:
-            logger.debug("Watchdog pass APRS")
+        while state == Mode.NORMAL:
+            time.sleep(config['aprs']['telem_timeout'])
+            if time.time() - last_telem_time > config['aprs']['telem_timeout']:
+                logger.error("APRS is dead, restarting APRS")
+                if not is_simulate('eps'):
+                    eps.reboot('aprs', 3)
+            else:
+                logger.debug("Watchdog pass APRS")
+        time.sleep(1)
 
 
 def listen():
@@ -68,24 +74,26 @@ def listen():
     """
     global last_message_time, last_telem_time
     while True:
-        if is_simulate('aprs'):
-            line = b''
-            while not line.endswith(b'\n'):  # While EOL hasn't been sent
-                res = os.read(ser_master, 1000)
-                line += res
-        else:
-            line = ser.readline()  # Read in a full message from serial
+        while state == Mode.NORMAL:
+            if is_simulate('aprs'):
+                line = b''
+                while not line.endswith(b'\n'):  # While EOL hasn't been sent
+                    res = os.read(ser_master, 1000)
+                    line += res
+            else:
+                line = ser.readline()  # Read in a full message from serial
 
-        # Update last message time
-        last_message_time = time.time()
-        if line[0:2] == 'T#':  # Telemetry Packet: APRS special case
-            last_telem_time = time.time()
-            logger.debug('APRS telemetry heartbeat received')
-            continue  # Don't parse telemetry packets
+            # Update last message time
+            last_message_time = time.time()
+            if line[0:2] == 'T#':  # Telemetry Packet: APRS special case
+                last_telem_time = time.time()
+                logger.debug('APRS telemetry heartbeat received')
+                continue  # Don't parse telemetry packets
 
-        # Dispatch command
-        parsed = parse_aprs_packet(line)
-        command_ingest.dispatch(parsed)
+            # Dispatch command
+            parsed = parse_aprs_packet(line)
+            command_ingest.dispatch(parsed)
+        time.sleep(1)
 
 
 def parse_aprs_packet(packet: str) -> str:
@@ -114,8 +122,9 @@ def parse_aprs_packet(packet: str) -> str:
 
 
 def start():
-    global ser
+    global ser, state
 
+    state = None
     # Opens the serial port for all methods to use with 19200 baud
     if is_simulate('aprs'):
         s_name = os.ttyname(ser_slave)
@@ -142,16 +151,19 @@ def start():
         eps.pin_on('aprs')
 
 
-# TODO: Update these methods. Currently only holds placeholder methods.
 def enter_normal_mode():
-    global bperiod
+    global bperiod, state
+    state = Mode.NORMAL
     bperiod = 60
 
 
 def enter_low_power_mode():
-    global bperiod
+    global bperiod, state
+    state = Mode.LOW_POWER
     bperiod = 120
 
 
 def enter_emergency_mode():
-    pass
+    global state
+    state = Mode.EMERGENCY
+    

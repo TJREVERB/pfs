@@ -1,13 +1,12 @@
 import logging
 import threading
-from functools import partial
 
 import serial
 
-from .command_ingest import command
+from core.mode import Mode
+
 from core import config
 from submodules import command_ingest
-from helpers.threadhandler import ThreadHandler
 
 debug = True
 
@@ -97,16 +96,19 @@ def listen() -> None:
 
     while True:  # Continuously listen for rings
         # Wait for `read_lock` to be released, implies loop is run every 5 seconds minimum
-        acquired_read_lock = read_lock.acquire(timeout=5)
-        if acquired_read_lock:
-            ring = ser.readline().decode('UTF-8')
-            read_lock.release()
-            if "SBDRING" in ring:
-                logger.debug("Got a SBDRING")
-                message = retrieve()
-                logger.debug(f"Message was {message}")
-                if message:  # Evaluates to True if message not empty
-                    command_ingest.dispatch(message)
+        while state == Mode.NORMAL:
+            acquired_read_lock = read_lock.acquire(timeout=5)
+            if acquired_read_lock:
+                ring = ser.readline().decode('UTF-8')
+                read_lock.release()
+                logger.debug("Got SBDRING")
+                if "SBDRING" in ring:
+                    message = retrieve()
+                    logger.debug(f"Message was {message}")
+                    if message:  # Evaluates to True if message not empty
+                        logger.debug(message)
+                        command_ingest.dispatch(message)
+        time.sleep(1)
 
 
 def retrieve() -> str:
@@ -159,7 +161,9 @@ def send(message: str) -> bool:
 
 def start():
     logger.debug("At start of iridium")
-    global ser
+    global ser, state
+
+    state = None
 
     # Opens the serial port for all methods to use with 19200 baud
     ser = serial.Serial(config['iridium']['serial_port'],baudrate=19200, timeout=30)
@@ -171,3 +175,18 @@ def start():
 
     listen_thread = ThreadHandler(target=partial(listen), name="iridium-listen", parent_logger=logger)
     listen_thread.start()
+
+
+def enter_normal_mode():
+    global state
+    state = Mode.NORMAL
+
+
+def enter_low_power_mode():
+    global state
+    state = Mode.LOW_POWER
+
+
+def enter_emergency_mode():
+    global state
+    state = Mode.EMERGENCY
