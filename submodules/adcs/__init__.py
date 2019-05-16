@@ -14,7 +14,6 @@ from .cart_to_kep import cart_to_kep
 from .get_mc import get_mc
 from .dcm_to_q import dcm_to_q
 from core import load_config
-from imtq import isisimtq
 
 from . import gps_dummy
 from . import tle_dummy
