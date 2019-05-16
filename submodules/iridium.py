@@ -101,8 +101,10 @@ def listen() -> None:
             if acquired_read_lock:
                 ring = ser.readline().decode('UTF-8')
                 read_lock.release()
+                logger.debug("Got SBDRING")
                 if "SBDRING" in ring:
                     message = retrieve()
+                    logger.debug(f"Message was {message}")
                     if message:  # Evaluates to True if message not empty
                         logger.debug(message)
                         command_ingest.dispatch(message)
@@ -128,6 +130,7 @@ def retrieve() -> str:
         return ""  # Return nothing; either there was no message or retrieval failed
 
 
+@command("iridium_send", str)
 def send(message: str) -> bool:
     """
     Send a message using the Iridium network.
@@ -163,16 +166,15 @@ def start():
     state = None
 
     # Opens the serial port for all methods to use with 19200 baud
-    ser = serial.Serial(config['iridium']['serial_port'], baudrate=19200)
+    ser = serial.Serial(config['iridium']['serial_port'],baudrate=19200, timeout=30)
     # Clean serial port before proceeding
     ser.flush()
 
     check(5)  # Check that the Iridium (check 5 times)
     logger.debug("Check successful")
 
-    send("hi")
-    # listen_thread = ThreadHandler(target=partial(listen), name="iridium-listen", parent_logger=logger)
-    # listen_thread.start()
+    listen_thread = ThreadHandler(target=partial(listen), name="iridium-listen", parent_logger=logger)
+    listen_thread.start()
 
 
 def enter_normal_mode():
