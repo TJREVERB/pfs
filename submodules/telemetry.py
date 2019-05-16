@@ -12,7 +12,6 @@ from core.mode import Mode
 
 from core import config
 from core.threadhandler import ThreadHandler
-#from submodules import adcs
 from submodules import radio_output
 from .command_ingest import command
 
@@ -35,13 +34,11 @@ def telemetry_send():
     global telem_packet_buffer, event_packet_buffer
     time.sleep(60)  # Don't send packets straight away
 
-    while True:
-        while state == Mode.NORMAL:
-            # TODO if (adcs.can_TJ_be_seen() == True and len(telem_packet_buffer) + len(event_packet_buffer) > 0):
-            if (len(telem_packet_buffer) + len(event_packet_buffer) > 0):
-                telemetry_send_once()
-            time.sleep(config['telemetry']['send_interval'])
-        time.sleep(1)
+    while state == Mode.NORMAL:
+        # TODO if (adcs.can_TJ_be_seen() == True and len(telem_packet_buffer) + len(event_packet_buffer) > 0):
+        if (len(telem_packet_buffer) + len(event_packet_buffer) > 0):
+            telemetry_send_once()
+        time.sleep(config['telemetry']['send_interval'])
 
 
 def telemetry_send_once():

@@ -8,8 +8,6 @@ import serial
 
 from core import config
 from core.mode import Mode
-from helpers.helpers import is_simulate
-from helpers.threadhandler import ThreadHandler
 from core.helpers import is_simulate
 from core.threadhandler import ThreadHandler
 from submodules import command_ingest
@@ -43,7 +41,7 @@ def send(msg: str) -> None:
     """
     global last_message_time
     # TODO: Need Normal Mode logic? @Ethan
-    
+
     # Wait until `message_spacing` seconds after the last received message
     while time.time() - last_message_time < config['aprs']['message_spacing']:
         time.sleep(1)
@@ -65,7 +63,6 @@ def telemetry_watchdog():
                     eps.reboot('aprs', 3)
             else:
                 logger.debug("Watchdog pass APRS")
-        time.sleep(1)
 
 
 def listen():
@@ -93,7 +90,6 @@ def listen():
             # Dispatch command
             parsed = parse_aprs_packet(line)
             command_ingest.dispatch(parsed)
-        time.sleep(1)
 
 
 def parse_aprs_packet(packet: str) -> str:
@@ -145,10 +141,6 @@ def start():
     t1.start()
     # t2.start()
     t3.start()
-
-    # Turn the power on.  TODO: Power check before turn-on.
-    if not is_simulate('eps'):
-        eps.pin_on('aprs')
 
 
 def enter_normal_mode():

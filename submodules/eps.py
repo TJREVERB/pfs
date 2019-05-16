@@ -138,7 +138,7 @@ def start():
     global address, bus, state
 
     bus = smbus.SMBus(1)
-    state = 'NORMAL'
+    state = Mode.NORMAL
     # for key,val in epsdict.items():
     #    if val > 0:
     #        pin_off(key)
