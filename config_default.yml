@@ -10,6 +10,7 @@ core:
             - antenna_deployer
         C:
             - aprs
+            - iridium
             - gps
             - adcs
             - housekeeping

@@ -31,7 +31,7 @@ def load_config():
 
     return config
 
-
+@command("core_mode_0")
 def enter_normal_mode(reason: str = '') -> None:
     """
     Enter normal power mode.
@@ -47,7 +47,7 @@ def enter_normal_mode(reason: str = '') -> None:
         if hasattr(module, 'enter_normal_mode'):
             getattr(module, 'enter_normal_mode')()
 
-
+@command("core_mode_1")
 def enter_low_power_mode(reason: str = '') -> None:
     """
     Enter low power mode.
@@ -62,7 +62,7 @@ def enter_low_power_mode(reason: str = '') -> None:
         if hasattr(module, 'enter_low_power_mode'):
             getattr(module, 'enter_low_power_mode')()
 
-
+@command("core_mode_2")
 def enter_emergency_mode(reason: str = '') -> None:
     """
     Enter emergency power mode.
