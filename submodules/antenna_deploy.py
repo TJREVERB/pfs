@@ -17,3 +17,5 @@ def deploy():
     isisants.py_k_ants_deploy(ANT_2, False, 5)
     isisants.py_k_ants_deploy(ANT_3, False, 5)
     isisants.py_k_ants_deploy(ANT_4, False, 5)
+    
+deploy()
