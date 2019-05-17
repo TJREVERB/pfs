@@ -12,7 +12,6 @@ from core.mode import Mode
 
 from core import config
 from core.threadhandler import ThreadHandler
-#from submodules import adcs
 from submodules import radio_output
 from .command_ingest import command
 
