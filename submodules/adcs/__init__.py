@@ -14,7 +14,7 @@ from .cart_to_kep import cart_to_kep
 from .get_mc import get_mc
 from .dcm_to_q import dcm_to_q
 from core import load_config
-from imtq import isisimtq
+#from imtq import isisimtq
 
 from . import gps_dummy
 from . import tle_dummy
@@ -66,6 +66,7 @@ def start():
             koe_array = cart_to_kep(r, vel)
             koe_list = koe_array.tolist()
             # koe_array = np.insert(koe_array, 0, epoch)  # Add the datetime object epoch to the beginning.
+            print("KOE (from dummy data):"+str(koe_list))
             koe_list.insert(0, epoch)
             # koe_array = np.append(koe_array, data['adcs']['tledata']['bstardrag'])  # Append the B-star drag coefficient
             koe_list.append(config['adcs']['sc']['bstardrag'])
