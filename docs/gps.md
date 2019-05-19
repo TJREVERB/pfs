@@ -75,7 +75,7 @@
     ### Usage with `get_cache()`    
     
     * Assume `data = gps.get_cache()`
-    * `get_cache()` will return a `deque` of size 2 with 2 dictionaries inside. Each dictionary contains values from separate readingx
+    * `get_cache()` will return a `deque` of size 2 with 2 dictionaries inside. Each dictionary contains values from separate readings
     * Assume `len(data) = 2` and 'n' is either 0 or -1
     * `data[n]['lat']` returns latitude of nth reading
     * `data[n]['lon']` returns longitude of nth reading
