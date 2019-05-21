@@ -46,7 +46,10 @@ def send(msg: str) -> None:
     while time.time() - last_message_time < config['aprs']['message_spacing']:
         time.sleep(1)
     last_message_time = time.time()
-    ser.write((msg + '\n').encode("utf-8"))  # Send the message
+
+    if state == Mode.NORMAL:
+        ser.write((msg + '\n').encode("utf-8"))  # Send the message
+
     time.sleep(1)
 
 
@@ -60,7 +63,7 @@ def telemetry_watchdog():
             if time.time() - last_telem_time > config['aprs']['telem_timeout']:
                 logger.error("APRS is dead, restarting APRS")
                 if not is_simulate('eps'):
-                    eps.reboot('aprs', 3)
+                    eps.reboot_device('aprs', 3)
             else:
                 logger.debug("Watchdog pass APRS")
 
