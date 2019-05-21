@@ -12,7 +12,7 @@ from core.helpers import is_simulate
 from core.threadhandler import ThreadHandler
 from submodules import command_ingest
 from submodules import eps
-from .command_ingest import command
+from submodules.command_ingest import command
 
 # Placeholder values for `telemetry.py`
 total_received_ph = 100
@@ -78,7 +78,7 @@ def listen():
             if is_simulate('aprs'):
                 line = b''
                 while not line.endswith(b'\n'):  # While EOL hasn't been sent
-                    res = os.read(ser_master, 1000)
+                    res = os.read(ser_slave, 1000)
                     line += res
             else:
                 line = ser.readline()  # Read in a full message from serial
@@ -128,6 +128,8 @@ def start():
     if is_simulate('aprs'):
         s_name = os.ttyname(ser_slave)
         ser = serial.Serial(s_name, 19200)
+        from submodules import aprs_test
+        aprs_test.start(ser_master,ser_slave)
         logger.info("Serial started on " + ser.name)
     else:
         ser = serial.Serial(config['aprs']['serial_port'], 19200)
@@ -161,4 +163,4 @@ def enter_low_power_mode():
 def enter_emergency_mode():
     global state
     state = Mode.EMERGENCY
-    
+
