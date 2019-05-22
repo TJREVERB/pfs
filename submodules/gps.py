@@ -20,7 +20,12 @@ from core.mode import Mode
 from core.helpers import is_simulate
 from core.threadhandler import ThreadHandler
 from submodules import telemetry
-from submodules import eps
+
+if is_simulate('eps'):
+    from submodules import eps_test as eps
+else:
+    from submodules import eps
+
 
 logger = logging.getLogger("GPS")
 
@@ -368,6 +373,8 @@ def start():
     if is_simulate('gps'):
         s_name = os.ttyname(ser_slave)
         ser = serial.Serial(s_name, 19200)
+        from submodules import gps_test
+        gps_test.start(ser_master,ser_slave)
         logger.info("Serial started on " + ser.name)
     else:
         ser = serial.Serial(config['gps']['serial_port'], 9600, timeout=10)

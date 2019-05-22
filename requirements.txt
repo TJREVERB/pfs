@@ -1,6 +1,7 @@
 pynmea2==1.12.0
-pysmbus==0.1
+pysmbus
 smbus
+smbus2
 PyYAML==3.13
 pyserial==3.4
 numpy==1.16.3

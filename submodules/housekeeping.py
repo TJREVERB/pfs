@@ -12,9 +12,13 @@ from core.mode import Mode
 from core import config
 from core.helpers import is_simulate
 from submodules import command_ingest
-from submodules import eps
 from submodules import gps
 from submodules import radio_output
+
+if is_simulate('eps'):
+    from submodules import eps_test as eps
+else:
+    from submodules import eps
 
 from core.threadhandler import ThreadHandler
 from functools import partial
