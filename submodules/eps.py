@@ -1,9 +1,9 @@
 import logging
 import time
-from functools import partial
-
 import smbus
+
 from smbus2 import SMBusWrapper
+from functools import partial
 
 from core.mode import Mode
 from core.threadhandler import ThreadHandler
@@ -14,7 +14,6 @@ address = 43
 epsdict = {'gps': 1, 'magnetorquer': 2, 'aprs': 4, 'iridium': 3,
            'antenna': 5, 'a': 6, 'b': 7, 'c': 8, 'd': 9, 'e': 10}
 mode = Mode.NORMAL
-
 
 def pin_on(device_name) -> bool:
     if state != Mode.NORMAL:
@@ -151,7 +150,7 @@ def start():
 
     # Start the background threads
     # t1.start()
-    t2.start()
+#    t2.start()
 
     # TESTING PURPOSES ONLY
     # test the LEDs - turn them all on

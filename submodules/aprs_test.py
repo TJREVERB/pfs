@@ -1,6 +1,5 @@
 import os
 import serial
-import threading
 
 from core.threadhandler import ThreadHandler
 
@@ -18,13 +17,17 @@ def start(master, slave):
 
 def receive_listener():
     while True:
-        print(os.read(ser_master), 1000)
+        line = b''
+        while not line.endswith(b'\n'):
+            res = os.read(ser_master, 1000)
+            line += res
+        print(line)
 
 
 def transmit_listener():
-    line = b''
-    while not line.endswith(b'\n'):
-        res = os.read(ser_master, 1000)
-        line += res
-    ser.write(line)
-
+    while True:
+        line = b''
+        while not line.endswith(b'\n'):
+            res = os.read(ser_master, 1000)
+            line += res
+        ser.write(line)

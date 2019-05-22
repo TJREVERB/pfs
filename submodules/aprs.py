@@ -11,7 +11,12 @@ from core.mode import Mode
 from core.helpers import is_simulate
 from core.threadhandler import ThreadHandler
 from submodules import command_ingest
-from submodules import eps
+
+if is_simulate('eps'):
+    from submodules import eps_test as eps
+else:
+    from submodules import eps
+
 from submodules.command_ingest import command
 
 # Placeholder values for `telemetry.py`
@@ -53,7 +58,7 @@ def send(msg: str) -> None:
     time.sleep(1)
 
 
-def telemetry_watchdog():
+def xtelemetry_watchdog():
     """
     Watches for "hardware beacon" sent out by APRS. Ensures that the radio is still alive.
     """
