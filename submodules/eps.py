@@ -10,9 +10,9 @@ from core.threadhandler import ThreadHandler
 
 # Initialize global variables
 logger = logging.getLogger("EPS")
-address = 43
-epsdict = {'gps': 1, 'magnetorquer': 2, 'aprs': 4, 'iridium': 3,
-           'antenna': 5, 'a': 6, 'b': 7, 'c': 8, 'd': 9, 'e': 10}
+address = 0x57
+epsdict = {'a': 1, 'b': 2, 'b': 4, 'c': 3,
+           'd': 5, 'e': 6, 'f': 7, 'g': 8, 'h': 9, 'i': 10}
 mode = Mode.NORMAL
 
 
@@ -20,13 +20,13 @@ def pin_on(device_name) -> bool:
     if state != Mode.NORMAL:
         return False
     with SMBusWrapper(1) as bus:
-        PDM_val = [epsdict[device_name]]
+        PDM_val = epsdict[device_name]
 
         if get_PDM_status(device_name) == 1:
             logger.error("Pin is already ON.")
             return True
         else:
-            bus.write_i2c_block_data(address, 0x12, PDM_val)
+            bus.write_byte_data(address, 0x12, PDM_val)
 
             if get_PDM_status(device_name) == 1:  # PDM is ON
                 logger.debug("Pin communication successful. \
@@ -46,13 +46,13 @@ def reboot_device(device_name, sleeptime) -> None:
 
 def pin_off(device_name) -> bool:
     with SMBusWrapper(1) as bus:
-        PDM_val = [epsdict[device_name]]
+        PDM_val = epsdict[device_name]
 
         if get_PDM_status(device_name) == 0:
             logger.error("Pin is already OFF.")
             return True
         else:
-            bus.write_i2c_block_data(address, 0x13, PDM_val)
+            bus.write_byte_data(address, 0x13, PDM_val)
 
             if get_PDM_status(device_name) == 0:  # PDM is OFF
                 logger.debug("Pin communication successful. \
@@ -64,14 +64,14 @@ def pin_off(device_name) -> bool:
 
 def get_PDM_status(device_name):
     with SMBusWrapper(1) as bus:
-        PDM_val = [epsdict[device_name]]
-        bus.write_i2c_block_data(address, 0x0E, PDM_val)
+        PDM_val = epsdict[device_name]
+        bus.write_byte_data(address, 0x0E, PDM_val)
         return bus.read_byte(address)  # RETURNS A BYTE, NOT A BIT. OK?
 
 
 def is_module_on(device_name) -> bool:
     with SMBusWrapper(1) as bus:
-        PDM_val = [epsdict[device_name]]
+        PDM_val = epsdict[device_name]
         if get_PDM_status(device_name).equals(0):
             return False
         else:
@@ -80,13 +80,13 @@ def is_module_on(device_name) -> bool:
 
 def get_board_status():
     with SMBusWrapper(1) as bus:
-        return bus.read_i2c_block_data(address, 0x01)
+        return bus.read_byte_data(address, 0x01)
 
 
 def set_system_watchdog_timeout(timeout):
     with SMBusWrapper(1) as bus:
         timeout = [timeout]
-        bus.write_i2c_block_data(address, 0x06, timeout)
+        bus.write_byte_data(address, 0x06, timeout)
 
 
 def get_bcr1_volts():
