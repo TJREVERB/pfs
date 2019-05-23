@@ -60,6 +60,14 @@ def pin_off(device_name) -> bool:
                 logger.error("Pin communication unsuccessful")
                 return False
 
+def verify_status_integrity(device_name):
+    arr = []
+    val = int(get_PDM_status(device_name))
+    for x in range(0, 60):
+        arr.append(get_PDM_status(device_name))
+        if val != arr[x]:
+            logger.debug("No match at index = " + str(x))
+        time.sleep(0.25)
 
 def get_PDM_status(device_name):
     with SMBusWrapper(1) as bus:
