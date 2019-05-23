@@ -1,8 +1,9 @@
-import yaml
-import sys
-import smbus2 as smbus
 import ast
 import time
+
+import smbus2 as smbus
+import yaml
+
 
 def clear(address):
     device_address = int(address)
@@ -76,7 +77,7 @@ def read(address=0x50, size=8192, data_num=0, s = ""):
         # byte2 = bus.read_i2c_block_data(device_address, i, 16)
         out = out + str(chr(byte))
     # out = out + str(list(map(chr, byte2)))
-    if(data_num == 0):
+    if data_num == 0:
         #return out[0:out.rfind("!")].replace("''", "")
         return out
     if(data_num ==1):
