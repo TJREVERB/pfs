@@ -66,11 +66,11 @@ def start():
     state = None
     current_data = None
 
-    t1 = ThreadHandler(target=partial(acc_gyr), name="imu-acc_gyr")
-    t1.start()
+    # t1 = ThreadHandler(target=partial(acc_gyr), name="imu-acc_gyr")
+    # t1.start()
 
-    t2 = ThreadHandler(target=partial(imu_beacon), name="imu-imu_beacon")
-    t2.start()
+    # t2 = ThreadHandler(target=partial(imu_beacon), name="imu-imu_beacon")
+    # t2.start()
 
 
 def enter_normal_mode():
