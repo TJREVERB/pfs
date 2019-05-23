@@ -21,7 +21,7 @@ def receive_listener():
         while not line.endswith(b'\n'):
             res = os.read(ser_master, 1000)
             line += res
-        print(line)
+        ser.write(line)
 
 
 def transmit_listener():

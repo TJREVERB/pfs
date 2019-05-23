@@ -2,6 +2,7 @@ import logging
 import threading
 import serial
 import time
+import core
 
 from functools import partial
 
@@ -99,7 +100,7 @@ def listen() -> None:
 
     while True:  # Continuously listen for rings
         # Wait for `read_lock` to be released, implies loop is run every 5 seconds minimum
-        while state == Mode.NORMAL:
+        while core.get_state() == Mode.NORMAL:
             acquired_read_lock = read_lock.acquire(timeout=5)
             if acquired_read_lock:
                 ring = ser.readline().decode('UTF-8')
@@ -164,9 +165,7 @@ def send(message: str) -> bool:
 
 def start():
     logger.debug("At start of iridium")
-    global ser, state
-
-    state = None
+    global ser
 
     # Opens the serial port for all methods to use with 19200 baud
     ser = serial.Serial(config['iridium']['serial_port'],baudrate=19200, timeout=30)
@@ -179,17 +178,3 @@ def start():
     listen_thread = ThreadHandler(target=partial(listen), name="iridium-listen", parent_logger=logger)
     listen_thread.start()
 
-
-def enter_normal_mode():
-    global state
-    state = Mode.NORMAL
-
-
-def enter_low_power_mode():
-    global state
-    state = Mode.LOW_POWER
-
-
-def enter_emergency_mode():
-    global state
-    state = Mode.EMERGENCY

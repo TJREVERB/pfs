@@ -15,6 +15,7 @@ from submodules import gps
 from submodules import radio_output
 
 from core.threadhandler import ThreadHandler
+from core import config
 from functools import partial
 
 if is_simulate('eps'):
@@ -24,23 +25,23 @@ else:
 
 
 def start():
-    global state, bperiod
-    state = None
-    bperiod = 60
-
     t = ThreadHandler(target=partial(send_heartbeat), name="send_heartbeat")
     t.start()
 
 
 def send_heartbeat():
-    # Packet header
-    while state == Mode.NORMAL:
+    while True:
+        # Packet header
         packet = "HK"
         gps_packet = gps.get_cache()[-1]
         # Time, mode, TLM rate
         f1 = struct.pack("f", time.time())
         f1 += bytes(core.get_state())
-        f1 += bytes(bperiod)
+
+        if core.get_state() == Mode.LOW_POWER:
+            f1 += bytes(config['housekeeping']['low_power_period'])
+        else:
+            f1 += bytes(config['housekeeping']['beacon_period'])
         packet += base64.b64encode(f1)
         # GPS coords
         packet += base64.b64encode(struct.pack('fff',
@@ -56,21 +57,8 @@ def send_heartbeat():
                           command_ingest.total_success)
         packet += base64.b64encode(enc)
         radio_output.send_immediate_raw(packet)
-        time.sleep(bperiod)
 
-
-def enter_normal_mode():
-    global bperiod, state
-    state = Mode.NORMAL
-    bperiod = 60
-
-
-def enter_low_power_mode():
-    global bperiod, state
-    state = Mode.LOW_POWER
-    bperiod = 120
-
-
-def enter_emergency_mode():
-    global bperiod, state
-    state = Mode.EMERGENCY
+        if core.get_state() == Mode.LOW_POWER:
+            time.sleep(config['housekeeping']['low_power_period'])
+        else:
+            time.sleep(config['housekeeping']['beacon_period'])

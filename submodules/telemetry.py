@@ -5,6 +5,7 @@ import collections
 import logging
 import struct
 import time
+import core
 from functools import partial
 from threading import Lock
 
@@ -35,9 +36,9 @@ def telemetry_send():
     global telem_packet_buffer, event_packet_buffer
     time.sleep(60)  # Don't send packets straight away
 
-    while state == Mode.NORMAL:
+    while core.get_state() == Mode.NORMAL:
         # TODO if (adcs.can_TJ_be_seen() == True and len(telem_packet_buffer) + len(event_packet_buffer) > 0):
-        if (len(telem_packet_buffer) + len(event_packet_buffer) > 0):
+        if len(telem_packet_buffer) + len(event_packet_buffer) > 0:
             telemetry_send_once()
         time.sleep(config['telemetry']['send_interval'])
 
@@ -109,7 +110,7 @@ def send(ignoreADCS=False, radio='aprs'):
     :param radio: Radio to send telemetry over, either "aprs" or "iridium"
     """
     global packetBuffers, event_packet_buffer, telem_packet_buffer, packet_lock
-    squishedPackets = ""
+    squishedpackets = ""
 
     with packet_lock:
         # packet_lock.acquire()
@@ -117,16 +118,16 @@ def send(ignoreADCS=False, radio='aprs'):
         while len(event_packet_buffer) + len(telem_packet_buffer) > 0:
             for buffer in packetBuffers:
                 # TODO while len(buffer) > 0 and len(squishedPackets) < config['telemetry']['max_packet_size'] and (adcs.can_TJ_be_seen() or ignoreADCS):
-                while len(buffer) > 0 and len(squishedPackets) < config['telemetry']['max_packet_size']:
+                while len(buffer) > 0 and len(squishedpackets) < config['telemetry']['max_packet_size']:
                     # test = buffer.pop()
                     # print(test)
                     # squishedPackets += test
-                    squishedPackets += buffer.pop()
+                    squishedpackets += buffer.pop()
 
             # TODO: alternate between radios
-            logger.debug(squishedPackets)
-            radio_output.send(squishedPackets, radio)
-            squishedPackets = ""
+            logger.debug(squishedpackets)
+            radio_output.send(squishedpackets, radio)
+            squishedpackets = ""
             time.sleep(6)
 
     # packet_lock.release()
@@ -144,9 +145,6 @@ def start():
     """
     Starts the telemetry send thread
     """
-    global state
-    state = None
-
     t2 = ThreadHandler(target=partial(telemetry_send), name="telemetry-telemetry_send")
     t2.start()
 

@@ -1,12 +1,12 @@
-import isisants
+from . import isisants
 
-def deploy():
+
+def start():
     # Initiate connection with the device
     isisants.py_k_ants_init(b"/dev/i2c-1", 0x31, 0x32, 4, 10)
 
     # Arms the device
     isisants.py_k_ants_arm()
-    
 
     # Run the deploy methods
     ANT_1 = 0

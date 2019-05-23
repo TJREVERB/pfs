@@ -11,11 +11,7 @@ from core.mode import Mode
 from core.helpers import is_simulate
 from core.threadhandler import ThreadHandler
 from submodules import command_ingest
-
-if is_simulate('eps'):
-    from submodules import eps_test as eps
-else:
-    from submodules import eps
+from submodules import eps
 
 from submodules.command_ingest import command
 
@@ -46,16 +42,15 @@ def send(msg: str) -> None:
     """
     global last_message_time
     # TODO: Need Normal Mode logic? @Ethan
-
     # Wait until `message_spacing` seconds after the last received message
-    while time.time() - last_message_time < config['aprs']['message_spacing']:
-        time.sleep(1)
-    last_message_time = time.time()
+    while True:
+        while time.time() - last_message_time < config['aprs']['message_spacing']:
+            time.sleep(1)
+        last_message_time = time.time()
 
-    if state == Mode.NORMAL:
         ser.write((msg + '\n').encode("utf-8"))  # Send the message
 
-    time.sleep(1)
+        time.sleep(1)
 
 
 def xtelemetry_watchdog():
@@ -63,14 +58,13 @@ def xtelemetry_watchdog():
     Watches for "hardware beacon" sent out by APRS. Ensures that the radio is still alive.
     """
     while True:
-        while state == Mode.NORMAL:
-            time.sleep(config['aprs']['telem_timeout'])
-            if time.time() - last_telem_time > config['aprs']['telem_timeout']:
-                logger.error("APRS is dead, restarting APRS")
-                if not is_simulate('eps'):
-                    eps.reboot_device('aprs', 3)
-            else:
-                logger.debug("Watchdog pass APRS")
+        time.sleep(config['aprs']['telem_timeout'])
+        if time.time() - last_telem_time > config['aprs']['telem_timeout']:
+            logger.error("APRS is dead, restarting APRS")
+            if not is_simulate('eps'):
+                eps.reboot_device('aprs', 3)
+        else:
+            logger.debug("Watchdog pass APRS")
 
 
 def listen():
@@ -79,25 +73,25 @@ def listen():
     """
     global last_message_time, last_telem_time
     while True:
-        while state == Mode.NORMAL:
-            if is_simulate('aprs'):
-                line = b''
-                while not line.endswith(b'\n'):  # While EOL hasn't been sent
-                    res = os.read(ser_slave, 1000)
-                    line += res
-            else:
-                line = ser.readline()  # Read in a full message from serial
+        if is_simulate('aprs'):
+            line = b''
+            while not line.endswith(b'\n'):  # While EOL hasn't been sent
+                logger.debug("GOT SOMETHING")
+                res = os.read(ser_slave, 1000)
+                line += res
+        else:
+            line = ser.readline()  # Read in a full message from serial
 
-            # Update last message time
-            last_message_time = time.time()
-            if line[0:2] == 'T#':  # Telemetry Packet: APRS special case
-                last_telem_time = time.time()
-                logger.debug('APRS telemetry heartbeat received')
-                continue  # Don't parse telemetry packets
+        # Update last message time
+        last_message_time = time.time()
+        if line[0:2] == 'T#':  # Telemetry Packet: APRS special case
+            last_telem_time = time.time()
+            logger.debug('APRS telemetry heartbeat received')
+            continue  # Don't parse telemetry packets
 
-            # Dispatch command
-            parsed = parse_aprs_packet(line)
-            command_ingest.dispatch(parsed)
+        # Dispatch command
+        parsed = parse_aprs_packet(line)
+        command_ingest.dispatch(parsed)
 
 
 def parse_aprs_packet(packet: str) -> str:
@@ -126,9 +120,8 @@ def parse_aprs_packet(packet: str) -> str:
 
 
 def start():
-    global ser, state
+    global ser
 
-    state = None
     # Opens the serial port for all methods to use with 19200 baud
     if is_simulate("aprs"):
         s_name = os.ttyname(ser_slave)
@@ -142,27 +135,11 @@ def start():
     # Create all the background threads
     t1 = ThreadHandler(target=partial(listen),
                        name="aprs-listen", parent_logger=logger)
-    # t2 = ThreadHandler(target=partial(send), name="aprs-send_loop", parent_logger=logger)
+    t2 = ThreadHandler(target=partial(send, "hello"), name="aprs-send_loop", parent_logger=logger)
     # t3 = ThreadHandler(target=partial(telemetry_watchdog), name="aprs-telemetry_watchdog", parent_logger=logger)
 
     # Start the background threads
     t1.start()
-    # t2.start()
+    t2.start()
     # t3.start()
 
-
-def enter_normal_mode():
-    global bperiod, state
-    state = Mode.NORMAL
-    bperiod = 60
-
-
-def enter_low_power_mode():
-    global bperiod, state
-    state = Mode.LOW_POWER
-    bperiod = 120
-
-
-def enter_emergency_mode():
-    global state
-    state = Mode.EMERGENCY

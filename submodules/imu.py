@@ -10,6 +10,8 @@ from core.mode import Mode
 from core.threadhandler import ThreadHandler
 from functools import partial
 
+import core
+
 bus = smbus.SMBus(1)
 address = 0x68  # TODO: Double check here: http://www.invensense.com/wp-content/uploads/2017/11/RM-MPU-9250A-00-v1.6.pdf
 
@@ -21,7 +23,7 @@ def get_current_data():
 
 def imu_beacon():
     global current_data
-    while state == Mode.NORMAL:
+    while core.get_state() == Mode.NORMAL:
         if current_data is not None:
             aprs.send(current_data)
             logging.debug('IMU DATASAVE CLEAR')
@@ -45,7 +47,7 @@ def gyr():  # TODO: NEED TO CONVERT BYTE DATA FOR ADCS
 
 def acc_gyr():
     global current_data
-    while state == Mode.NORMAL:
+    while core.get_state() == Mode.NORMAL:
         try:
             acc()
         except:
@@ -61,9 +63,8 @@ def acc_gyr():
 
 
 def start():
-    global current_data, state
+    global current_data
 
-    state = None
     current_data = None
 
     # t1 = ThreadHandler(target=partial(acc_gyr), name="imu-acc_gyr")
@@ -71,21 +72,6 @@ def start():
 
     # t2 = ThreadHandler(target=partial(imu_beacon), name="imu-imu_beacon")
     # t2.start()
-
-
-def enter_normal_mode():
-    global state
-    state = Mode.NORMAL
-
-
-def enter_low_power_mode():
-    global state
-    state = Mode.LOW_POWER
-
-
-def enter_emergency_mode():
-    global state
-    state = Mode.EMERGENCY
 
 
 if __name__ == '__main__':

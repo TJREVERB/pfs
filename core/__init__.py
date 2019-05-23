@@ -1,6 +1,7 @@
 import importlib
 import logging
 import os
+import time
 
 import yaml
 
@@ -89,20 +90,12 @@ def check_first_boot():  # TODO: IF EMPROM SAYS FIRST BOOT WAIT 30 MINUTES ELSE 
     pass
 
 
-def cold_start():  # Waits till startup voltage is reached before continuing
-    while eps.get_battery_bus_volts() < Power.STARTUP:
-        if eps.get_battery_bus_volts() >= Power.STARTUP:
-            return
-        else:
-            continue
-
-
 def power_watchdog():
     while True:
-        if eps.get_battery_bus_volts() >= Power.NORMAL:
+        if eps.get_battery_bus_volts() >= Power.NORMAL and state != Mode.NORMAL:
             enter_normal_mode(
                 f'Battery level at sufficient state: {eps.get_battery_bus_volts()}')
-        elif eps.get_battery_bus_volts() < Power.NORMAL:
+        elif eps.get_battery_bus_volts() < Power.NORMAL and state != Mode.LOW_POWER:
             enter_low_power_mode(
                 f'Battery level at critical state: {eps.get_battery_bus_volts()}')
 
@@ -155,14 +148,15 @@ def start():
         logger.debug(f'Starting level B module {i}')
         if hasattr(i, 'start'):
             getattr(i, 'start')()
-    cold_start()
     for i in submodules[2]:
         logger.debug(f'Starting level C module {i}')
         if hasattr(i, 'start'):
-            getattr(i, 'start')
+            getattr(i, 'start')()
 
     enter_normal_mode()
     logger.debug("Entering main loop")
+    while True:
+        time.sleep(1)
 
     # MAIN LOOP
     # power_watchdog()

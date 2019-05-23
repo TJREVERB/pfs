@@ -63,6 +63,9 @@ gps:
     simulate: False
 eps:
     simulate: False
+housekeeping:
+    beacon_period: 60
+    low_power_period: 120
 telemetry:
     send_interval: 30
     buffer_size: 100

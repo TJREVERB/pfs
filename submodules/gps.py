@@ -7,13 +7,15 @@ import struct
 import sys
 import threading
 import time
+import RPi.GPIO as GPIO
+import pynmea2
+import serial
+
 from datetime import datetime
 from collections import deque
 from functools import partial
 
-import RPi.GPIO as GPIO
-import pynmea2
-import serial
+import core
 
 from core import config
 from core.mode import Mode
@@ -218,7 +220,7 @@ def capture_packet(packet_type):
     :return: genuine packet of data
     """
     acquired = False
-    while not acquired and state == Mode.NORMAL:
+    while not acquired and core.get_state() == Mode.NORMAL:
         try:
             packet = ser.readline()
             packet = packet.decode("utf-8")
@@ -309,7 +311,7 @@ def get_points(period):
     :return: list of dictionaries of all data recorded
     """
 
-    while state == Mode.LOW_POWER:
+    if core.get_state() == Mode.NORMAL:
         with signal_lock:
             eps.pin_on('gps')
             logger.info("PARSING " + str(period) + " POINTS")
@@ -353,12 +355,11 @@ def start():
     Initializes all variables and starts all thread on boot
     :return:
     """
-    global t1, t2, ser, cached_nmea_obj, cached_xyz_obj, cached_data_obj, cache, gpsperiod, state
+    global t1, t2, ser, cached_nmea_obj, cached_xyz_obj, cached_data_obj, cache, gpsperiod
     # cached_nmea_obj = (None,None)
     cached_nmea_obj = None  # cached lat/lon/alt/gps object
     cached_xyz_obj = None  # cached velocity object
     cached_data_obj = None  # final data packet
-    state = None
     # deque of (lists of dictionaries -returned by get k points)
     cache = deque([], 2)
 
@@ -459,21 +460,13 @@ def enter_normal_mode():
     # UPDATE GPS MODULE INTERNAL COORDINATES EVERY 10 MINUTES
     # update_internal_coords() IF THIS METHOD IS NECESSARY MESSAGE ME(Anup)
     # time.sleep(600)
-    global state
-    state = Mode.NORMAL
-    if not is_simulate('gps'):
-        pass
     eps.pin_on("gps")
-
-    start_loop()
 
 
 def enter_low_power_mode():
     # UPDATE GPS MODULE INTERNAL COORDINATES EVERY HOUR
     # update_internal_coords() IF THIS METHOD IS NECESSARY MESSAGE ME(Anup)
     # time.sleep(3600)
-    global state
-    state = Mode.LOW_POWER
     send('UNLOGALL')
     send('ANTENNAPOWER OFF')
     send('ASSIGNALL IDLE')
@@ -482,8 +475,7 @@ def enter_low_power_mode():
 
 def enter_emergency_mode():
     # ALL GPS FUNCTIONS OFF. LOWEST POWER POSSIBLE
-    global state
-    state = Mode.EMERGENCY
+
     send('UNLOGALL')
     send('ANTENNAPOWER OFF')
     send('ASSIGNALL IDLE')
