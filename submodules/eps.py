@@ -65,6 +65,7 @@ def verify_status_integrity(device_name):
     val = int(get_PDM_status(device_name))
     for x in range(0, 60):
         arr.append(get_PDM_status(device_name))
+        logger.debug(str(arr[x]))
         if val != arr[x]:
             logger.debug("No match at index = " + str(x))
         time.sleep(0.25)
