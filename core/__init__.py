@@ -32,6 +32,10 @@ def load_config():
     return config
 
 
+def get_state():
+    return state
+
+
 def enter_normal_mode(reason: str = '') -> None:
     """
     Enter normal power mode.
@@ -93,6 +97,16 @@ def cold_start():  # Waits till startup voltage is reached before continuing
             continue
 
 
+def power_watchdog():
+    while True:
+        if eps.get_battery_bus_volts() >= Power.NORMAL:
+            enter_normal_mode(
+                f'Battery level at sufficient state: {eps.get_battery_bus_volts()}')
+        elif eps.get_battery_bus_volts() < Power.NORMAL:
+            enter_low_power_mode(
+                f'Battery level at critical state: {eps.get_battery_bus_volts()}')
+
+
 def start():
     global submodules, config, state
     # Load `config` from either default file or persistent config
@@ -116,52 +130,39 @@ def start():
                 logger.debug(f'Loading module: {submodule}')
                 level_a.append(importlib.import_module(
                     f'submodules.{submodule}'))
-            submodules.extend(level_a)
+            submodules.append(level_a)
         if config['core']['modules']['B'] is not None:
             for submodule in config['core']['modules']['B']:
                 logger.debug(f'Loading module: {submodule}')
                 level_b.append(importlib.import_module(
                     f'submodules.{submodule}'))
-            submodules.extend(level_b)
+            submodules.append(level_b)
         if config['core']['modules']['C'] is not None:
             for submodule in config['core']['modules']['C']:
                 logger.debug(f'Loading module: {submodule}')
                 level_c.append(importlib.import_module(
                     f'submodules.{submodule}'))
-            submodules.extend(level_c)
+            submodules.append(level_c)
         logger.debug(submodules)
 
-    enter_low_power_mode()
     # Trigger module start
-    for i in range(0,len(level_a)):
-        logger.debug(f'Starting level A module {submodules[i]}')
-        if hasattr(submodules[i], 'start'):
-            getattr(submodules[i], 'start')()
+    for i in submodules[0]:
+        logger.debug(f'Starting level A module {i}')
+        if hasattr(i, 'start'):
+            getattr(i, 'start')()
     check_first_boot()
-    for i in range(len(level_a), len(level_b)):
-        logger.debug(f'Starting level B module {submodules[i]}')
-        if hasattr(submodules[i], 'start'):
-            getattr(submodules[i], 'start')()
+    for i in submodules[1]:
+        logger.debug(f'Starting level B module {i}')
+        if hasattr(i, 'start'):
+            getattr(i, 'start')()
     cold_start()
-    for i in range(len(level_c), len(level_c)):
-        logger.debug(f'Starting level C module {submodules[i]}')
-        if hasattr(submodules[i], 'start'):
-            getattr(submodules[i], 'start')
+    for i in submodules[2]:
+        logger.debug(f'Starting level C module {i}')
+        if hasattr(i, 'start'):
+            getattr(i, 'start')
 
-    # enter_normal_mode()  # Enter normal mode FIXME: enter low power?
+    enter_normal_mode()
     logger.debug("Entering main loop")
 
     # MAIN LOOP
-    while True:
-        if eps.get_battery_bus_volts() >= Power.NORMAL:
-            enter_normal_mode(
-                f'Battery level at sufficient state: {eps.get_battery_bus_volts()}')
-        elif eps.get_battery_bus_volts() < Power.NORMAL:
-            enter_low_power_mode(
-                f'Battery level at critical state: {eps.get_battery_bus_volts()}')
-            # TODO: ADD MORE CASES
-
-
-mode = Mode.NORMAL  # Default power mode
-# TODO: List of all active modules:
-submodules = []
+    # power_watchdog()
