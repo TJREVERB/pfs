@@ -54,19 +54,19 @@ adcs:
 aprs:
     #s1
     serial_port: /dev/ttyUSB0
-    is_simulate: False
+    simulate: False
     telem_timeout: 70
     message_spacing: 1
 gps:
     #s3
     serial_port: /dev/ttyUSB1
-    is_simulate: False
+    simulate: False
 eps:
-    is_simulate: False
+    simulate: False
 telemetry:
     send_interval: 30
     buffer_size: 100
     max_packet_size: 170
 iridium:
     serial_port: /dev/ttyUSB0
-    is_simulate: False
+    simulate: False

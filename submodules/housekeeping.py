@@ -9,24 +9,24 @@ import time
 
 import core
 from core.mode import Mode
-from core import config
 from core.helpers import is_simulate
 from submodules import command_ingest
 from submodules import gps
 from submodules import radio_output
+
+from core.threadhandler import ThreadHandler
+from functools import partial
 
 if is_simulate('eps'):
     from submodules import eps_test as eps
 else:
     from submodules import eps
 
-from core.threadhandler import ThreadHandler
-from functools import partial
-
 
 def start():
-    global state
+    global state, bperiod
     state = None
+    bperiod = 60
 
     t = ThreadHandler(target=partial(send_heartbeat), name="send_heartbeat")
     t.start()
@@ -36,20 +36,18 @@ def send_heartbeat():
     # Packet header
     while state == Mode.NORMAL:
         packet = "HK"
+        gps_packet = gps.get_cache()[-1]
         # Time, mode, TLM rate
         f1 = struct.pack("f", time.time())
-        f1 += bytes(core.mode)
-        f1 += bytes(config['housekeeping']['beacon_interval'])
+        f1 += bytes(core.get_state())
+        f1 += bytes(bperiod)
         packet += base64.b64encode(f1)
         # GPS coords
         packet += base64.b64encode(struct.pack('fff',
-                                               gps.lat, gps.lon, gps.alt))
+                                               gps_packet['lat'], gps_packet['lon'], gps_packet['alt']))
 
         # Battery percentage as a 24-bit int
-        if not is_simulate("eps"):
-            battery_level = eps.get_battery_level()
-        else:
-            battery_level = None
+        battery_level = eps.get_battery_bus_volts()
 
         enc = struct.pack('I', int((2 ** 24 - 1) * battery_level))[:3]
         packet += base64.b64encode(enc)
@@ -58,7 +56,7 @@ def send_heartbeat():
                           command_ingest.total_success)
         packet += base64.b64encode(enc)
         radio_output.send_immediate_raw(packet)
-        time.sleep(config['housekeeping']['beacon_interval'])
+        time.sleep(bperiod)
 
 
 def enter_normal_mode():
@@ -74,5 +72,5 @@ def enter_low_power_mode():
 
 
 def enter_emergency_mode():
-    global state
+    global bperiod, state
     state = Mode.EMERGENCY
