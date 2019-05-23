@@ -28,11 +28,10 @@ def pin_on(device_name) -> bool:
             bus.write_byte_data(address, 0x12, PDM_val)
 
             if get_PDM_status(device_name) == 1:  # PDM is ON
-                logger.debug("Pin communication successful. \
-                Pin is now ON.")
+                logger.debug("Pin communication successful. Pin is now ON.")
                 return True
             else:
-                logger.error("Pin communication unsuccessful")
+                logger.error("Pin communication unsuccessful. Pin is still OFF.")
                 return False
 
 
@@ -54,12 +53,11 @@ def pin_off(device_name) -> bool:
             bus.write_byte_data(address, 0x13, PDM_val)
 
             if get_PDM_status(device_name) == 0:  # PDM is OFF
-                logger.debug("Pin communication successful. \
-                  Pin is now OFF.")
+                logger.debug("Pin communication successful. Pin is now OFF.")
             else:
-                logger.error("Pin communication unsuccessful")
+                logger.error("Pin communication unsuccessful. Pin is still ON.")
                 return False
-
+"""
 def verify_status_integrity(device_name):
     arr = []
     val = int(get_PDM_status(device_name))
@@ -69,7 +67,7 @@ def verify_status_integrity(device_name):
         if val != arr[x]:
             logger.debug("No match at index = " + str(x))
         time.sleep(0.25)
-
+"""
 def get_PDM_status(device_name):
     with SMBusWrapper(1) as bus:
         PDM_val = epsdict[device_name]
