@@ -119,13 +119,13 @@ def get_battery_bus_volts():  # TODO: Verify
         return bus.read_byte(address)
 
 
-def get_board_telem(data):
+def get_board_telem(data):  #FIXME: Invalid return type: should be int list (so add a while loop)
     with SMBusWrapper(1) as bus:
         bus.write_byte_data(address, 0x10, 0x23)
         return bus.read_byte(address)
 
 
-def led_on_off() -> None:
+def led_on_off() -> None:        #TODO: Delete this method, from eps testing with fake eps
     looptime = 20  # FIXME: Was 30
     while True:
         pin_on('aprs')

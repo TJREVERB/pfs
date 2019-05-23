@@ -103,7 +103,7 @@ def write_yaml(address=0x50, filename="config.yaml"):
 
 def write(bus, device_address, memory_address, data):
     cmd = memory_address >> 8
-    bytes = [memory_address & 0xff] + list(map(ord, data))
+    bytes = [memory_address & 0xff] + data
     #print("writing to %.2x at %.4x bytes %d" %
     #      (device_address, memory_address, len(data)))
    # print(bytes)
