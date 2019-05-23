@@ -11,8 +11,8 @@ from core.threadhandler import ThreadHandler
 # Initialize global variables
 logger = logging.getLogger("EPS")
 address = 0x57
-epsdict = {'a': 1, 'b': 2, 'b': 4, 'c': 3,
-           'd': 5, 'e': 6, 'f': 7, 'g': 8, 'h': 9, 'i': 10}
+epsdict = {'a': 1, 'i2c': 2, 'c': 3, 'antenna': 4,
+           'pi': 5, 'iridium': 6, 'aprs': 7, 'h': 8, 'i': 9, 'j': 10}
 mode = Mode.NORMAL
 
 def pin_on(device_name) -> bool:
