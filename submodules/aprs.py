@@ -130,11 +130,11 @@ def start():
 
     state = None
     # Opens the serial port for all methods to use with 19200 baud
-    if is_simulate('aprs'):
+    if is_simulate("aprs"):
         s_name = os.ttyname(ser_slave)
         ser = serial.Serial(s_name, 19200)
         from submodules import aprs_test
-        aprs_test.start(ser_master,ser_slave)
+        aprs_test.start(ser_master, ser_slave)
         logger.info("Serial started on " + ser.name)
     else:
         ser = serial.Serial(config['aprs']['serial_port'], 19200)
@@ -142,15 +142,13 @@ def start():
     # Create all the background threads
     t1 = ThreadHandler(target=partial(listen),
                        name="aprs-listen", parent_logger=logger)
-    # t2 = ThreadHandler(target=partial(send),
-    #                   name="aprs-send_loop", parent_logger=logger)
-    t3 = ThreadHandler(target=partial(telemetry_watchdog),
-                       name="aprs-telemetry_watchdog", parent_logger=logger)
+    # t2 = ThreadHandler(target=partial(send), name="aprs-send_loop", parent_logger=logger)
+    # t3 = ThreadHandler(target=partial(telemetry_watchdog), name="aprs-telemetry_watchdog", parent_logger=logger)
 
     # Start the background threads
     t1.start()
     # t2.start()
-    t3.start()
+    # t3.start()
 
 
 def enter_normal_mode():
@@ -168,4 +166,3 @@ def enter_low_power_mode():
 def enter_emergency_mode():
     global state
     state = Mode.EMERGENCY
-
