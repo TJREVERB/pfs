@@ -2,7 +2,7 @@ core:
     modules:
         A:
             - eps
-            - eeprom
+            - eprom
             - command_ingest
             - imu
             - imtq
@@ -10,7 +10,6 @@ core:
             - antenna_deployer
         C:
             - aprs
-            - iridium
             - gps
             - adcs
             - housekeeping
@@ -54,22 +53,14 @@ adcs:
 aprs:
     #s1
     serial_port: /dev/ttyUSB0
-    simulate: False
     telem_timeout: 70
     message_spacing: 1
 gps:
     #s3
     serial_port: /dev/ttyUSB1
-    simulate: False
-eps:
-    simulate: False
-housekeeping:
-    beacon_period: 60
-    low_power_period: 120
 telemetry:
     send_interval: 30
     buffer_size: 100
     max_packet_size: 170
 iridium:
     serial_port: /dev/ttyUSB0
-    simulate: False

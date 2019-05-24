@@ -1,8 +1,9 @@
-import yaml
-import sys
-import smbus2 as smbus
 import ast
 import time
+
+import smbus2 as smbus
+import yaml
+
 
 def clear(address):
     device_address = int(address)
@@ -39,7 +40,7 @@ def write_var(what, address=0x50):
 def start():  
     global size
     global bus
-    size = 8192
+    size = 131072
     bus = smbus.SMBus(1)  # /dev/i2c-1
    # make_file()
 
@@ -76,8 +77,9 @@ def read(address=0x50, size=8192, data_num=0, s = ""):
         # byte2 = bus.read_i2c_block_data(device_address, i, 16)
         out = out + str(chr(byte))
     # out = out + str(list(map(chr, byte2)))
-    if(data_num == 0):
-        return out[0:out.rfind("!")].replace("''", "")
+    if data_num == 0:
+        #return out[0:out.rfind("!")].replace("''", "")
+        return out
     if(data_num ==1):
         return out[0:iter_find(out, "!")[0]].replace("''", "")
     return out[iter_find(out, "!")[data_num-2]+1:iter_find(out, "!")[data_num-1]].replace("''", "")
@@ -101,10 +103,10 @@ def write_yaml(address=0x50, filename="config.yaml"):
 
 def write(bus, device_address, memory_address, data):
     cmd = memory_address >> 8
-    bytes = [memory_address & 0xff] + list(map(ord, data))
-    print("writing to %.2x at %.4x bytes %d" %
-          (device_address, memory_address, len(data)))
-    print(bytes)
+    bytes = [memory_address & 0xff] + data
+    #print("writing to %.2x at %.4x bytes %d" %
+    #      (device_address, memory_address, len(data)))
+   # print(bytes)
     return bus.write_i2c_block_data(device_address, cmd, bytes)
 
 

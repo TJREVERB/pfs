@@ -7,26 +7,34 @@ import struct
 import sys
 import threading
 import time
+import RPi.GPIO as GPIO
+import pynmea2
+import serial
+
 from datetime import datetime
 from collections import deque
 from functools import partial
 
-import RPi.GPIO as GPIO
-import pynmea2
-import serial
+import core
 
 from core import config
 from core.mode import Mode
 from core.helpers import is_simulate
 from core.threadhandler import ThreadHandler
 from submodules import telemetry
-from submodules import eps
+
+if is_simulate('eps'):
+    from submodules import eps_test as eps
+else:
+    from submodules import eps
+
 
 logger = logging.getLogger("GPS")
 
 signal_lock = threading.Lock()
 ser_master, ser_slave = pty.openpty()  # Serial ports for when in simulate mode
 error_packet = {}  # FIXME SOME PACKET TO SHOW ERROR OCCURED
+
 
 # Return a GPS position packet as returned by gpgga
 
@@ -204,6 +212,7 @@ def get_data():
     """
     return cached_data_obj
 
+
 def capture_packet(packet_type):
     """
     Ensures a data packet is read from the gps. Excludes all incorrect data
@@ -211,7 +220,7 @@ def capture_packet(packet_type):
     :return: genuine packet of data
     """
     acquired = False
-    while not acquired and state == Mode.NORMAL
+    while not acquired and core.get_state() == Mode.NORMAL:
         try:
             packet = ser.readline()
             packet = packet.decode("utf-8")
@@ -291,7 +300,10 @@ def thread(args1, stop_event, queue_obj):
     pass
 
 
-# TODO TEST IF WORKS
+def point_is_good(packet):
+    pass
+
+
 def get_points(period):
     """
     Returns a list of multiple dictionaries defined by period. Each dictionary is a singular reading from the gps
@@ -299,7 +311,7 @@ def get_points(period):
     :return: list of dictionaries of all data recorded
     """
 
-    while(state==Mode.LOW_POWER):
+    if core.get_state() == Mode.NORMAL:
         with signal_lock:
             eps.pin_on('gps')
             logger.info("PARSING " + str(period) + " POINTS")
@@ -343,12 +355,11 @@ def start():
     Initializes all variables and starts all thread on boot
     :return:
     """
-    global t1, t2, ser, cached_nmea_obj, cached_xyz_obj, cached_data_obj, cache, gpsperiod, state
+    global t1, t2, ser, cached_nmea_obj, cached_xyz_obj, cached_data_obj, cache, gpsperiod
     # cached_nmea_obj = (None,None)
     cached_nmea_obj = None  # cached lat/lon/alt/gps object
     cached_xyz_obj = None  # cached velocity object
     cached_data_obj = None  # final data packet
-    state = None
     # deque of (lists of dictionaries -returned by get k points)
     cache = deque([], 2)
 
@@ -363,10 +374,12 @@ def start():
     if is_simulate('gps'):
         s_name = os.ttyname(ser_slave)
         ser = serial.Serial(s_name, 19200)
+        from submodules import gps_test
+        gps_test.start(ser_master,ser_slave)
         logger.info("Serial started on " + ser.name)
     else:
         ser = serial.Serial(config['gps']['serial_port'], 9600, timeout=10)
-        #eps.pin_on('gps')
+        # eps.pin_on('gps')
 
     # REPLACE WITH /dev/ttyUSBx if 1 DOESNT WORK
     # serialPort = "/dev/ttyS3"
@@ -398,6 +411,7 @@ def telemetry_send(gps_packet):
 
 def has_signal():
     return GPIO.input(26) == 1
+
 
 def wait_for_signal():  # Temporary way of waiting for signal lock by waiting for an actual reading from gpgga log
     """
@@ -446,21 +460,13 @@ def enter_normal_mode():
     # UPDATE GPS MODULE INTERNAL COORDINATES EVERY 10 MINUTES
     # update_internal_coords() IF THIS METHOD IS NECESSARY MESSAGE ME(Anup)
     # time.sleep(600)
-    global state
-    state = Mode.NORMAL
-    if not is_simulate('gps'):
-        pass
     eps.pin_on("gps")
-
-    start_loop()
 
 
 def enter_low_power_mode():
     # UPDATE GPS MODULE INTERNAL COORDINATES EVERY HOUR
     # update_internal_coords() IF THIS METHOD IS NECESSARY MESSAGE ME(Anup)
     # time.sleep(3600)
-    global state
-    state = Mode.LOW_POWER
     send('UNLOGALL')
     send('ANTENNAPOWER OFF')
     send('ASSIGNALL IDLE')
@@ -469,8 +475,7 @@ def enter_low_power_mode():
 
 def enter_emergency_mode():
     # ALL GPS FUNCTIONS OFF. LOWEST POWER POSSIBLE
-    global state
-    state = Mode.EMERGENCY
+
     send('UNLOGALL')
     send('ANTENNAPOWER OFF')
     send('ASSIGNALL IDLE')
