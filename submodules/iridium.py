@@ -134,7 +134,7 @@ def retrieve() -> str:
         return ""  # Return nothing; either there was no message or retrieval failed
 
 
-@command("iridium_send", str)
+@command("iridium_echo", str)
 def send(message: str) -> bool:
     """
     Send a message using the Iridium network.
@@ -161,7 +161,6 @@ def send(message: str) -> bool:
         return True
     else:
         return False
-
 
 def start():
     logger.debug("At start of iridium")

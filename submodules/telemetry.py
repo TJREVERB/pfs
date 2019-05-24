@@ -54,7 +54,7 @@ def telemetry_send_once():
                                len(event_packet_buffer)) + " telemetry packets")
 
 
-@command("burst")
+@command("telem_burst")
 def telemetry_burst_command():
     """
     Burst command; ignores isTJseen and other checks.
@@ -133,7 +133,7 @@ def send(ignoreADCS=False, radio='aprs'):
     # packet_lock.release()
 
 
-@command("clear")
+@command("telem_clear")
 def clear_buffers():
     global packet_lock, event_packet_buffer, telem_packet_buffer
     with packet_lock:
