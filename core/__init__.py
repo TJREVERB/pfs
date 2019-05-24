@@ -8,6 +8,12 @@ import yaml
 from core.mode import Mode
 from core.power import Power
 from submodules import eps
+# from submodules import command_ingest
+# from submodules import aprs
+# from submodules import telemetry
+# from submodules import antenna_deploy
+from submodules.command_ingest import command
+
 
 config = None  # Prevents IDE from throwing errors about not finding `config`
 logger = logging.getLogger("ROOT")
