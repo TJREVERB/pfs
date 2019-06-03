@@ -33,7 +33,7 @@ def send_heartbeat():
     while True:
         # Packet header
         packet = "HK"
-        gps_packet = gps.get_cache()[-1]
+        # gps_packet = gps.get_cache()[-1]
         # Time, mode, TLM rate
         f1 = struct.pack("f", time.time())
         f1 += bytes(core.get_state())
@@ -44,7 +44,7 @@ def send_heartbeat():
             f1 += bytes(config['housekeeping']['beacon_period'])
         packet += base64.b64encode(f1)
         # GPS coords
-        packet += base64.b64encode(struct.pack('fff',
+        # packet += base64.b64encode(struct.pack('fff',
                                                gps_packet['lat'], gps_packet['lon'], gps_packet['alt']))
 
         # Battery percentage as a 24-bit int
