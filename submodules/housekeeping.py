@@ -45,7 +45,7 @@ def send_heartbeat():
         packet += base64.b64encode(f1)
         # GPS coords
         # packet += base64.b64encode(struct.pack('fff',
-                                               gps_packet['lat'], gps_packet['lon'], gps_packet['alt']))
+        #                                        gps_packet['lat'], gps_packet['lon'], gps_packet['alt']))
 
         # Battery percentage as a 24-bit int
         battery_level = eps.get_battery_bus_volts()
