@@ -10,7 +10,6 @@ def get_lla(t):
     load()
     return({'lat': orb.get_lonlatalt(t)[0], 'lon': orb.get_lonlatalt(t)[1], 'alt': orb.get_lonlatalt(t)[2]})
 
-
 def get_xyz(t):
     load()
     return({'xyz_pos': orb.get_position(t)[0], 'xyz_vel': orb.get_position(t)[1]})
