@@ -20,4 +20,5 @@ def can_TJ_be_seen(t): #t is a datetime object
     return(a[0][0]<=t and t<=a[0][1])
 
 def get_next_passes(t): #t is a datetime object
-        return(orb.get_next_passes(t, 1, -77.1687977, 38.8183519, .08, tol=0.001, horizon=0))
+    load()
+    return(orb.get_next_passes(t, 1, -77.1687977, 38.8183519, .08, tol=0.001, horizon=0))
