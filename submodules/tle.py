@@ -2,6 +2,9 @@ from pathlib import Path
 
 from pyorbital.orbital import Orbital
 
+def start():
+    pass
+
 def load():
     orb = Orbital("TJREVERB", tle_file=(
         Path(__file__).parent.resolve() / "tjreverb_tle.txt"))
