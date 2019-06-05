@@ -55,9 +55,10 @@ def enter_normal_mode(reason: str = '') -> None:
     state = Mode.NORMAL
 
     # Trigger the module hooks
-    for module in submodules:
-        if hasattr(module, 'enter_normal_mode'):
-            getattr(module, 'enter_normal_mode')()
+    for level in submodules:
+        for module in level:
+            if hasattr(module, 'enter_normal_mode'):
+                getattr(module, 'enter_normal_mode')()
 
 @command("core_mode_1")
 def enter_low_power_mode(reason: str = '') -> None:
@@ -70,9 +71,10 @@ def enter_low_power_mode(reason: str = '') -> None:
         f"Entering low_power mode{'  Reason: ' if reason else ''}{reason}")
     state = Mode.LOW_POWER
 
-    for module in submodules:  # Trigger the module hooks
-        if hasattr(module, 'enter_low_power_mode'):
-            getattr(module, 'enter_low_power_mode')()
+    for level in submodules:  # Trigger the module hooks
+        for module in level:
+            if hasattr(module, 'enter_low_power_mode'):
+                getattr(module, 'enter_low_power_mode')()
 
 @command("core_mode_2")
 def enter_emergency_mode(reason: str = '') -> None:
@@ -85,16 +87,17 @@ def enter_emergency_mode(reason: str = '') -> None:
         f"Entering emergency mode{'  Reason: ' if reason else ''}{reason}")
     state = Mode.EMERGENCY
 
-    for module in submodules:  # Trigger the module hooks
-        if hasattr(module, 'enter_emergency_mode'):
-            getattr(module, 'enter_emergency_mode')()
+    for level in submodules:  # Trigger the module hooks
+        for module in level:
+            if hasattr(module, 'enter_emergency_mode'):
+                getattr(module, 'enter_emergency_mode')()
 
 
 def check_first_boot():  # TODO: IF EMPROM SAYS FIRST BOOT WAIT 30 MINUTES ELSE CONTINUE
     # if eeprom.get("FIRST_BOOT") is None or eeprom.get("FIRST_BOOT") == True:
     #    eeprom.add("FIRST BOOT", True) #FIXME eeprom stuff
     #    time.sleep(1800)
-    pass
+    return True #TODO FIX
 
 
 def power_watchdog():
@@ -114,10 +117,6 @@ def start():
     state = None
 
     # logger.debug(f"Config: {config}")
-
-    # Ensure that logs directory exists
-    if not os.path.exists(config['core']['log_dir']):
-        os.mkdir(config['core']['log_dir'])
 
     # Loop through all active modules in YAML config file, add them to `config`
     submodules = []
@@ -150,11 +149,11 @@ def start():
         logger.debug(f'Starting level A module {i}')
         if hasattr(i, 'start'):
             getattr(i, 'start')()
-    check_first_boot()
-    for i in submodules[1]:
-        logger.debug(f'Starting level B module {i}')
-        if hasattr(i, 'start'):
-            getattr(i, 'start')()
+    if check_first_boot():
+        for i in submodules[1]:
+            logger.debug(f'Starting level B module {i}')
+            if hasattr(i, 'start'):
+                getattr(i, 'start')()
     for i in submodules[2]:
         logger.debug(f'Starting level C module {i}')
         if hasattr(i, 'start'):
