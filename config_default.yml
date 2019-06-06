@@ -2,17 +2,13 @@ core:
     modules:
         A:
             - eps
-            - eeprom
             - command_ingest
             - imu
-            - imtq
         B:
             - antenna_deployer
         C:
             - aprs
             - iridium
-            - gps
-            - adcs
             - housekeeping
             - telemetry
     log_dir: logs
