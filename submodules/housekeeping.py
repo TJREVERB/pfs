@@ -10,7 +10,7 @@ import time
 import core
 from core.mode import Mode
 from submodules import command_ingest
-Zfrom submodules import radio_output
+from submodules import radio_output
 
 from core.threadhandler import ThreadHandler
 from core import config

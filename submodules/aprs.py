@@ -73,15 +73,12 @@ def listen():
     """
     global last_message_time, last_telem_time
     while True:
-        if is_simulate('aprs'):
-            line = b''
-            while not line.endswith(b'\n'):  # While EOL hasn't been sent
-                logger.debug("GOT SOMETHING")
-                res = os.read(ser_slave, 1000)
-                line += res
-        else:
-            line = ser.readline()  # Read in a full message from serial
-
+        line = b''
+        while not line.endswith(b'\n'):  # While EOL hasn't been sent
+            logger.debug("GOT SOMETHING")
+            res = ser.readline()
+            line += res
+        line = line.decode('utf-8')
         # Update last message time
         last_message_time = time.time()
         if line[0:2] == 'T#':  # Telemetry Packet: APRS special case
@@ -123,14 +120,7 @@ def start():
     global ser
 
     # Opens the serial port for all methods to use with 19200 baud
-    if is_simulate("aprs"):
-        s_name = os.ttyname(ser_slave)
-        ser = serial.Serial(s_name, 19200)
-        from submodules import aprs_test
-        aprs_test.start(ser_master, ser_slave)
-        logger.info("Serial started on " + ser.name)
-    else:
-        ser = serial.Serial(config['aprs']['serial_port'], 19200)
+    ser = serial.Serial(config['aprs']['serial_port'], 19200)
 
     # Create all the background threads
     t1 = ThreadHandler(target=partial(listen),

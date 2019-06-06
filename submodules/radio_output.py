@@ -15,10 +15,5 @@ def send(message: str, radio=None):
         radio = default_radio
     if radio == "aprs":
         aprs.send(message)
-        #print("RADIO_OUTPUT:" + message)
     if radio == "iridium":
         iridium.send(message)
-
-
-def send_immediate_raw(packet):
-    return None
