@@ -115,10 +115,6 @@ def start():
 
     # logger.debug(f"Config: {config}")
 
-    # Ensure that logs directory exists
-    if not os.path.exists(config['core']['log_dir']):
-        os.mkdir(config['core']['log_dir'])
-
     # Loop through all active modules in YAML config file, add them to `config`
     submodules = []
     level_a = []
