@@ -3,12 +3,12 @@ import time
 
 import smbus
 
-from submodules import telemetry
-from submodules import aprs
+# from submodules import telemetry
+# from submodules import aprs
 
-from core.mode import Mode
-from core.threadhandler import ThreadHandler
-from functools import partial
+# from core.mode import Mode
+# from core.threadhandler import ThreadHandler
+# from functools import partial
 
 import core
 
@@ -269,7 +269,7 @@ def temperature():
     return temp
 
 def read_u8(sensor_type, address):
-    if sensor_type ==magTYPE:
+    if sensor_type = MAGTYPE:
         device =mag_device
     else:
         device = xg_device
@@ -280,7 +280,7 @@ def read_u8(sensor_type, address):
     return BUFFER[0]
 
 def read_bytes(sensor_type, address, count, buf):
-    if sensor_type ==magTYPE:
+    if sensor_type ==MAGTYPE:
         device =mag_device
     else:
         device = xg_device
@@ -290,7 +290,7 @@ def read_bytes(sensor_type, address, count, buf):
         spi.readinto(buf, end=count)
 
 def write_u8(sensor_type, address, val):
-    if sensor_type ==magTYPE:
+    if sensor_type ==MAGTYPE:
         device =mag_device
     else:
         device = xg_device
