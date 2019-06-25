@@ -269,7 +269,7 @@ def temperature():
     return temp
 
 def read_u8(sensor_type, address):
-    if sensor_type = MAGTYPE:
+    if sensor_type == MAGTYPE:
         device =mag_device
     else:
         device = xg_device
