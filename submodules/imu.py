@@ -27,86 +27,6 @@ import busio
 import digitalio
 
 
-spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
-xgcs = digitalio.DigitalInOut(board.D5) # Pin connected to XGCS (accel/gyro chip
-mcs = digitalio.DigitalInOut(board.D6) # Pin connected to MCS (magnetometer chip
-# Internal constants and register values:
-# pylint: disable=bad-whitespace
-LSM9DS1_ADDRESS_ACCELGYRO       = const(0x6B)
-LSM9DS1_ADDRESS_MAG             = const(0x1E)
-LSM9DS1_XG_ID                   = const(0b01101000)
-LSM9DS1_MAG_ID                  = const(0b00111101)
-LSM9DS1_ACCEL_MG_LSB_2G         = 0.061
-LSM9DS1_ACCEL_MG_LSB_4G         = 0.122
-LSM9DS1_ACCEL_MG_LSB_8G         = 0.244
-LSM9DS1_ACCEL_MG_LSB_16G        = 0.732
-LSM9DS1_MAG_MGAUSS_4GAUSS       = 0.14
-LSM9DS1_MAG_MGAUSS_8GAUSS       = 0.29
-LSM9DS1_MAG_MGAUSS_12GAUSS      = 0.43
-LSM9DS1_MAG_MGAUSS_16GAUSS      = 0.58
-LSM9DS1_GYRO_DPS_DIGIT_245DPS   = 0.00875
-LSM9DS1_GYRO_DPS_DIGIT_500DPS   = 0.01750
-LSM9DS1_GYRO_DPS_DIGIT_2000DPS  = 0.07000
-LSM9DS1_TEMP_LSB_DEGREE_CELSIUS = 8 # 1°C = 8, 25° = 200, etc.
-LSM9DS1_REGISTER_WHO_AM_I_XG    = const(0x0F)
-LSM9DS1_REGISTER_CTRL_REG1_G    = const(0x10)
-LSM9DS1_REGISTER_CTRL_REG2_G    = const(0x11)
-LSM9DS1_REGISTER_CTRL_REG3_G    = const(0x12)
-LSM9DS1_REGISTER_TEMP_OUT_L     = const(0x15)
-LSM9DS1_REGISTER_TEMP_OUT_H     = const(0x16)
-LSM9DS1_REGISTER_STATUS_REG     = const(0x17)
-LSM9DS1_REGISTER_OUT_X_L_G      = const(0x18)
-LSM9DS1_REGISTER_OUT_X_H_G      = const(0x19)
-LSM9DS1_REGISTER_OUT_Y_L_G      = const(0x1A)
-LSM9DS1_REGISTER_OUT_Y_H_G      = const(0x1B)
-LSM9DS1_REGISTER_OUT_Z_L_G      = const(0x1C)
-LSM9DS1_REGISTER_OUT_Z_H_G      = const(0x1D)
-LSM9DS1_REGISTER_CTRL_REG4      = const(0x1E)
-LSM9DS1_REGISTER_CTRL_REG5_XL   = const(0x1F)
-LSM9DS1_REGISTER_CTRL_REG6_XL   = const(0x20)
-LSM9DS1_REGISTER_CTRL_REG7_XL   = const(0x21)
-LSM9DS1_REGISTER_CTRL_REG8      = const(0x22)
-LSM9DS1_REGISTER_CTRL_REG9      = const(0x23)
-LSM9DS1_REGISTER_CTRL_REG10     = const(0x24)
-LSM9DS1_REGISTER_OUT_X_L_XL     = const(0x28)
-LSM9DS1_REGISTER_OUT_X_H_XL     = const(0x29)
-LSM9DS1_REGISTER_OUT_Y_L_XL     = const(0x2A)
-LSM9DS1_REGISTER_OUT_Y_H_XL     = const(0x2B)
-LSM9DS1_REGISTER_OUT_Z_L_XL     = const(0x2C)
-LSM9DS1_REGISTER_OUT_Z_H_XL     = const(0x2D)
-LSM9DS1_REGISTER_WHO_AM_I_M     = const(0x0F)
-LSM9DS1_REGISTER_CTRL_REG1_M    = const(0x20)
-LSM9DS1_REGISTER_CTRL_REG2_M    = const(0x21)
-LSM9DS1_REGISTER_CTRL_REG3_M    = const(0x22)
-LSM9DS1_REGISTER_CTRL_REG4_M    = const(0x23)
-LSM9DS1_REGISTER_CTRL_REG5_M    = const(0x24)
-LSM9DS1_REGISTER_STATUS_REG_M   = const(0x27)
-LSM9DS1_REGISTER_OUT_X_L_M      = const(0x28)
-LSM9DS1_REGISTER_OUT_X_H_M      = const(0x29)
-LSM9DS1_REGISTER_OUT_Y_L_M      = const(0x2A)
-LSM9DS1_REGISTER_OUT_Y_H_M      = const(0x2B)
-LSM9DS1_REGISTER_OUT_Z_L_M      = const(0x2C)
-LSM9DS1_REGISTER_OUT_Z_H_M      = const(0x2D)
-LSM9DS1_REGISTER_CFG_M          = const(0x30)
-LSM9DS1_REGISTER_INT_SRC_M      = const(0x31)
-MAGTYPE                         = True
-XGTYPE                          = False
-SENSORS_GRAVITY_STANDARD        = 9.80665
-
-# User facing constants/module globals.
-ACCELRANGE_2G                = (0b00 << 3)
-ACCELRANGE_16G               = (0b01 << 3)
-ACCELRANGE_4G                = (0b10 << 3)
-ACCELRANGE_8G                = (0b11 << 3)
-MAGGAIN_4GAUSS               = (0b00 << 5)  # +/- 4 gauss
-MAGGAIN_8GAUSS               = (0b01 << 5)  # +/- 8 gauss
-MAGGAIN_12GAUSS              = (0b10 << 5)  # +/- 12 gauss
-MAGGAIN_16GAUSS              = (0b11 << 5)  # +/- 16 gauss
-GYROSCALE_245DPS             = (0b00 << 3)  # +/- 245 degrees/s rotation
-GYROSCALE_500DPS             = (0b01 << 3)  # +/- 500 degrees/s rotation
-GYROSCALE_2000DPS            = (0b11 << 3)  # +/- 2000 degrees/s rotation
-# pylint: enable=bad-whitespace
-BUFFER = bytearray(6)
 
 
 def twos_comp(val, bits):
@@ -117,6 +37,87 @@ def twos_comp(val, bits):
     return val
     
 def start():
+    
+    spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
+    xgcs = digitalio.DigitalInOut(board.D5) # Pin connected to XGCS (accel/gyro chip
+    mcs = digitalio.DigitalInOut(board.D6) # Pin connected to MCS (magnetometer chip
+    # Internal constants and register values:
+    # pylint: disable=bad-whitespace
+    LSM9DS1_ADDRESS_ACCELGYRO       = const(0x6B)
+    LSM9DS1_ADDRESS_MAG             = const(0x1E)
+    LSM9DS1_XG_ID                   = const(0b01101000)
+    LSM9DS1_MAG_ID                  = const(0b00111101)
+    LSM9DS1_ACCEL_MG_LSB_2G         = 0.061
+    LSM9DS1_ACCEL_MG_LSB_4G         = 0.122
+    LSM9DS1_ACCEL_MG_LSB_8G         = 0.244
+    LSM9DS1_ACCEL_MG_LSB_16G        = 0.732
+    LSM9DS1_MAG_MGAUSS_4GAUSS       = 0.14
+    LSM9DS1_MAG_MGAUSS_8GAUSS       = 0.29
+    LSM9DS1_MAG_MGAUSS_12GAUSS      = 0.43
+    LSM9DS1_MAG_MGAUSS_16GAUSS      = 0.58
+    LSM9DS1_GYRO_DPS_DIGIT_245DPS   = 0.00875
+    LSM9DS1_GYRO_DPS_DIGIT_500DPS   = 0.01750
+    LSM9DS1_GYRO_DPS_DIGIT_2000DPS  = 0.07000
+    LSM9DS1_TEMP_LSB_DEGREE_CELSIUS = 8 # 1°C = 8, 25° = 200, etc.
+    LSM9DS1_REGISTER_WHO_AM_I_XG    = const(0x0F)
+    LSM9DS1_REGISTER_CTRL_REG1_G    = const(0x10)
+    LSM9DS1_REGISTER_CTRL_REG2_G    = const(0x11)
+    LSM9DS1_REGISTER_CTRL_REG3_G    = const(0x12)
+    LSM9DS1_REGISTER_TEMP_OUT_L     = const(0x15)
+    LSM9DS1_REGISTER_TEMP_OUT_H     = const(0x16)
+    LSM9DS1_REGISTER_STATUS_REG     = const(0x17)
+    LSM9DS1_REGISTER_OUT_X_L_G      = const(0x18)
+    LSM9DS1_REGISTER_OUT_X_H_G      = const(0x19)
+    LSM9DS1_REGISTER_OUT_Y_L_G      = const(0x1A)
+    LSM9DS1_REGISTER_OUT_Y_H_G      = const(0x1B)
+    LSM9DS1_REGISTER_OUT_Z_L_G      = const(0x1C)
+    LSM9DS1_REGISTER_OUT_Z_H_G      = const(0x1D)
+    LSM9DS1_REGISTER_CTRL_REG4      = const(0x1E)
+    LSM9DS1_REGISTER_CTRL_REG5_XL   = const(0x1F)
+    LSM9DS1_REGISTER_CTRL_REG6_XL   = const(0x20)
+    LSM9DS1_REGISTER_CTRL_REG7_XL   = const(0x21)
+    LSM9DS1_REGISTER_CTRL_REG8      = const(0x22)
+    LSM9DS1_REGISTER_CTRL_REG9      = const(0x23)
+    LSM9DS1_REGISTER_CTRL_REG10     = const(0x24)
+    LSM9DS1_REGISTER_OUT_X_L_XL     = const(0x28)
+    LSM9DS1_REGISTER_OUT_X_H_XL     = const(0x29)
+    LSM9DS1_REGISTER_OUT_Y_L_XL     = const(0x2A)
+    LSM9DS1_REGISTER_OUT_Y_H_XL     = const(0x2B)
+    LSM9DS1_REGISTER_OUT_Z_L_XL     = const(0x2C)
+    LSM9DS1_REGISTER_OUT_Z_H_XL     = const(0x2D)
+    LSM9DS1_REGISTER_WHO_AM_I_M     = const(0x0F)
+    LSM9DS1_REGISTER_CTRL_REG1_M    = const(0x20)
+    LSM9DS1_REGISTER_CTRL_REG2_M    = const(0x21)
+    LSM9DS1_REGISTER_CTRL_REG3_M    = const(0x22)
+    LSM9DS1_REGISTER_CTRL_REG4_M    = const(0x23)
+    LSM9DS1_REGISTER_CTRL_REG5_M    = const(0x24)
+    LSM9DS1_REGISTER_STATUS_REG_M   = const(0x27)
+    LSM9DS1_REGISTER_OUT_X_L_M      = const(0x28)
+    LSM9DS1_REGISTER_OUT_X_H_M      = const(0x29)
+    LSM9DS1_REGISTER_OUT_Y_L_M      = const(0x2A)
+    LSM9DS1_REGISTER_OUT_Y_H_M      = const(0x2B)
+    LSM9DS1_REGISTER_OUT_Z_L_M      = const(0x2C)
+    LSM9DS1_REGISTER_OUT_Z_H_M      = const(0x2D)
+    LSM9DS1_REGISTER_CFG_M          = const(0x30)
+    LSM9DS1_REGISTER_INT_SRC_M      = const(0x31)
+    MAGTYPE                         = True
+    XGTYPE                          = False
+    SENSORS_GRAVITY_STANDARD        = 9.80665
+
+    # User facing constants/module globals.
+    ACCELRANGE_2G                = (0b00 << 3)
+    ACCELRANGE_16G               = (0b01 << 3)
+    ACCELRANGE_4G                = (0b10 << 3)
+    ACCELRANGE_8G                = (0b11 << 3)
+    MAGGAIN_4GAUSS               = (0b00 << 5)  # +/- 4 gauss
+    MAGGAIN_8GAUSS               = (0b01 << 5)  # +/- 8 gauss
+    MAGGAIN_12GAUSS              = (0b10 << 5)  # +/- 12 gauss
+    MAGGAIN_16GAUSS              = (0b11 << 5)  # +/- 16 gauss
+    GYROSCALE_245DPS             = (0b00 << 3)  # +/- 245 degrees/s rotation
+    GYROSCALE_500DPS             = (0b01 << 3)  # +/- 500 degrees/s rotation
+    GYROSCALE_2000DPS            = (0b11 << 3)  # +/- 2000 degrees/s rotation
+    # pylint: enable=bad-whitespace
+BUFFER = bytearray(6)
     # soft reset & reboot accel/gyro
     write_u8(XGTYPE, LSM9DS1_REGISTER_CTRL_REG8, 0x05)
     # soft reset & reboot magnetometer
