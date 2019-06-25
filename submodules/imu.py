@@ -28,7 +28,6 @@ import digitalio
 
 
 
-
 def twos_comp(val, bits):
     # Convert an unsigned integer in 2's compliment form of the specified bit
     # length to its signed integer value and return it.
@@ -37,74 +36,147 @@ def twos_comp(val, bits):
     return val
     
 def start():
-    
+    global LSM9DS1_ADDRESS_ACCELGYRO    
+    global LSM9DS1_ADDRESS_MAG          
+    global LSM9DS1_XG_ID                
+    global LSM9DS1_MAG_ID               
+    global LSM9DS1_ACCEL_MG_LSB_2G      
+    global LSM9DS1_ACCEL_MG_LSB_4G      
+    global LSM9DS1_ACCEL_MG_LSB_8G      
+    global LSM9DS1_ACCEL_MG_LSB_16G     
+    global LSM9DS1_MAG_MGAUSS_4GAUSS    
+    global LSM9DS1_MAG_MGAUSS_8GAUSS    
+    global LSM9DS1_MAG_MGAUSS_12GAUSS   
+    global LSM9DS1_MAG_MGAUSS_16GAUSS   
+    global LSM9DS1_GYRO_DPS_DIGIT_245DPS
+    global LSM9DS1_GYRO_DPS_DIGIT_500DPS
+    global LSM9DS1_GYRO_DPS_DIGIT_2000DP
+    global LSM9DS1_TEMP_LSB_DEGREE_CELSI
+    global LSM9DS1_REGISTER_WHO_AM_I_XG 
+    global LSM9DS1_REGISTER_CTRL_REG1_G 
+    global LSM9DS1_REGISTER_CTRL_REG2_G 
+    global LSM9DS1_REGISTER_CTRL_REG3_G 
+    global LSM9DS1_REGISTER_TEMP_OUT_L  
+    global LSM9DS1_REGISTER_TEMP_OUT_H  
+    global LSM9DS1_REGISTER_STATUS_REG  
+    global LSM9DS1_REGISTER_OUT_X_L_G   
+    global LSM9DS1_REGISTER_OUT_X_H_G   
+    global LSM9DS1_REGISTER_OUT_Y_L_G   
+    global LSM9DS1_REGISTER_OUT_Y_H_G   
+    global LSM9DS1_REGISTER_OUT_Z_L_G   
+    global LSM9DS1_REGISTER_OUT_Z_H_G   
+    global LSM9DS1_REGISTER_CTRL_REG4   
+    global LSM9DS1_REGISTER_CTRL_REG5_XL
+    global LSM9DS1_REGISTER_CTRL_REG6_XL
+    global LSM9DS1_REGISTER_CTRL_REG7_XL
+    global LSM9DS1_REGISTER_CTRL_REG8   
+    global LSM9DS1_REGISTER_CTRL_REG9   
+    global LSM9DS1_REGISTER_CTRL_REG10  
+    global LSM9DS1_REGISTER_OUT_X_L_XL  
+    global LSM9DS1_REGISTER_OUT_X_H_XL  
+    global LSM9DS1_REGISTER_OUT_Y_L_XL  
+    global LSM9DS1_REGISTER_OUT_Y_H_XL  
+    global LSM9DS1_REGISTER_OUT_Z_L_XL  
+    global LSM9DS1_REGISTER_OUT_Z_H_XL  
+    global LSM9DS1_REGISTER_WHO_AM_I_M  
+    global LSM9DS1_REGISTER_CTRL_REG1_M 
+    global LSM9DS1_REGISTER_CTRL_REG2_M 
+    global LSM9DS1_REGISTER_CTRL_REG3_M 
+    global LSM9DS1_REGISTER_CTRL_REG4_M 
+    global LSM9DS1_REGISTER_CTRL_REG5_M 
+    global LSM9DS1_REGISTER_STATUS_REG_M
+    global LSM9DS1_REGISTER_OUT_X_L_M   
+    global LSM9DS1_REGISTER_OUT_X_H_M   
+    global LSM9DS1_REGISTER_OUT_Y_L_M   
+    global LSM9DS1_REGISTER_OUT_Y_H_M   
+    global LSM9DS1_REGISTER_OUT_Z_L_M   
+    global LSM9DS1_REGISTER_OUT_Z_H_M   
+    global LSM9DS1_REGISTER_CFG_M       
+    global LSM9DS1_REGISTER_INT_SRC_M   
+    global MAGTYPE                      
+    global XGTYPE                       
+    global SENSORS_GRAVITY_STANDARD     
+
+    global ACCELRANGE_2G        
+    global ACCELRANGE_16G       
+    global ACCELRANGE_4G        
+    global ACCELRANGE_8G        
+    global MAGGAIN_4GAUSS       
+    global MAGGAIN_8GAUSS       
+    global MAGGAIN_12GAUSS      
+    global MAGGAIN_16GAUSS      
+    global GYROSCALE_245DPS     
+    global GYROSCALE_500DPS     
+    global GYROSCALE_2000DPS    
+    global BUFFER
+
     spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
     xgcs = digitalio.DigitalInOut(board.D5) # Pin connected to XGCS (accel/gyro chip
     mcs = digitalio.DigitalInOut(board.D6) # Pin connected to MCS (magnetometer chip
     # Internal constants and register values:
     # pylint: disable=bad-whitespace
-    global LSM9DS1_ADDRESS_ACCELGYRO       = const(0x6B)
-    global LSM9DS1_ADDRESS_MAG             = const(0x1E)
-    global LSM9DS1_XG_ID                   = const(0b01101000)
-    global LSM9DS1_MAG_ID                  = const(0b00111101)
-    global LSM9DS1_ACCEL_MG_LSB_2G         = 0.061
-    global LSM9DS1_ACCEL_MG_LSB_4G         = 0.122
-    global LSM9DS1_ACCEL_MG_LSB_8G         = 0.244
-    global LSM9DS1_ACCEL_MG_LSB_16G        = 0.732
-    global LSM9DS1_MAG_MGAUSS_4GAUSS       = 0.14
-    global LSM9DS1_MAG_MGAUSS_8GAUSS       = 0.29
-    global LSM9DS1_MAG_MGAUSS_12GAUSS      = 0.43
-    global LSM9DS1_MAG_MGAUSS_16GAUSS      = 0.58
-    global LSM9DS1_GYRO_DPS_DIGIT_245DPS   = 0.00875
-    global LSM9DS1_GYRO_DPS_DIGIT_500DPS   = 0.01750
-    global LSM9DS1_GYRO_DPS_DIGIT_2000DPS  = 0.07000
-    global LSM9DS1_TEMP_LSB_DEGREE_CELSIUS = 8 # 1°C = 8, 25° = 200, etc.
-    global LSM9DS1_REGISTER_WHO_AM_I_XG    = const(0x0F)
-    global LSM9DS1_REGISTER_CTRL_REG1_G    = const(0x10)
-    global LSM9DS1_REGISTER_CTRL_REG2_G    = const(0x11)
-    global LSM9DS1_REGISTER_CTRL_REG3_G    = const(0x12)
-    global LSM9DS1_REGISTER_TEMP_OUT_L     = const(0x15)
-    global LSM9DS1_REGISTER_TEMP_OUT_H     = const(0x16)
-    global LSM9DS1_REGISTER_STATUS_REG     = const(0x17)
-    global LSM9DS1_REGISTER_OUT_X_L_G      = const(0x18)
-    global LSM9DS1_REGISTER_OUT_X_H_G      = const(0x19)
-    global LSM9DS1_REGISTER_OUT_Y_L_G      = const(0x1A)
-    global LSM9DS1_REGISTER_OUT_Y_H_G      = const(0x1B)
-    global LSM9DS1_REGISTER_OUT_Z_L_G      = const(0x1C)
-    global LSM9DS1_REGISTER_OUT_Z_H_G      = const(0x1D)
-    global LSM9DS1_REGISTER_CTRL_REG4      = const(0x1E)
-    global LSM9DS1_REGISTER_CTRL_REG5_XL   = const(0x1F)
-    global LSM9DS1_REGISTER_CTRL_REG6_XL   = const(0x20)
-    global LSM9DS1_REGISTER_CTRL_REG7_XL   = const(0x21)
-    global LSM9DS1_REGISTER_CTRL_REG8      = const(0x22)
-    global LSM9DS1_REGISTER_CTRL_REG9      = const(0x23)
-    global LSM9DS1_REGISTER_CTRL_REG10     = const(0x24)
-    global LSM9DS1_REGISTER_OUT_X_L_XL     = const(0x28)
-    global LSM9DS1_REGISTER_OUT_X_H_XL     = const(0x29)
-    global LSM9DS1_REGISTER_OUT_Y_L_XL     = const(0x2A)
-    global LSM9DS1_REGISTER_OUT_Y_H_XL     = const(0x2B)
-    global LSM9DS1_REGISTER_OUT_Z_L_XL     = const(0x2C)
-    global LSM9DS1_REGISTER_OUT_Z_H_XL     = const(0x2D)
-    global LSM9DS1_REGISTER_WHO_AM_I_M     = const(0x0F)
-    global LSM9DS1_REGISTER_CTRL_REG1_M    = const(0x20)
-    global LSM9DS1_REGISTER_CTRL_REG2_M    = const(0x21)
-    global LSM9DS1_REGISTER_CTRL_REG3_M    = const(0x22)
-    global LSM9DS1_REGISTER_CTRL_REG4_M    = const(0x23)
-    global LSM9DS1_REGISTER_CTRL_REG5_M    = const(0x24)
-    global LSM9DS1_REGISTER_STATUS_REG_M   = const(0x27)
-    global LSM9DS1_REGISTER_OUT_X_L_M      = const(0x28)
-    global LSM9DS1_REGISTER_OUT_X_H_M      = const(0x29)
-    global LSM9DS1_REGISTER_OUT_Y_L_M      = const(0x2A)
-    global LSM9DS1_REGISTER_OUT_Y_H_M      = const(0x2B)
-    global LSM9DS1_REGISTER_OUT_Z_L_M      = const(0x2C)
-    global LSM9DS1_REGISTER_OUT_Z_H_M      = const(0x2D)
-    global LSM9DS1_REGISTER_CFG_M          = const(0x30)
-    global LSM9DS1_REGISTER_INT_SRC_M      = const(0x31)
-    global MAGTYPE                         = True
-    global XGTYPE                          = False
-    global SENSORS_GRAVITY_STANDARD        = 9.80665
+    LSM9DS1_ADDRESS_ACCELGYRO       = const(0x6B)
+    LSM9DS1_ADDRESS_MAG             = const(0x1E)
+    LSM9DS1_XG_ID                   = const(0b01101000)
+    LSM9DS1_MAG_ID                  = const(0b00111101)
+    LSM9DS1_ACCEL_MG_LSB_2G         = 0.061
+    LSM9DS1_ACCEL_MG_LSB_4G         = 0.122
+    LSM9DS1_ACCEL_MG_LSB_8G         = 0.244
+    LSM9DS1_ACCEL_MG_LSB_16G        = 0.732
+    LSM9DS1_MAG_MGAUSS_4GAUSS       = 0.14
+    LSM9DS1_MAG_MGAUSS_8GAUSS       = 0.29
+    LSM9DS1_MAG_MGAUSS_12GAUSS      = 0.43
+    LSM9DS1_MAG_MGAUSS_16GAUSS      = 0.58
+    LSM9DS1_GYRO_DPS_DIGIT_245DPS   = 0.00875
+    LSM9DS1_GYRO_DPS_DIGIT_500DPS   = 0.01750
+    LSM9DS1_GYRO_DPS_DIGIT_2000DPS  = 0.07000
+    LSM9DS1_TEMP_LSB_DEGREE_CELSIUS = 8 # 1°C = 8, 25° = 200, etc.
+    LSM9DS1_REGISTER_WHO_AM_I_XG    = const(0x0F)
+    LSM9DS1_REGISTER_CTRL_REG1_G    = const(0x10)
+    LSM9DS1_REGISTER_CTRL_REG2_G    = const(0x11)
+    LSM9DS1_REGISTER_CTRL_REG3_G    = const(0x12)
+    LSM9DS1_REGISTER_TEMP_OUT_L     = const(0x15)
+    LSM9DS1_REGISTER_TEMP_OUT_H     = const(0x16)
+    LSM9DS1_REGISTER_STATUS_REG     = const(0x17)
+    LSM9DS1_REGISTER_OUT_X_L_G      = const(0x18)
+    LSM9DS1_REGISTER_OUT_X_H_G      = const(0x19)
+    LSM9DS1_REGISTER_OUT_Y_L_G      = const(0x1A)
+    LSM9DS1_REGISTER_OUT_Y_H_G      = const(0x1B)
+    LSM9DS1_REGISTER_OUT_Z_L_G      = const(0x1C)
+    LSM9DS1_REGISTER_OUT_Z_H_G      = const(0x1D)
+    LSM9DS1_REGISTER_CTRL_REG4      = const(0x1E)
+    LSM9DS1_REGISTER_CTRL_REG5_XL   = const(0x1F)
+    LSM9DS1_REGISTER_CTRL_REG6_XL   = const(0x20)
+    LSM9DS1_REGISTER_CTRL_REG7_XL   = const(0x21)
+    LSM9DS1_REGISTER_CTRL_REG8      = const(0x22)
+    LSM9DS1_REGISTER_CTRL_REG9      = const(0x23)
+    LSM9DS1_REGISTER_CTRL_REG10     = const(0x24)
+    LSM9DS1_REGISTER_OUT_X_L_XL     = const(0x28)
+    LSM9DS1_REGISTER_OUT_X_H_XL     = const(0x29)
+    LSM9DS1_REGISTER_OUT_Y_L_XL     = const(0x2A)
+    LSM9DS1_REGISTER_OUT_Y_H_XL     = const(0x2B)
+    LSM9DS1_REGISTER_OUT_Z_L_XL     = const(0x2C)
+    LSM9DS1_REGISTER_OUT_Z_H_XL     = const(0x2D)
+    LSM9DS1_REGISTER_WHO_AM_I_M     = const(0x0F)
+    LSM9DS1_REGISTER_CTRL_REG1_M    = const(0x20)
+    LSM9DS1_REGISTER_CTRL_REG2_M    = const(0x21)
+    LSM9DS1_REGISTER_CTRL_REG3_M    = const(0x22)
+    LSM9DS1_REGISTER_CTRL_REG4_M    = const(0x23)
+    LSM9DS1_REGISTER_CTRL_REG5_M    = const(0x24)
+    LSM9DS1_REGISTER_STATUS_REG_M   = const(0x27)
+    LSM9DS1_REGISTER_OUT_X_L_M      = const(0x28)
+    LSM9DS1_REGISTER_OUT_X_H_M      = const(0x29)
+    LSM9DS1_REGISTER_OUT_Y_L_M      = const(0x2A)
+    LSM9DS1_REGISTER_OUT_Y_H_M      = const(0x2B)
+    LSM9DS1_REGISTER_OUT_Z_L_M      = const(0x2C)
+    LSM9DS1_REGISTER_OUT_Z_H_M      = const(0x2D)
+    LSM9DS1_REGISTER_CFG_M          = const(0x30)
+    LSM9DS1_REGISTER_INT_SRC_M      = const(0x31)
+    MAGTYPE                         = True
+    XGTYPE                          = False
+    SENSORS_GRAVITY_STANDARD        = 9.80665
+
     
-    # User facing constants/module globals.
     ACCELRANGE_2G                = (0b00 << 3)
     ACCELRANGE_16G               = (0b01 << 3)
     ACCELRANGE_4G                = (0b10 << 3)
@@ -141,6 +213,10 @@ def start():
     accel_range = ACCELRANGE_2G
     mag_gain = MAGGAIN_4GAUSS
     gyro_scale = GYROSCALE_245DPS
+
+    global mag_device
+    global xg_device
+    
     mag_device = spi_device.SPIDevice(spi, mcs, baudrate=200000, phase=1, polarity=1)
     xg_device = spi_device.SPIDevice(spi, xgcs, baudrate=200000, phase=1, polarity=1)
 
