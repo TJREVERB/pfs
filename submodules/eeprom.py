@@ -26,7 +26,7 @@ def remove_var(what, address=0x50):
 
 def write_var(what, address=0x50):
     device_address = int(address)
-    data = read()+ "!" + what + "!"
+    data = read() + "!" + what + "!"
     chunks = []
     i = 0
     while i * 16 < len(data):
@@ -37,7 +37,7 @@ def write_var(what, address=0x50):
         i += 1
 
 
-def start():  
+def start():
     global size
     global bus
     size = 131072
@@ -63,7 +63,7 @@ def make_file():
     yaml.dump(ast.literal_eval(read(0x50, 8192, 1)), stream)
 
 
-def read(address=0x50, size=8192, data_num=0, s = ""):
+def read(address=0x50, size=8192, data_num=0, s=""):
     device_address = int(address)
     size = int(size)
 
@@ -78,9 +78,9 @@ def read(address=0x50, size=8192, data_num=0, s = ""):
         out = out + str(chr(byte))
     # out = out + str(list(map(chr, byte2)))
     if data_num == 0:
-        #return out[0:out.rfind("!")].replace("''", "")
+        # return out[0:out.rfind("!")].replace("''", "")
         return out
-    if(data_num ==1):
+    if(data_num == 1):
         return out[0:iter_find(out, "!")[0]].replace("''", "")
     return out[iter_find(out, "!")[data_num-2]+1:iter_find(out, "!")[data_num-1]].replace("''", "")
 
@@ -104,7 +104,7 @@ def write_yaml(address=0x50, filename="config.yaml"):
 def write(bus, device_address, memory_address, data):
     cmd = memory_address >> 8
     bytes = [memory_address & 0xff] + data
-    #print("writing to %.2x at %.4x bytes %d" %
+    # print("writing to %.2x at %.4x bytes %d" %
     #      (device_address, memory_address, len(data)))
    # print(bytes)
     return bus.write_i2c_block_data(device_address, cmd, bytes)

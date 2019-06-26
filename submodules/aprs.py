@@ -125,11 +125,11 @@ def start():
     # Create all the background threads
     t1 = ThreadHandler(target=partial(listen),
                        name="aprs-listen", parent_logger=logger)
-    t2 = ThreadHandler(target=partial(send, "hello"), name="aprs-send_loop", parent_logger=logger)
+    t2 = ThreadHandler(target=partial(send, "hello"),
+                       name="aprs-send_loop", parent_logger=logger)
     # t3 = ThreadHandler(target=partial(telemetry_watchdog), name="aprs-telemetry_watchdog", parent_logger=logger)
 
     # Start the background threads
     t1.start()
     t2.start()
     # t3.start()
-

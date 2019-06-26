@@ -15,6 +15,7 @@ epsdict = {'a': 1, 'i2c': 2, 'c': 3, 'antenna': 4,
            'pi': 5, 'iridium': 6, 'aprs': 7, 'h': 8, 'i': 9, 'j': 10}
 mode = Mode.NORMAL
 
+
 def pin_on(device_name) -> bool:
     if state != Mode.NORMAL:
         return False
@@ -31,7 +32,8 @@ def pin_on(device_name) -> bool:
                 logger.debug("Pin communication successful. Pin is now ON.")
                 return True
             else:
-                logger.error("Pin communication unsuccessful. Pin is still OFF.")
+                logger.error(
+                    "Pin communication unsuccessful. Pin is still OFF.")
                 return False
 
 
@@ -55,8 +57,11 @@ def pin_off(device_name) -> bool:
             if get_PDM_status(device_name) == 0:  # PDM is OFF
                 logger.debug("Pin communication successful. Pin is now OFF.")
             else:
-                logger.error("Pin communication unsuccessful. Pin is still ON.")
+                logger.error(
+                    "Pin communication unsuccessful. Pin is still ON.")
                 return False
+
+
 """
 def verify_status_integrity(device_name):
     arr = []
@@ -68,6 +73,8 @@ def verify_status_integrity(device_name):
             logger.debug("No match at index = " + str(x))
         time.sleep(0.25)
 """
+
+
 def get_PDM_status(device_name):
     with SMBusWrapper(1) as bus:
         PDM_val = epsdict[device_name]
@@ -119,13 +126,14 @@ def get_battery_bus_volts():  # TODO: Verify
         return bus.read_byte(address)
 
 
-def get_board_telem(data):  #FIXME: Invalid return type: should be int list (so add a while loop)
+# FIXME: Invalid return type: should be int list (so add a while loop)
+def get_board_telem(data):
     with SMBusWrapper(1) as bus:
         bus.write_byte_data(address, 0x10, 0x23)
         return bus.read_byte(address)
 
 
-def led_on_off() -> None:        #TODO: Delete this method, from eps testing with fake eps
+def led_on_off() -> None:  # TODO: Delete this method, from eps testing with fake eps
     looptime = 20  # FIXME: Was 30
     while True:
         pin_on('aprs')

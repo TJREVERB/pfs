@@ -15,6 +15,7 @@ pyserial = "*"
 pymap3d = "*"
 orbitalpy = "*"
 pyorbital = "*"
+autopep8 = "*"
 
 [requires]
 python_version = "3.7"

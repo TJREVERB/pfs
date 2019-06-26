@@ -4,7 +4,6 @@ from submodules import iridium
 default_radio: str = "aprs"
 
 
-
 def send(message: str, radio=None):
     """
     Send a message back to the groundstation.

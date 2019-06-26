@@ -145,7 +145,8 @@ def start():
     """
     Starts the telemetry send thread
     """
-    t2 = ThreadHandler(target=partial(telemetry_send), name="telemetry-telemetry_send")
+    t2 = ThreadHandler(target=partial(telemetry_send),
+                       name="telemetry-telemetry_send")
     t2.start()
 
 
