@@ -27,13 +27,13 @@ def load_config():
     """
 
     # `config_custom.yml` (custom configuration file) exists
-    if os.path.exists('config_custom.yml'):
+    if os.path.exists('config/config_custom.yml'):
         # TODO: be resilient to I/O errors (e.g. persistent storage is ded)
-        with open('config_custom.yml') as f:
+        with open('config/config_custom.yml') as f:
             config = yaml.load(f)
     else:
         # Custom configuration does not exist, use `config_default.yml`
-        with open('config_default.yml') as f:
+        with open('config/config_default.yml') as f:
             config = yaml.load(f)
 
     return config
@@ -90,9 +90,9 @@ def enter_emergency_mode(reason: str = '') -> None:
             getattr(module, 'enter_emergency_mode')()
 
 
-def check_first_boot():  # TODO: IF EMPROM SAYS FIRST BOOT WAIT 30 MINUTES ELSE CONTINUE
+def check_first_boot():  # TODO: IF EEPROM SAYS FIRST BOOT WAIT 30 MINUTES ELSE CONTINUE
     # if eeprom.get("FIRST_BOOT") is None or eeprom.get("FIRST_BOOT") == True:
-    #    eeprom.add("FIRST BOOT", True) #FIXME eeprom stuff
+    #    eeprom.add("FIRST BOOT", True) # FIXME eeprom stuff
     #    time.sleep(1800)
     pass
 
