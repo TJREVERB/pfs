@@ -16,6 +16,7 @@ pymap3d = "*"
 orbitalpy = "*"
 pyorbital = "*"
 autopep8 = "*"
+circuitpython-build-tools = "*"
 
 [requires]
 python_version = "3.7"

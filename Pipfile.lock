@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "e38934730ff97d5df848acea354b34a4e9b2d0b9502b5d3f69ffe46383063877"
+            "sha256": "ed94c3cd549e05b8bddb3b0768dd97ba00476c868be206f8a1146fcb7029dbfc"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -43,6 +43,20 @@
             ],
             "index": "pypi",
             "version": "==1.4.4"
+        },
+        "circuitpython-build-tools": {
+            "hashes": [
+                "sha256:41d8dbc1650724916856b5ef089ace71b123a743f73e2644ae87a902756ae207"
+            ],
+            "index": "pypi",
+            "version": "==1.2.7"
+        },
+        "click": {
+            "hashes": [
+                "sha256:2335065e6395b9e67ca716de5f7526736bfa6ceead690adf616d925bdc622b13",
+                "sha256:5b94b49521f6456670fdb30cd82a4eca9412788a93fa6dd6df72c94d5a8ff2d7"
+            ],
+            "version": "==7.0"
         },
         "cycler": {
             "hashes": [
@@ -234,6 +248,13 @@
                 "sha256:db61a640ca20f237317d27bc658c1fc54c7581ff7f6502d112922dc285bdabee"
             ],
             "version": "==1.3.0"
+        },
+        "semver": {
+            "hashes": [
+                "sha256:41c9aa26c67dc16c54be13074c352ab666bce1fa219c7110e8f03374cd4206b0",
+                "sha256:5b09010a66d9a3837211bb7ae5a20d10ba88f8cb49e92cb139a69ef90d5060d8"
+            ],
+            "version": "==2.8.1"
         },
         "sgp4": {
             "hashes": [
