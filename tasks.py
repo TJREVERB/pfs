@@ -46,10 +46,10 @@ def deploy(c):
 
     file_new.close()
 
+    # Install skipped packages using apt
+    for r in requirements_skip_to_install:
+        c.run("sudo apt install -y " + r)
+
     # Install requirements.txt using pip
     c.run("sudo pip3 install --verbose -r requirements.txt")
     os.remove("requirements.txt")
-
-    # Install skipped packages using apt
-    for r in requirements_skip_to_install:
-        c.run("sudo apt install " + r)
