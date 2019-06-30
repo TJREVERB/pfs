@@ -17,7 +17,7 @@ mode = Mode.NORMAL
 
 
 def pin_on(device_name) -> bool:
-    if state != Mode.NORMAL:
+    if mode != Mode.NORMAL:
         return False
     with SMBusWrapper(1) as bus:
         PDM_val = epsdict[device_name]
