@@ -109,12 +109,23 @@ def start():
     global GYROSCALE_500DPS
     global GYROSCALE_2000DPS
     global BUFFER
+    
+    global mag_device
+    global xg_device
+
+    
 
     spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
     # Pin connected to XGCS (accel/gyro chip
     xgcs = digitalio.DigitalInOut(board.D5)
     # Pin connected to MCS (magnetometer chip
     mcs = digitalio.DigitalInOut(board.D6)
+    
+    mag_device = spi_device.SPIDevice(
+        spi, mcs, baudrate=200000, phase=1, polarity=1)
+    xg_device = spi_device.SPIDevice(
+        spi, xgcs, baudrate=200000, phase=1, polarity=1)
+    
     # Internal constants and register values:
     # pylint: disable=bad-whitespace
     LSM9DS1_ADDRESS_ACCELGYRO = const(0x6B)
@@ -215,13 +226,6 @@ def start():
     mag_gain = MAGGAIN_4GAUSS
     gyro_scale = GYROSCALE_245DPS
 
-    global mag_device
-    global xg_device
-
-    mag_device = spi_device.SPIDevice(
-        spi, mcs, baudrate=200000, phase=1, polarity=1)
-    xg_device = spi_device.SPIDevice(
-        spi, xgcs, baudrate=200000, phase=1, polarity=1)
 
 # getter
 
