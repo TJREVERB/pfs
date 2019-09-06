@@ -27,7 +27,7 @@ packetBuffers = [event_packet_buffer, telem_packet_buffer]
 # TODO: Use an indexed system so that we have persistent log storage and querying
 packet_lock = Lock()
 
-
+# FIXME: Rename to telemetry_send_loop()
 def telemetry_send():
     """
     Thread method to burst the telemetry every so often
@@ -43,6 +43,7 @@ def telemetry_send():
         time.sleep(config['telemetry']['send_interval'])
 
 
+# FIXME: Rename to telemetry_send()
 def telemetry_send_once():
     """
     Immediately send telemetry packets in both telemetry and event packet queues
