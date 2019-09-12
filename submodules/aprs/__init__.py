@@ -1,5 +1,4 @@
 import logging
-import os
 import pty
 import time
 from functools import partial
@@ -13,7 +12,6 @@ from core.threadhandler import ThreadHandler
 from submodules import command_ingest
 from submodules import eps
 
-from submodules.command_ingest import command
 
 # Placeholder values for `telemetry.py`
 total_received_ph = 100
@@ -32,8 +30,8 @@ ser = None  # Initialize serial
 ser_master, ser_slave = pty.openpty()  # Serial ports for when in simulate mode
 
 
-@command("aprs_echo", str)
-def send(msg: str) -> None:
+@command_ingest.command("aprs_echo", str)
+def send(ser, msg: str) -> None:
     """
     Put a packet in the APRS queue.  The APRS queue exists
     only to make sure that we don't send and receive at the
@@ -53,21 +51,7 @@ def send(msg: str) -> None:
         time.sleep(1)
 
 
-def xtelemetry_watchdog():
-    """
-    Watches for "hardware beacon" sent out by APRS. Ensures that the radio is still alive.
-    """
-    while True:
-        time.sleep(config['aprs']['telem_timeout'])
-        if time.time() - last_telem_time > config['aprs']['telem_timeout']:
-            logger.error("APRS is dead, restarting APRS")
-            if not is_simulate('eps'):
-                eps.reboot_device('aprs', 3)
-        else:
-            logger.debug("Watchdog pass APRS")
-
-
-def listen():
+def listen(ser):
     """
     Read messages from serial. If a command is received, send it to `command_ingest`
     """
@@ -117,7 +101,6 @@ def parse_aprs_packet(packet: str) -> str:
 
 
 def start():
-    global ser
 
     # Opens the serial port for all methods to use with 19200 baud
     ser = serial.Serial(config['aprs']['serial_port'], 19200)
@@ -125,11 +108,6 @@ def start():
     # Create all the background threads
     t1 = ThreadHandler(target=partial(listen),
                        name="aprs-listen", parent_logger=logger)
-    t2 = ThreadHandler(target=partial(send, "hello"),
-                       name="aprs-send_loop", parent_logger=logger)
-    # t3 = ThreadHandler(target=partial(telemetry_watchdog), name="aprs-telemetry_watchdog", parent_logger=logger)
 
     # Start the background threads
     t1.start()
-    t2.start()
-    # t3.start()
