@@ -2,8 +2,8 @@ import importlib
 import logging
 import os
 import time
-
 import yaml
+
 
 from core.mode import Mode
 from core.power import Power
@@ -36,6 +36,10 @@ def load_config():
         with open('config/config_default.yml') as f:
             config = yaml.load(f)
 
+    return config
+
+
+def get_config():
     return config
 
 

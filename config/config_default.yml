@@ -58,6 +58,8 @@ gps:
     simulate: False
 eps:
     simulate: False
+radio_output:
+    sleep_interval: 10
 housekeeping:
     beacon_period: 60
     low_power_period: 120
