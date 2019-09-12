@@ -8,7 +8,7 @@ from core import get_config
 """
 send_lock is a threading lock that only allows one process to access a resource
 """
-send_lock = Lock()
+send_lock = Lock() # Instance of threading lock
 
 """
 Send a message back to the groundstation.
@@ -20,8 +20,8 @@ Send a message back to the groundstation.
 def send(message: str, radio="aprs"):
     with send_lock: # When a process tries to access this method, it must receive the lock before continuing
         if radio == "iridium":
-            iridium.send(message)
+            iridium.send(message) # Send through Iridium
         else:
-            aprs.send(message)
+            aprs.send(message) # Send through APRS
         sleep(get_config()['radio_output']['sleep_interval']) # Wait until APRS and Iridium buffers are cleared
     # At this point the lock has been released

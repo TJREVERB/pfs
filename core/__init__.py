@@ -40,6 +40,7 @@ def load_config():
 
 
 def get_config():
+    """Returns the configuration data from config_*.yml as a list"""
     return config
 
 

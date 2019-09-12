@@ -58,6 +58,7 @@ gps:
     simulate: False
 eps:
     simulate: False
+# Wait interval so that APRS and Iridium buffers can be cleared
 radio_output:
     sleep_interval: 10
 housekeeping:
