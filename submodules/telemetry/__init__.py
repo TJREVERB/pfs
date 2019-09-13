@@ -28,6 +28,8 @@ packetBuffers = [event_packet_buffer, telem_packet_buffer]
 packet_lock = Lock()
 
 # FIXME: Rename to telemetry_send_loop()
+
+
 def telemetry_send():
     """
     Thread method to burst the telemetry every so often
