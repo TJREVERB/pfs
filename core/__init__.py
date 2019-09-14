@@ -116,7 +116,7 @@ def start():
     state = None
 
     #Telemetry dump after x seconds
-    t = threading.Timer(config['core']['dump_interval'], telemetry.dump()) #method: telemetry.dump() not a method right now
+    t = threading.Timer(config['core']['dump_interval'], telemetry.dump) #method: telemetry.dump() not a method right now
     t.start()
 
     # logger.debug(f"Config: {config}")
