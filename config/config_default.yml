@@ -12,6 +12,7 @@ core:
             - housekeeping
             - telemetry
     config_save_interval: 60
+    dump_interval: 10
 adcs:
     koe:
         argp: 33.54134
