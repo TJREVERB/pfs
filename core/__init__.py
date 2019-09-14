@@ -2,7 +2,7 @@ import importlib
 import logging
 import os
 import time
-
+import threading
 import yaml
 
 from core.mode import Mode
@@ -10,7 +10,7 @@ from core.power import Power
 from submodules import eps
 # from submodules import command_ingest
 # from submodules import aprs
-# from submodules import telemetry
+from submodules import telemetry
 # from submodules import antenna_deploy
 from submodules.command_ingest import command
 
@@ -114,6 +114,10 @@ def start():
     # Load `config` from either default file or persistent config
     config = load_config()
     state = None
+
+    #Telemetry dump after x seconds
+    t = threading.Timer(config['core']['dump_interval'], telemetry.dump()) #method: telemetry.dump() not a method right now
+    t.start()
 
     # logger.debug(f"Config: {config}")
 
