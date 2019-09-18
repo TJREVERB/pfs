@@ -4,6 +4,7 @@ import os
 import time
 import yaml
 
+
 from core.mode import Mode
 from core.power import Power
 from functools import partial
@@ -37,6 +38,11 @@ def load_config():
         with open('config/config_default.yml') as f:
             config = yaml.load(f)
 
+    return config
+
+
+def get_config():
+    """Returns the configuration data from config_*.yml as a list"""
     return config
 
 
