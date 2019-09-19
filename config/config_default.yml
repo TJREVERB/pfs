@@ -1,3 +1,4 @@
+# Simulate = whether or not core is running while running fake data
 core:
     modules:
         A:
@@ -9,66 +10,16 @@ core:
         C:
             - aprs
             - iridium
-            - housekeeping
             - telemetry
     config_save_interval: 60
-    dump_interval: 10
-adcs:
-    koe:
-        argp: 33.54134
-        bstardrag: 6.8825e-05
-        ecc: 0.0014246
-        epch: 2458529.5
-        incl: 51.30431
-        raan: 245.32261
-        sma: 6791113.16
-        tran: 312.2107
-    lla:
-        alt: 396856.27533
-        epch: 2458529.5
-        lat: 5.33574
-        lon: -134.83867
-    mode: normal
-    sc:
-        bstardrag: 6.8825e-05
-        inertia:
-            - 0.0108
-            - 0.0108
-            - 0.0108
-    timeout: 10
-    tledata:
-        lastday: 40.35
-        lastyear: 2019
-        meananom: 0
-        meanmot: 15.5
-        oldargp: 2
-        revnum: 1
-    tlefiles:
-        backup: backup_tle.txt
-        tjreverb: tjreverb_tle.txt
-    wrldmagm: WMM.COF
 aprs:
-    #s1
     serial_port: /dev/ttyUSB0
-    simulate: False
     telem_timeout: 70
     message_spacing: 1
-gps:
-    #s3
-    serial_port: /dev/ttyUSB1
-    simulate: False
 eps:
-    simulate: False
-# Wait interval so that APRS and Iridium buffers can be cleared
-radio_output:
-    sleep_interval: 10
-housekeeping:
-    beacon_period: 60
-    low_power_period: 120
 telemetry:
     send_interval: 30
     buffer_size: 100
     max_packet_size: 170
 iridium:
     serial_port: /dev/ttyUSB0
-    simulate: False
