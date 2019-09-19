@@ -122,8 +122,7 @@ def start():
     state = None
 
     # Telemetry dump after x seconds
-    t = Timer(config['core']['dump_interval'],
-              partial(telemetry.dump))  # method: telemetry.dump() not a method right now
+    t = Timer(config['core']['dump_interval'], partial(telemetry.dump))
     t.start()
 
     # logger.debug(f"Config: {config}")
