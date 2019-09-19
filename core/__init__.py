@@ -105,12 +105,12 @@ def check_first_boot():  # TODO: IF EEPROM SAYS FIRST BOOT WAIT 30 MINUTES ELSE 
     pass
 
 
-def power_watchdog():
+def power_watchdog(**kwargs):
     while True:
-        if eps.get_battery_bus_volts() >= Power.NORMAL and state != Mode.NORMAL:
+        if eps.get_battery_bus_volts() >= Power.NORMAL.value and state != Mode.NORMAL:
             enter_normal_mode(
                 f'Battery level at sufficient state: {eps.get_battery_bus_volts()}')
-        elif eps.get_battery_bus_volts() < Power.NORMAL and state != Mode.LOW_POWER:
+        elif eps.get_battery_bus_volts() < Power.NORMAL.value and state != Mode.LOW_POWER:
             enter_low_power_mode(
                 f'Battery level at critical state: {eps.get_battery_bus_volts()}')
 
@@ -178,6 +178,3 @@ def start():
 
     while True:
         time.sleep(1)
-
-    # MAIN LOOP
-    # power_watchdog()
