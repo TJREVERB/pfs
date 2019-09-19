@@ -8,5 +8,5 @@ class Log():
         self.message = msg
         self.header = 'LOG&'
     def to_string(self):
-        return "{0}:{1}:{2}:{3}:{4}".format(self.header, self.system, self.level,
+        return "{0}:{1}:{2}:{3}:{4}|".format(self.header, self.system, self.level,
             self.timestamp.strftime("%Y/%m/%d@%H%M%S"), self.message)
