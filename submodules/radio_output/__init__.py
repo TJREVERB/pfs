@@ -1,4 +1,4 @@
-from submodules.aprs import aprs
+from submodules import aprs
 from submodules import iridium
 
 default_radio: str = "aprs"

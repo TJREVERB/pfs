@@ -3,6 +3,7 @@ import collections
 import logging
 from functools import partial
 from threading import Lock
+from time import sleep
 
 from core.mode import Mode
 
@@ -26,12 +27,15 @@ err_stack = collections.deque()
 
 packet_lock = Lock()
 
-def enqueue(message: str) -> None:
+def enqueue(message) -> None:
     """
     Enqueue a message onto the general queue, to be processed later by thread decide()
-    :param message: The message to push onto general queue
+    :param message: The message to push onto general queue, log/error class
     :return: Nothing
     """
+    if not ((type(message) is str and message[0] == ';') or type(message) is error.Error or type(message) is log.Log):
+        logger.error("Attempted to enqueue invalid message")
+        return
     general_queue.append(message)
 
 @command("telem_dump")
@@ -49,10 +53,10 @@ def dump(radio='aprs') -> None:
         while len(log_stack) + len(err_stack) > 0:
             while len(squishedpackets) < config["telemetry"]["max_packet_size"] and len(log_stack) + len(err_stack) > 0:
                 if len(err_stack) > 0:
-                    squishedpackets += err_stack.pop()
+                    squishedpackets += err_stack.pop().to_string()
                 else:
-                    squishedpackets += log_stack.pop()
-            squishedpackets = base64.b64encode(squishedpackets)
+                    squishedpackets += log_stack.pop().to_string()
+            squishedpackets = base64.b64encode(squishedpackets.encode('ascii'))
             radio_output.send(squishedpackets, radio)
             squishedpackets = ""
 
@@ -76,22 +80,18 @@ def decide() -> None:
     :return: Nothing
     """
     global packet_lock
-    while True:
-        if len(general_queue) > 0:
-            with packet_lock:
-                message = general_queue.popleft()
-                if len(message) < 5:    # Messages have to be longer than five characters because the first four
-                                        # characters have to identify the type of message
-                    logger.error("Message too short for it to be a valid message.")
-                else:
-                    if message[0:4] == "CMD$":
-                        command_ingest.enqueue(message[4:])
-                    elif message[0:4] == "ERR!":
-                        err_stack.append(message)
-                    elif message[0:4] == "LOG&":
-                        log_stack.append(message)
-                    else:   # Shouldn't execute (enqueue() should catch it) but here just in case
-                        logger.error("Message prefix invalid.")
+    # while True:
+    if len(general_queue) > 0:
+        with packet_lock:
+            message = general_queue.popleft()
+            if type(message) is str and message[0] == ';':
+                command_ingest.enqueue(message[4:])
+            elif type(message) is error.Error:
+                err_stack.append(message)
+            elif type(message) is log.Log:
+                log_stack.append(message)
+            else:   # Shouldn't execute (enqueue() should catch it) but here just in case
+                logger.error("Message prefix invalid.")
 
 
 def start():
