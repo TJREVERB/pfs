@@ -1,0 +1,25 @@
+# Simulate = whether or not core is running while running fake data
+core:
+    modules:
+        A:
+            - eps
+            - command_ingest
+            - imu
+        B:
+            - antenna_deployer
+        C:
+            - aprs
+            - iridium
+            - telemetry
+    config_save_interval: 60
+aprs:
+    serial_port: /dev/ttyUSB0
+    telem_timeout: 70
+    message_spacing: 1
+eps:
+telemetry:
+    send_interval: 30
+    buffer_size: 100
+    max_packet_size: 170
+iridium:
+    serial_port: /dev/ttyUSB0
