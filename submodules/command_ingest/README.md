@@ -18,3 +18,4 @@
 
 - `dispatch(cmd: str)`: Actually run the associated function 
 - `validate(cmd: str)`: Check if command is coming from a valid source
+- `associate(cmd: str)`: Associate a Python function with a command string

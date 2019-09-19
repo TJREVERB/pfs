@@ -1,4 +1,5 @@
 import logging
+from inspect import signature
 
 logger = logging.getLogger("CI")
 
@@ -6,96 +7,62 @@ total_received: int = 0
 total_errors: int = 0
 total_success: int = 0
 
-# All currently registered commands.  The key is the function identifier in the air, and values follow
-# the format {"function": func, "args": args}  where args is an array of types (e.g. int, str, float, etc.)
-registered_commands = {}
-
 
 # Annotation to register a function as a command
 # Example usage:
 # @command("aprs_set_bperiod", int)
 # def set_bperiod(period: int) -> str:
 # ...
-
-def command(command_name, *args, **kwargs):
+def associate(cmd: str):
     """
     Given a function name, return a decorator that registers that function.
     :return: Decorator that registers function.
     """
-    def decorator(func):
-        registered_commands[command_name] = {"function": func, "args": args}
-        return func
 
-    return decorator
+    valid_commands = {}
+
+    if cmd in valid_commands:
+        return valid_commands.get(cmd)
+    else:
+        return None
 
 
-def generate_checksum(body: str):
+def generate_checksum(cmd: str):
     """
     Given a message body, generate its checksum
     :param body: The body of the message.
     :return: Generated checksum for the message.
     """
-    global sum1
-    sum1 = sum([ord(x) for x in body[0:-7]])
-    sum1 %= 26
-    sum1 += 65
-    logger.debug('CHECKOUT :' + chr(sum1) + ";")
-    return chr(sum1)
+    cmd_sum = sum([ord(x) for x in cmd])
+    cmd_sum %= 26
+    cmd_sum += 65
+    logger.debug('CHECKOUT :' + chr(cmd_sum) + ";")
+    return chr(cmd_sum)
 
 
-def dispatch(body: str) -> None:
-    """
-    Given a raw radio packet, verify its checksum and execute it if it's a command.
-    Both radios will call this function whenever they receive an incoming message.
-    :param body: The body of a raw radio packet.
-    :return: None
-    """
-    global total_errors, total_received, total_success
-    # TODO: exception proof this (index out of bounds)
-    if body[0:2] == 'TJ' and body[-5:-1] == '\\r\\n':  # FIXME: Remove EOL check
-        # TODO: exception proof (index out of bounds)
-        if generate_checksum(body) == body[-7]:
-            logger.debug("Message %s passed checksum." % body)
-            total_received += 1
-            # Parse and execute command.
-            cmd = body[2:].strip().split(",")
-            if cmd[0] not in registered_commands:
-                logger.warning("Command with correct checksum not registered.")
-                total_errors += 1
-                return
-            if len(registered_commands[cmd[0]]["args"]) != len(cmd) - 1:
-                logger.warning("Incorrect number of arguments for command.")
-                total_errors += 1
-                return
-            args = []
-            for i, argtype in enumerate(registered_commands[cmd[0]]["args"]):
-                # TODO: Why are we appending the next command
-                try:
-                    if argtype == str:  # Don't call str() on a string, as that puts extra quotes around it
-                        args.append(cmd[i + 1])
-                    else:
-                        args.append(argtype(cmd[i + 1]))
-                except:
-                    # There was an error when converting an argument
-                    logger.debug("Unable to parse argument for command.")
-                    total_errors += 1
-                    return
+def dispatch(body: str):
+    # Get the individual parts of the message
+    parts = [part for part in body.split(";") if part]
+    command, arguments, checksum = parts[0], parts[1].split(","), parts[2]
+
+    if generate_checksum(command) == checksum:
+        associated = associate(command)
+        if associated is not None:
+            associated_sig = signature(associated)
+            # Check num args and arg types
+
+            if not len(arguments) == len(associated_sig.parameters):
+                # TODO: log error (incorrect num of args)
+                pass
             try:
-                # Actually execute the command
-                resp = registered_commands[cmd[0]]["function"](*args)
-                if resp is not None:
-                    # TODO: Enqueue as an event message
-                    pass
-            except Exception as e:
-                logger.error("Exception when executing command %s: %s" %
-                             (cmd[0], str(e)))
-                total_errors += 1
-                return
-            total_success += 1
+                associated(*arguments)  # Actually run the command
+            except:
+                # TODO: send error immediately
+                pass
     else:
-        # The message was not intended for us.
-        # logger.debug('Invalid message')
+        # TODO: log that checksum is incorrect
         pass
+
 
 """
 def start():
