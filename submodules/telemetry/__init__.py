@@ -45,14 +45,16 @@ def dump(radio='aprs') -> None:
     global packet_lock, log_stack, err_stack
     squishedpackets = ""
 
-    # with packet_lock:
-    #     while len(log_stack) + len(err_stack) > 0:
-    #         if
-    #
-    #         radio_output.send(squishedpackets, radio)
-    #         squishedpackets = ""
-
-    #TODO: implement
+    with packet_lock:
+        while len(log_stack) + len(err_stack) > 0:
+            while len(squishedpackets) < config["telemetry"]["max_packet_size"] and len(log_stack) + len(err_stack) > 0:
+                if len(err_stack) > 0:
+                    squishedpackets += err_stack.pop()
+                else:
+                    squishedpackets += log_stack.pop()
+            squishedpackets = base64.b64encode(squishedpackets)
+            radio_output.send(squishedpackets, radio)
+            squishedpackets = ""
 
 
 @command("telem_clear")
