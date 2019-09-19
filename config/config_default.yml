@@ -12,6 +12,7 @@ core:
             - iridium
             - telemetry
     config_save_interval: 60
+    dump_interval: 10
 aprs:
     serial_port: /dev/ttyUSB0
     telem_timeout: 70
