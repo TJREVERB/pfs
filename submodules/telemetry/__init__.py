@@ -30,7 +30,7 @@ packet_lock = Lock()
 def enqueue(message) -> None:
     """
     Enqueue a message onto the general queue, to be processed later by thread decide()
-    :param message: The message to push onto general queue, log/error class
+    :param message: The message to push onto general queue, log/error class, or command (string - must begin with semicolon, see command_ingest's readme)
     :return: Nothing
     """
     if not ((type(message) is str and message[0] == ';') or type(message) is error.Error or type(message) is log.Log):
@@ -80,8 +80,7 @@ def decide() -> None:
     :return: Nothing
     """
     global packet_lock
-    # while True:
-    if len(general_queue) > 0:
+    while True:
         with packet_lock:
             message = general_queue.popleft()
             if type(message) is str and message[0] == ';':
