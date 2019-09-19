@@ -1,5 +1,10 @@
 import logging
 from inspect import signature
+from collections import deque as queue
+
+# Registered commands
+# import core
+# from submodules import aprs, iridium, telemetry
 
 logger = logging.getLogger("CI")
 
@@ -7,6 +12,8 @@ total_received: int = 0
 total_errors: int = 0
 total_success: int = 0
 
+
+general_queue = queue()
 
 # Annotation to register a function as a command
 # Example usage:
@@ -19,12 +26,17 @@ def associate(cmd: str):
     :return: Decorator that registers function.
     """
 
-    valid_commands = {}
+    valid_commands = {
+                      "test": lambda x, y: x + y}
 
     if cmd in valid_commands:
         return valid_commands.get(cmd)
     else:
         return None
+
+
+def enqueue(cmd: str):
+    general_queue.append(cmd)
 
 
 def generate_checksum(cmd: str):
@@ -33,6 +45,7 @@ def generate_checksum(cmd: str):
     :param body: The body of the message.
     :return: Generated checksum for the message.
     """
+
     cmd_sum = sum([ord(x) for x in cmd])
     cmd_sum %= 26
     cmd_sum += 65
@@ -40,28 +53,32 @@ def generate_checksum(cmd: str):
     return chr(cmd_sum)
 
 
-def dispatch(body: str):
-    # Get the individual parts of the message
-    parts = [part for part in body.split(";") if part]
-    command, arguments, checksum = parts[0], parts[1].split(","), parts[2]
+def dispatch():
+    while True:
+        body = general_queue.pop()
 
-    if generate_checksum(command) == checksum:
-        associated = associate(command)
-        if associated is not None:
-            associated_sig = signature(associated)
-            # Check num args and arg types
+        # Get the individual parts of the message
+        parts = [part for part in body.split(";") if part]
+        command, arguments, checksum = parts[0], parts[1].split(","), parts[2]
 
-            if not len(arguments) == len(associated_sig.parameters):
-                # TODO: log error (incorrect num of args)
-                pass
-            try:
-                associated(*arguments)  # Actually run the command
-            except:
-                # TODO: send error immediately
-                pass
-    else:
-        # TODO: log that checksum is incorrect
-        pass
+        if generate_checksum(command) == checksum:
+            associated = associate(command)
+            if associated is not None:
+                associated_sig = signature(associated)
+                # Check num args and arg types
+
+                if not len(arguments) == len(associated_sig.parameters):
+                    # TODO: log error (incorrect num of args)
+                    print("ERR: incorrect length")
+                try:
+                    print("REACHED")
+                    print(associated(*arguments))  # Actually run the command
+                except:
+                    # TODO: send error immediately
+                    print("ERR: bad function")
+        else:
+            # TODO: log that checksum is incorrect
+            print("ERR: incorrect checksum")
 
 
 """
