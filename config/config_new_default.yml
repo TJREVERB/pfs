@@ -16,14 +16,10 @@ aprs:
     serial_port: /dev/ttyUSB0
     telem_timeout: 70
     message_spacing: 1
-    simulate: False
 eps:
-    simulate: False
 telemetry:
     send_interval: 30
     buffer_size: 100
     max_packet_size: 170
-    simulate: False
 iridium:
     serial_port: /dev/ttyUSB0
-    simulate: False
