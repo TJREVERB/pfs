@@ -9,7 +9,6 @@ core:
         C:
             - aprs
             - iridium
-            - housekeeping
             - telemetry
     config_save_interval: 60
     dump_interval: 10
@@ -62,9 +61,6 @@ eps:
 # Wait interval so that APRS and Iridium buffers can be cleared
 radio_output:
     sleep_interval: 10
-housekeeping:
-    beacon_period: 60
-    low_power_period: 120
 telemetry:
     send_interval: 30
     buffer_size: 100
