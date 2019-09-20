@@ -18,31 +18,28 @@ from submodules.command_ingest import command
 # Log and error classes
 from core import error, log
 
-
 logger = logging.getLogger("TELEMETRY")
 
-general_queue = collections.deque()
-log_stack = collections.deque()
-err_stack = collections.deque()
-
-packet_lock = Lock()
 
 def enqueue(message) -> None:
     """
     Enqueue a message onto the general queue, to be processed later by thread decide()
-    :param message: The message to push onto general queue, log/error class, or command (string - must begin with semicolon, see command_ingest's readme)
+    :param message: The message to push onto general queue, log/error class,
+    or command (string - must begin with semicolon, see command_ingest's readme)
     :return: Nothing
     """
+    global packet_lock, general_queue
     if not ((type(message) is str and message[0] == ';') or type(message) is error.Error or type(message) is log.Log):
         logger.error("Attempted to enqueue invalid message")
         return
-    general_queue.append(message)
+    with packet_lock:
+        general_queue.append(message)
 
-@command("telem_dump")
+
 def dump(radio='aprs') -> None:
     """
     Concatenates packets to fit in max_packet_size (defined in config) and send through the radio, removing the
-    packets in the process
+    packets from the error and log stacks in the process
     :param radio: Radio to send telemetry through, either "aprs" or "iridium"
     :return None
     """
@@ -61,7 +58,6 @@ def dump(radio='aprs') -> None:
             squishedpackets = ""
 
 
-@command("telem_clear")
 def clear_buffers() -> None:
     """
     Clear the telemetry buffers - clearing general_queue, the log, and error stacks.
@@ -79,7 +75,7 @@ def decide() -> None:
     A thread method to constantly check general_queue for messages and process them if there are any.
     :return: Nothing
     """
-    global packet_lock
+    global packet_lock, err_stack, log_stack, general_queue
     while True:
         with packet_lock:
             message = general_queue.popleft()
@@ -89,7 +85,7 @@ def decide() -> None:
                 err_stack.append(message)
             elif type(message) is log.Log:
                 log_stack.append(message)
-            else:   # Shouldn't execute (enqueue() should catch it) but here just in case
+            else:  # Shouldn't execute (enqueue() should catch it) but here just in case
                 logger.error("Message prefix invalid.")
 
 
@@ -97,8 +93,13 @@ def start():
     """
     Starts the telemetry send thread
     """
-    threadDecide = ThreadHandler(target=partial(decide()),
-                       name="telemetry-decide")
+    global err_stack, log_stack, general_queue, packet_lock
+    general_queue = collections.deque()  # initialize global variables
+    log_stack = collections.deque()
+    err_stack = collections.deque()
+    packet_lock = Lock()
+
+    threadDecide = ThreadHandler(target=partial(decide), name="telemetry-decide")  # start telemetry 'decide' thread
     threadDecide.start()
 
 
