@@ -24,9 +24,9 @@ logger = logging.getLogger("TELEMETRY")
 def enqueue(message) -> None:
     """
     Enqueue a message onto the general queue, to be processed later by thread decide()
-    :param message: The message to push onto general queue, log/error class,
+    :param message: The message to push onto general queue. Must be a log/error class
     or command (string - must begin with semicolon, see command_ingest's readme)
-    :return: Nothing
+    :return None
     """
     global packet_lock, general_queue
     if not ((type(message) is str and message[0] == ';') or type(message) is error.Error or type(message) is log.Log):
@@ -61,7 +61,7 @@ def dump(radio='aprs') -> None:
 def clear_buffers() -> None:
     """
     Clear the telemetry buffers - clearing general_queue, the log, and error stacks.
-    :return: Nothing
+    :return: None
     """
     global packet_lock, log_stack, err_stack, general_queue
     with packet_lock:
@@ -73,7 +73,7 @@ def clear_buffers() -> None:
 def decide() -> None:
     """
     A thread method to constantly check general_queue for messages and process them if there are any.
-    :return: Nothing
+    :return: None
     """
     global packet_lock, err_stack, log_stack, general_queue
     while True:
@@ -89,9 +89,10 @@ def decide() -> None:
                 logger.error("Message prefix invalid.")
 
 
-def start():
+def start() -> None:
     """
     Starts the telemetry send thread
+    :return None
     """
     global err_stack, log_stack, general_queue, packet_lock
     general_queue = collections.deque()  # initialize global variables
