@@ -18,6 +18,8 @@ aprs:
     message_spacing: 1
 eps:
     status_check_interval: 30
+radio_output:
+    sleep_interval: 10
 telemetry:
     send_interval: 30
     buffer_size: 100
