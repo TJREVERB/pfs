@@ -105,7 +105,7 @@ def check_first_boot():  # TODO: IF EEPROM SAYS FIRST BOOT WAIT 30 MINUTES ELSE 
     pass
 
 
-def power_watchdog(**kwargs):
+def power_watchdog():
     while True:
         if eps.get_battery_bus_volts() >= Power.NORMAL.value and state != Mode.NORMAL:
             enter_normal_mode(
@@ -172,8 +172,8 @@ def start():
     logger.debug("Entering main loop")
 
     # Monitor Power Level
-    power_monitoring_thread = ThreadHandler(target=partial(power_watchdog,
-                                                           name="monitoring_power", parent_logger=logger))
+    power_monitoring_thread = ThreadHandler(target=partial(power_watchdog),
+                                                           name="monitoring_power", parent_logger=logger)
     power_monitoring_thread.start()
 
     while True:
