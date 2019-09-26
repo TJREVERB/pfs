@@ -48,7 +48,8 @@ def dump(radio='aprs') -> None:
 
     with packet_lock:
         while len(log_stack) + len(err_stack) > 0:
-            while len(squishedpackets) < config["telemetry"]["max_packet_size"] and len(log_stack) + len(err_stack) > 0:
+            next_packet = (err_stack[-1].to_string() if len(err_stack) > 0 else log_stack[-1].to_string())
+            while len(base64.b64encode((squishedpackets + next_packet).encode('ascii'))) < config["telemetry"]["max_packet_size"] and len(log_stack) + len(err_stack) > 0:
                 if len(err_stack) > 0:
                     squishedpackets += err_stack.pop().to_string()
                 else:
@@ -78,15 +79,17 @@ def decide() -> None:
     global packet_lock, err_stack, log_stack, general_queue
     while True:
         with packet_lock:
-            message = general_queue.popleft()
-            if type(message) is str and message[0] == ';':
-                command_ingest.enqueue(message[4:])
-            elif type(message) is error.Error:
-                err_stack.append(message)
-            elif type(message) is log.Log:
-                log_stack.append(message)
-            else:  # Shouldn't execute (enqueue() should catch it) but here just in case
-                logger.error("Message prefix invalid.")
+            if len(general_queue) != 0:
+                message = general_queue.popleft()
+                if type(message) is str and message[0] == ';':
+                    command_ingest.enqueue(message)
+                    #print("Running command_ingest.enqueue(" + message + ")")
+                elif type(message) is error.Error:
+                    err_stack.append(message)
+                elif type(message) is log.Log:
+                    log_stack.append(message)
+                else:  # Shouldn't execute (enqueue() should catch it) but here just in case
+                    logger.error("Message prefix invalid.")
 
 
 def start() -> None:
