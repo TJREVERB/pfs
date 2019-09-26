@@ -78,8 +78,8 @@ def decide() -> None:
     """
     global packet_lock, err_stack, log_stack, general_queue
     while True:
-        with packet_lock:
-            if len(general_queue) != 0:
+        if len(general_queue) != 0:
+            with packet_lock:
                 message = general_queue.popleft()
                 if type(message) is str and message[0] == ';':
                     command_ingest.enqueue(message)
@@ -90,6 +90,7 @@ def decide() -> None:
                     log_stack.append(message)
                 else:  # Shouldn't execute (enqueue() should catch it) but here just in case
                     logger.error("Message prefix invalid.")
+        sleep(1)
 
 
 def start() -> None:

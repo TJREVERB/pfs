@@ -18,17 +18,14 @@ When "ready" is printed, type any one of:
 
 * ee - enqueue an error
 * el - enqueue a log
-* eXXX where XXX is any text - run telemetry.enqueue(XXX)
+* eXXX where XXX is any text that begins with a semicolon - run telemetry.enqueue(XXX)
 * d - run a dump
 * p - print the general queue, error stack, and log stack in that order
 * c - clear buffers
 
 """
 
-import threading
 from datetime import datetime
-from functools import partial
-
 from submodules import telemetry
 from core import error, log
 
