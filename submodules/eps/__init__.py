@@ -7,6 +7,7 @@ from functools import partial
 
 from core.mode import Mode
 from core.threadhandler import ThreadHandler
+from core import config
 
 # Initialize global variables
 logger = logging.getLogger("EPS")
@@ -137,9 +138,9 @@ def led_on_off() -> None:  # TODO: Delete this method, from eps testing with fak
     looptime = 20  # FIXME: Was 30
     while True:
         pin_on('aprs')
-        time.sleep(looptime)
+        time.sleep(config['eps']['looptime'])
         pin_off('aprs')
-        time.sleep(looptime)
+        time.sleep(config['eps']['looptime'])
 
 
 def board_check() -> None:

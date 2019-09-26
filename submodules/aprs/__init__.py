@@ -24,7 +24,6 @@ logger = logging.getLogger("APRS")
 last_telem_time = time.time()
 last_message_time = time.time()
 
-bperiod = 60
 ser = None  # Initialize serial
 
 ser_master, ser_slave = pty.openpty()  # Serial ports for when in simulate mode
