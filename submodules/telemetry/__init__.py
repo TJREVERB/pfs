@@ -1,168 +1,135 @@
-# TODO: Uses placeholder variables in other files, so make it use actual values
-# TODO: what if radio turned off during a burst?
 import base64
 import collections
 import logging
-import struct
-import time
-import core
 from functools import partial
 from threading import Lock
+from time import sleep
 
 from core.mode import Mode
 
 from core import config
 from core.threadhandler import ThreadHandler
 from submodules import radio_output
+from submodules import command_ingest
+
+# Command Ingest - ability to register commands
 from submodules.command_ingest import command
 
+# Log and error classes
+from core import error, log
 
 logger = logging.getLogger("TELEMETRY")
 
-telem_packet_buffer = collections.deque(
-    maxlen=config['telemetry']['buffer_size'])
-event_packet_buffer = collections.deque(
-    maxlen=config['telemetry']['buffer_size'])
-packetBuffers = [event_packet_buffer, telem_packet_buffer]
-# TODO: Use an indexed system so that we have persistent log storage and querying
-packet_lock = Lock()
 
-# FIXME: Rename to telemetry_send_loop()
+def enqueue(message) -> None:
 
-
-def telemetry_send():
+    Enqueue a message onto the general queue, to be processed later by thread decide()
+    :param message: The message to push onto general queue. Must be a log/error class
+    or command (string - must begin with semicolon, see command_ingest's readme)
+    :return None
     """
-    Thread method to burst the telemetry every so often
-    """
-    # TODO: check battery levels before sending
-    global telem_packet_buffer, event_packet_buffer
-    time.sleep(60)  # Don't send packets straight away
-
-    while core.get_state() == Mode.NORMAL:
-        # TODO if (adcs.can_TJ_be_seen() == True and len(telem_packet_buffer) + len(event_packet_buffer) > 0):
-        if len(telem_packet_buffer) + len(event_packet_buffer) > 0:
-            telemetry_send_once()
-        time.sleep(config['telemetry']['send_interval'])
-
-
-# FIXME: Rename to telemetry_send()
-def telemetry_send_once():
-    """
-    Immediately send telemetry packets in both telemetry and event packet queues
-    """
-    global telem_packet_buffer, event_packet_buffer
-    beg_count = len(telem_packet_buffer) + len(event_packet_buffer)
-    send()
-    logger.debug("Sent " + str(beg_count - len(telem_packet_buffer) -
-                               len(event_packet_buffer)) + " telemetry packets")
-
-
-@command("telem_burst")
-def telemetry_burst_command():
-    """
-    Burst command; ignores isTJseen and other checks.
-    """
-    send(ignoreADCS=True)
-
-
-def enqueue_event_message(event):
-    """
-    Enqueue an event message.
-    Event messages are a code representing the error, for instance "I01" for IMU error #1 which is to be looked up in a table upon receipt.
-    :param event: message to enqueue following code above. There is a table of codes in Google Sheets. Maximum three bytes.
-    """
-
-    if len(event.encode('utf-8')) != 3:
-        logger.error("Event message larger than 3 bytes, message is " +
-                     str(len(event.encode('utf-8'))) + " bytes long")
+    global packet_lock, general_queue
+    if not ((type(message) is str and message[0] == ';') or type(message) is error.Error or type(message) is log.Log):
+        logger.error("Attempted to enqueue invalid message")
         return
-
-    global event_packet_buffer, packet_lock
     with packet_lock:
-        packet = "Z"
-        packet += str(base64.b64encode(struct.pack('d', time.time())))
-        packet += str(base64.b64encode(event))
-        event_packet_buffer.append(packet)
+        general_queue.append(message)
 
 
-def enqueue_submodule_packet(packet):
+def dump(radio='aprs') -> None:
     """
-    Accepts a single raw string packet and enqueues them into the telemetry packet buffer.
-    :param packet: A correctly formatted string subpacket to enqueue.
+    Concatenates packets to fit in max_packet_size (defined in config) and send through the radio, removing the
+    packets from the error and log stacks in the process
+    :param radio: Radio to send telemetry through, either "aprs" or "iridium"
+    :return None
     """
-    global telem_packet_buffer, packet_lock
-    with packet_lock:
-        telem_packet_buffer.append(packet)
-
-
-def enqueue_submodule_packets(packets):
-    """
-    Accepts raw string packets and enqueues them into the telemetry packet buffer.
-    :param packets: A list of string subpackets to enqueue. These packets must be formatted correctly
-    """
-    global telem_packet_buffer, packet_lock
-    with packet_lock:
-        for packet in packets:
-            telem_packet_buffer.append(packet)
-
-
-def send(ignoreADCS=False, radio='aprs'):
-    """
-    Concatenates packets to fit in max_packet_size (defined in config) and send through the APRS, dequing the packets in the process
-    :param ignoreADCS: If true, ignores ADCS canTJBeSeen.
-    :param radio: Radio to send telemetry over, either "aprs" or "iridium"
-    """
-    global packetBuffers, event_packet_buffer, telem_packet_buffer, packet_lock
+    global packet_lock, log_stack, err_stack
     squishedpackets = ""
 
     with packet_lock:
-        # packet_lock.acquire()
-        # TODO while len(event_packet_buffer) + len(telem_packet_buffer) > 0 and (adcs.can_TJ_be_seen() or ignoreADCS):
-        while len(event_packet_buffer) + len(telem_packet_buffer) > 0:
-            for buffer in packetBuffers:
-                # TODO while len(buffer) > 0 and len(squishedPackets) < config['telemetry']['max_packet_size'] and (adcs.can_TJ_be_seen() or ignoreADCS):
-                while len(buffer) > 0 and len(squishedpackets) < config['telemetry']['max_packet_size']:
-                    # test = buffer.pop()
-                    # print(test)
-                    # squishedPackets += test
-                    squishedpackets += buffer.pop()
-
-            # TODO: alternate between radios
-            logger.debug(squishedpackets)
+        while len(log_stack) + len(err_stack) > 0:
+            next_packet = (err_stack[-1].to_string() if len(err_stack) > 0 else log_stack[-1].to_string())
+            while len(base64.b64encode((squishedpackets + next_packet).encode('ascii'))) < config["telemetry"]["max_packet_size"] and len(log_stack) + len(err_stack) > 0:
+                if len(err_stack) > 0:
+                    squishedpackets += err_stack.pop().to_string()
+                else:
+                    squishedpackets += log_stack.pop().to_string()
+            squishedpackets = base64.b64encode(squishedpackets.encode('ascii'))
             radio_output.send(squishedpackets, radio)
             squishedpackets = ""
-            time.sleep(6)
-
-    # packet_lock.release()
 
 
-@command("telem_clear")
-def clear_buffers():
-    global packet_lock, event_packet_buffer, telem_packet_buffer
+def clear_buffers() -> None:
+    """
+    Clear the telemetry buffers - clearing general_queue, the log, and error stacks.
+    :return: None
+    """
+    global packet_lock, log_stack, err_stack, general_queue
     with packet_lock:
-        event_packet_buffer.clear()
-        telem_packet_buffer.clear()
+        general_queue.clear()
+        log_stack.clear()
+        err_stack.clear()
 
 
-def start():
+def decide() -> None:
+    """
+    A thread method to constantly check general_queue for messages and process them if there are any.
+    :return: None
+    """
+    global packet_lock, err_stack, log_stack, general_queue
+    while True:
+        if len(general_queue) != 0:
+            with packet_lock:
+                message = general_queue.popleft()
+                if type(message) is str and message[0] == ';':
+                    command_ingest.enqueue(message)
+                    #print("Running command_ingest.enqueue(" + message + ")")
+                elif type(message) is error.Error:
+                    err_stack.append(message)
+                elif type(message) is log.Log:
+                    log_stack.append(message)
+                else:  # Shouldn't execute (enqueue() should catch it) but here just in case
+                    logger.error("Message prefix invalid.")
+        sleep(1)
+
+
+def start() -> None:
     """
     Starts the telemetry send thread
+    :return None
     """
-    t2 = ThreadHandler(target=partial(telemetry_send),
-                       name="telemetry-telemetry_send")
-    t2.start()
+    global err_stack, log_stack, general_queue, packet_lock
+    general_queue = collections.deque()  # initialize global variables
+    log_stack = collections.deque()
+    err_stack = collections.deque()
+    packet_lock = Lock()
+
+    threadDecide = ThreadHandler(target=partial(decide), name="telemetry-decide")  # start telemetry 'decide' thread
+    threadDecide.start()
 
 
-def enter_normal_mode():
+def enter_normal_mode() -> None:
+    """
+    Enter normal mode.
+    :return: None
+    """
     global state
     state = Mode.NORMAL
 
 
-def enter_low_power_mode():
+def enter_low_power_mode() -> None:
+    """
+    Enter low power mode.
+    :return: None
+    """
     global state
     state = Mode.LOW_POWER
 
 
-def enter_emergency_mode():
+def enter_emergency_mode() -> None:
+    """
+    Enter emergency mode.
+    :return: None
+    """
     global state
     state = Mode.EMERGENCY
