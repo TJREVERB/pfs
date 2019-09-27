@@ -20,6 +20,7 @@ class Log():
         self.message = msg
         self.header = 'LOG&'
 
+
     def to_string(self):
         """
         :return: String representation of log message.

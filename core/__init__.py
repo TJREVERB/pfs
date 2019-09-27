@@ -2,18 +2,19 @@ import importlib
 import logging
 import os
 import time
-
 import yaml
 
 from core.mode import Mode
 from core.power import Power
+from core.threadhandler import ThreadHandler
+from functools import partial
+from threading import Timer
 from submodules import eps
 # from submodules import command_ingest
 # from submodules import aprs
-# from submodules import telemetry
+from submodules import telemetry
 # from submodules import antenna_deploy
 from submodules.command_ingest import command
-
 
 config = None  # Prevents IDE from throwing errors about not finding `config`
 logger = logging.getLogger("ROOT")
@@ -36,6 +37,11 @@ def load_config():
         with open('config/config_default.yml') as f:
             config = yaml.load(f)
 
+    return config
+
+
+def get_config():
+    """Returns the configuration data from config_*.yml as a list"""
     return config
 
 
@@ -101,10 +107,10 @@ def check_first_boot():  # TODO: IF EEPROM SAYS FIRST BOOT WAIT 30 MINUTES ELSE 
 
 def power_watchdog():
     while True:
-        if eps.get_battery_bus_volts() >= Power.NORMAL and state != Mode.NORMAL:
+        if eps.get_battery_bus_volts() >= Power.NORMAL.value and state != Mode.NORMAL:
             enter_normal_mode(
                 f'Battery level at sufficient state: {eps.get_battery_bus_volts()}')
-        elif eps.get_battery_bus_volts() < Power.NORMAL and state != Mode.LOW_POWER:
+        elif eps.get_battery_bus_volts() < Power.NORMAL.value and state != Mode.LOW_POWER:
             enter_low_power_mode(
                 f'Battery level at critical state: {eps.get_battery_bus_volts()}')
 
@@ -114,6 +120,10 @@ def start():
     # Load `config` from either default file or persistent config
     config = load_config()
     state = None
+
+    # Telemetry dump after x seconds
+    t = Timer(config['core']['dump_interval'], partial(telemetry.dump))
+    t.start()
 
     # logger.debug(f"Config: {config}")
 
@@ -160,8 +170,11 @@ def start():
 
     enter_normal_mode()
     logger.debug("Entering main loop")
+
+    # Monitor Power Level
+    power_monitoring_thread = ThreadHandler(target=partial(power_watchdog),
+                                                           name="monitoring_power", parent_logger=logger)
+    power_monitoring_thread.start()
+
     while True:
         time.sleep(1)
-
-    # MAIN LOOP
-    # power_watchdog()

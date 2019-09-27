@@ -17,6 +17,7 @@ orbitalpy = "*"
 pyorbital = "*"
 autopep8 = "*"
 circuitpython-build-tools = "*"
+pylint = "*"
 
 [requires]
 python_version = "3.7"

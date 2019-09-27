@@ -18,6 +18,7 @@ class Error():
         self.message = msg
         self.header = 'ERR!'
 
+
     def to_string(self) -> str:
         """
         :return: A string representation of this error.
