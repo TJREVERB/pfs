@@ -135,7 +135,6 @@ def get_board_telem(data):
 
 
 def led_on_off() -> None:  # TODO: Delete this method, from eps testing with fake eps
-    looptime = 20  # FIXME: Was 30
     while True:
         pin_on('aprs')
         time.sleep(config['eps']['looptime'])
