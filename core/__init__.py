@@ -168,7 +168,7 @@ def start():
         if hasattr(i, 'start'):
             getattr(i, 'start')()
 
-    enter_normal_mode()
+    enter_low_power_mode()
     logger.debug("Entering main loop")
 
     # Monitor Power Level
