@@ -99,11 +99,11 @@ def enter_emergency_mode(reason: str = '') -> None:
 
 
 def check_first_boot():  # TODO: IF EEPROM SAYS FIRST BOOT WAIT 30 MINUTES ELSE CONTINUE
-    # if eeprom.get("FIRST_BOOT") is None or eeprom.get("FIRST_BOOT") == True:
-    #    eeprom.add("FIRST BOOT", True) # FIXME eeprom stuff
-    #    time.sleep(1800)
-    pass
-
+    if os.listdir().count("first_boot.txt")>0: # check if the file exists
+        os.remove("first_boot.txt") # remove the file if it exists
+        time.sleep(1800) # sleep for 30 min as per NASA regulations
+        return True
+    return False
 
 def power_watchdog():
     while True:
