@@ -7,8 +7,8 @@ Telemetry's __init__.py must be changed in several places before using this.
     Alternatively, radio_output.send() can be changed similarly.
 * Command_ingest.enqueue() should be commented out or replaced with a dummy thing.
 * The two lines at the end of start() that start the decide() thread should be commented out, and the while-True
-    loop in decide() must be commented out. Indents need to be fixed accordingly.
-    This script runs decide() as a one-off method
+    loop in decide() must be commented out (but not the contents of the loop, just the header).
+    Indents need to be fixed accordingly. This script runs decide() as a one-off method.
 
 """
 

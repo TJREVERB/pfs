@@ -23,7 +23,8 @@ config = None
 
 def enqueue(message) -> None:
 
-    """Enqueue a message onto the general queue, to be processed later by thread decide()
+    """
+    Enqueue a message onto the general queue, to be processed later by thread decide()
     :param message: The message to push onto general queue. Must be a log/error class
     or command (string - must begin with semicolon, see command_ingest's readme)
     :return None
