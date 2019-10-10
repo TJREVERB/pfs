@@ -6,14 +6,6 @@ from collections import deque as queue
 # import core
 # from submodules import aprs, iridium, telemetry
 
-logger = logging.getLogger("CI")
-
-total_received: int = 0
-total_errors: int = 0
-total_success: int = 0
-
-
-general_queue = queue()
 
 # Annotation to register a function as a command
 # Example usage:
@@ -80,6 +72,16 @@ def dispatch():
             # TODO: log that checksum is incorrect
             print("ERR: incorrect checksum")
 
+
+def start():
+    global logger, total_received, total_errors, total_success, general_queue
+    logger = logging.getLogger("CI")
+
+    total_received: int = 0
+    total_errors: int = 0
+    total_success: int = 0
+
+    general_queue = queue()
 
 """
 def start():
