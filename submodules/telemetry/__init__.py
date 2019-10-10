@@ -7,7 +7,6 @@ from time import sleep
 
 from core.mode import Mode
 
-from core import config
 from core.threadhandler import ThreadHandler
 from submodules import radio_output
 from submodules import command_ingest
@@ -19,11 +18,12 @@ from submodules.command_ingest import command
 from core import error, log
 
 logger = logging.getLogger("TELEMETRY")
+config = None
 
 
 def enqueue(message) -> None:
 
-    Enqueue a message onto the general queue, to be processed later by thread decide()
+    """Enqueue a message onto the general queue, to be processed later by thread decide()
     :param message: The message to push onto general queue. Must be a log/error class
     or command (string - must begin with semicolon, see command_ingest's readme)
     :return None
@@ -98,6 +98,9 @@ def start() -> None:
     Starts the telemetry send thread
     :return None
     """
+    if config is None:
+        raise RuntimeError("Module 'core' did not initialize a config variable for telemetry")
+
     global err_stack, log_stack, general_queue, packet_lock
     general_queue = collections.deque()  # initialize global variables
     log_stack = collections.deque()

@@ -5,7 +5,6 @@ from functools import partial
 
 import serial
 
-from core import config
 from core.mode import Mode
 from core.helpers import is_simulate
 from core.threadhandler import ThreadHandler
@@ -25,6 +24,7 @@ last_telem_time = time.time()
 last_message_time = time.time()
 
 ser = None  # Initialize serial
+config = None
 
 ser_master, ser_slave = pty.openpty()  # Serial ports for when in simulate mode
 
@@ -100,6 +100,8 @@ def parse_aprs_packet(packet: str) -> str:
 
 
 def start():
+    if config is None:
+        raise RuntimeError("Module 'core' did not initialize a config variable for aprs")
 
     # Opens the serial port for all methods to use with 19200 baud
     ser = serial.Serial(config['aprs']['serial_port'], 19200)

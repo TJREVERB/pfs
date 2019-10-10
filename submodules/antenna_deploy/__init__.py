@@ -1,7 +1,12 @@
 from . import isisants
-from core import config
+
+config = None
+
 
 def start():
+    if config is None:
+        raise RuntimeError("Module 'core' did not initialize a config variable for antenna_deploy")
+
     # Initiate connection with the device
     isisants.py_k_ants_init(b"/dev/i2c-1", 0x31, 0x32, 4, 10)
 

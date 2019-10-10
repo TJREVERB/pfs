@@ -8,13 +8,13 @@ from functools import partial
 
 from core.mode import Mode
 from core.threadhandler import ThreadHandler
-from core import config
 from submodules import command_ingest
 from submodules.command_ingest import command
 
 debug = True
 
 ser = None
+config = None
 
 # Initialize global variables
 logger = logging.getLogger("IRIDIUM")
@@ -164,6 +164,9 @@ def send(message: str) -> bool:
 
 
 def start():
+    if config is None:
+        raise RuntimeError("Module 'core' did not initialize a config variable for iridium")
+
     logger.debug("At start of iridium")
     global ser
 

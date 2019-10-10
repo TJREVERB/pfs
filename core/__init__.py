@@ -158,15 +158,18 @@ def start():
         logger.debug(f'Starting level A module {i}')
         if hasattr(i, 'start'):
             getattr(i, 'start')()
+            setattr(i, 'config', config)
     check_first_boot()
     for i in submodules[1]:
         logger.debug(f'Starting level B module {i}')
         if hasattr(i, 'start'):
             getattr(i, 'start')()
+            setattr(i, 'config', config)
     for i in submodules[2]:
         logger.debug(f'Starting level C module {i}')
         if hasattr(i, 'start'):
             getattr(i, 'start')()
+            setattr(i, 'config', config)
 
     enter_low_power_mode()
     logger.debug("Entering main loop")

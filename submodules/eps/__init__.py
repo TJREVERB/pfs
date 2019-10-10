@@ -7,7 +7,6 @@ from functools import partial
 
 from core.mode import Mode
 from core.threadhandler import ThreadHandler
-from core import config
 
 # Initialize global variables
 logger = logging.getLogger("EPS")
@@ -15,6 +14,7 @@ address = 0x57
 epsdict = {'a': 1, 'i2c': 2, 'c': 3, 'antenna': 4,
            'pi': 5, 'iridium': 6, 'aprs': 7, 'h': 8, 'i': 9, 'j': 10}
 mode = Mode.NORMAL
+config = None
 
 
 def pin_on(device_name) -> bool:
@@ -150,6 +150,9 @@ def board_check() -> None:
 
 def start():
     global address, bus
+
+    if config is None:
+        raise RuntimeError("Module 'core' did not initialize a config variable for eps")
 
     bus = smbus.SMBus(1)
     # for key,val in epsdict.items():
