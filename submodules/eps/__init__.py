@@ -12,16 +12,6 @@ from core.error import Error
 from core.log import Log
 from submodules import telemetry
 
-# Initialize global variables
-logger = logging.getLogger("EPS")
-address = 0x57
-epsdict = {'a': 1, 'i2c': 2, 'c': 3, 'antenna': 4,
-           'pi': 5, 'iridium': 6, 'aprs': 7, 'h': 8, 'i': 9, 'j': 10}
-with open('config/config_default.yml') as stream:
-    try:
-        config = yaml.safe_load(stream)
-    except yaml.YAMLError as error:
-        logger.error(error)
 
 def pin_on(device_name) -> bool:
     with SMBusWrapper(1) as bus:
@@ -239,8 +229,17 @@ def board_check() -> None:
 
 
 def start():
-    global address, bus
+    global address, bus, logger, address, epsdict
     bus = smbus.SMBus(1)
     # Create all the background threads
     t2 = ThreadHandler(target=partial(board_check),
                        name="eps-board_check", parent_logger=logger)
+    logger = logging.getLogger("EPS")
+    address = 0x57
+    epsdict = {'a': 1, 'i2c': 2, 'c': 3, 'antenna': 4,
+            'pi': 5, 'iridium': 6, 'aprs': 7, 'h': 8, 'i': 9, 'j': 10}
+    with open('config/config_default.yml') as stream:
+        try:
+            config = yaml.safe_load(stream)
+        except yaml.YAMLError as error:
+            logger.error(error)
