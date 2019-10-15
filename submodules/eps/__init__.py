@@ -11,6 +11,7 @@ from core.threadhandler import ThreadHandler
 from core.error import Error
 from core.log import Log
 from submodules import telemetry
+from core import config
 
 
 def pin_on(device_name) -> bool:

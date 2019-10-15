@@ -17,12 +17,15 @@ aprs:
     telem_timeout: 70
     message_spacing: 1
 eps:
-    status_check_interval: 30
-radio_output:
-    sleep_interval: 10
+    looptime: 20
 telemetry:
     send_interval: 30
     buffer_size: 100
     max_packet_size: 170
 iridium:
     serial_port: /dev/ttyUSB0
+antenna:
+    ANT_1: 0
+    ANT_2: 1
+    ANT_3: 2
+    ANT_4: 3
