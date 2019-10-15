@@ -1,69 +1,131 @@
 import logging
 import time
 import smbus
+import yaml
 
 from smbus2 import SMBusWrapper
 from functools import partial
 
 from core.mode import Mode
 from core.threadhandler import ThreadHandler
+from core.error import Error
+from core.log import Log
+from submodules import telemetry
 from core import config
-
-# Initialize global variables
-logger = logging.getLogger("EPS")
-address = 0x57
-epsdict = {'a': 1, 'i2c': 2, 'c': 3, 'antenna': 4,
-           'pi': 5, 'iridium': 6, 'aprs': 7, 'h': 8, 'i': 9, 'j': 10}
-mode = Mode.NORMAL
 
 
 def pin_on(device_name) -> bool:
-    if mode != Mode.NORMAL:
-        return False
     with SMBusWrapper(1) as bus:
-        PDM_val = epsdict[device_name]
+        if device_name in epsdict:
+            PDM_val = epsdict[device_name]
+        else:
+            message = "Device name \'{}\' INVALID. Aborting command.".format(device_name)
+            logger.error(message)
+            log = Error(sys_name="EPS", msg=message)
+            telemetry.enqueue(log)
+            return False
 
         if get_PDM_status(device_name) == 1:
-            logger.error("Pin is already ON.")
+            message = "Pin {} ({}) is already ON.".format(epsdict[device_name], device_name)
+            logger.debug(message)  # Log to console for debugging
+            log = Log(sys_name="EPS", lvl="INFO", msg=message)  # Create log instance
+            telemetry.enqueue(log)  # Push to telemetry stack
             return True
         else:
-            bus.write_byte_data(address, 0x12, PDM_val)
+            bus.write_byte_data(address, 0x12, PDM_val)  # Attempt to execute pin on
 
             if get_PDM_status(device_name) == 1:  # PDM is ON
-                logger.debug("Pin communication successful. Pin is now ON.")
+                message = "Pin {} ({}) communication successful. Pin is now ON.".format(
+                    epsdict[device_name], device_name)
+                logger.debug(message)
+                log = Log(sys_name="EPS", lvl="INFO", msg=message)
+                telemetry.enqueue(log)
                 return True
-            else:
-                logger.error(
-                    "Pin communication unsuccessful. Pin is still OFF.")
+            else:  # Something is big broken
+                message = "Pin {} ({}) communication NOT successful. Pin is still OFF.".format(
+                    epsdict[device_name], device_name)
+                logger.error(message)
+                log = Error(sys_name="EPS", msg=message)
+                telemetry.enqueue(log)
                 return False
 
 
-def reboot_device(device_name, sleeptime) -> None:
-    pin_off(device_name)
-    time.sleep(sleeptime)
-    pin_on(device_name)
-    time.sleep(sleeptime)
+def reboot_device(device_name, wait_time_after_off, wait_time_after_on) -> bool:
+    """
+    :param wait_time_after_off: Time to wait after turning the device off
+    :param wait_time_after_on: Time to wait before verifying the reboot was successful 
+        (i.e. after turn on command)
+    :return: Boolean representing whether or not the reboot was successful
+    """
+    if not pin_off(device_name):
+        return False
+    message = "From Pin {} ({}) reboot: sleeping {} second(s) after turn off.".format(
+        epsdict[device_name], device_name, wait_time_after_off)
+    logger.debug(message)
+    log = Log(sys_name="EPS", lvl="INFO", msg=message)
+    telemetry.enqueue(message)
+    time.sleep(wait_time_after_off)  # Wait for specified time
+
+    if not pin_on(device_name):
+        return False
+    message = "From Pin {} ({}) reboot: sleeping {} second(s) after turn on.".format(
+        epsdict[device_name], device_name, wait_time_after_off)
+    logger.debug(message)
+    log = Log(sys_name="EPS", lvl="INFO", msg=message)
+    telemetry.enqueue(message)
+    time.sleep(wait_time_after_on)
+
+    if get_PDM_status(device_name) == 1:
+        message = "Pin {} ({}) reboot successful.".format(epsdict[device_name], device_name)
+        logger.debug(message)
+        log = Log(sys_name="EPS", lvl="INFO", msg=message)
+        telemetry.enqueue(message)
+        return True
+    else:
+        message = "Pin {} ({}) reboot NOT successful. Recommend PDM status check in {} second(s).".format(
+            epsdict[device_name], device_name, wait_time_after_on)
+        logger.error(message)
+        log = Error(sys_name="EPS", msg=message)
+        telemetry.enqueue(message)
+        return False
 
 
 def pin_off(device_name) -> bool:
     with SMBusWrapper(1) as bus:
-        PDM_val = epsdict[device_name]
+        if device_name in epsdict:
+            PDM_val = epsdict[device_name]
+        else:
+            message = "Device name \'{}\' INVALID. Aborting command.".format(device_name)
+            logger.error(message)
+            log = Error(sys_name="EPS", msg=message)
+            telemetry.enqueue(log)
+            return False
 
         if get_PDM_status(device_name) == 0:
-            logger.error("Pin is already OFF.")
+            message = "Pin {} ({}) is already OFF.".format(epsdict[device_name], device_name)
+            logger.debug(message)  # Log to console for debugging
+            log = Log(sys_name="EPS", lvl="INFO", msg=message)  # Create log instance
+            telemetry.enqueue(log)  # Push to telemetry stack
             return True
         else:
-            bus.write_byte_data(address, 0x13, PDM_val)
+            bus.write_byte_data(address, 0x13, PDM_val)  # Attempt to execute pin off
 
             if get_PDM_status(device_name) == 0:  # PDM is OFF
-                logger.debug("Pin communication successful. Pin is now OFF.")
+                message = "Pin {} ({}) communication successful. Pin is now OFF.".format(
+                    epsdict[device_name], device_name)
+                logger.debug(message)
+                log = Log(sys_name="EPS", lvl="INFO", msg=message)
+                telemetry.enqueue(log)
+                return True
             else:
-                logger.error(
-                    "Pin communication unsuccessful. Pin is still ON.")
+                message = "Pin {} ({}) communication NOT successful. Pin is still ON.".format(
+                    epsdict[device_name], device_name)
+                logger.error(message)
+                log = Error(sys_name="EPS", msg=message)
+                telemetry.enqueue(log)
                 return False
 
-
-"""
+# TODO: Finish status integrity method
 def verify_status_integrity(device_name):
     arr = []
     val = int(get_PDM_status(device_name))
@@ -73,7 +135,34 @@ def verify_status_integrity(device_name):
         if val != arr[x]:
             logger.debug("No match at index = " + str(x))
         time.sleep(0.25)
-"""
+
+
+def send_pin_statuses() -> bool:
+    try:
+        statuses = []
+        for device in epsdict:
+            statuses.append(get_PDM_status(device))
+        message = "Enqueuing Pin statuses to telemetry."
+        logger.debug(message)
+        log = Log(sys_name="EPS", lvl="INFO", msg=message)
+        telemetry.enqueue(log)
+
+        log = Log(sys_name="EPS", lvl="DATA", msg=statuses)
+        telemetry.enqueue(statuses)
+        
+        message = "Pin statuses packed and sent to enqueued into telemetry. Next status check: \
+            {} second(s).".format(config['eps']['status_check_interval'])
+        logger.debug(message)
+        log = Log(sys_name="EPS", lvl="INFO", msg=message)
+        telemetry.enqueue(log)
+        return True
+    except:
+        message = "Enqueuing Pin statuses to telemetry FAILED. Next status check: {} second(s).".format(
+            config['eps']['status_check_interval'])
+        logger.error(message)
+        log = Error(sys_name="EPS", msg=message)
+        telemetry.enqueue(log)
+        return False
 
 
 def get_PDM_status(device_name):
@@ -134,14 +223,6 @@ def get_board_telem(data):
         return bus.read_byte(address)
 
 
-def led_on_off() -> None:  # TODO: Delete this method, from eps testing with fake eps
-    while True:
-        pin_on('aprs')
-        time.sleep(config['eps']['looptime'])
-        pin_off('aprs')
-        time.sleep(config['eps']['looptime'])
-
-
 def board_check() -> None:
     while True:
         logger.debug(get_board_telem(0x23))
@@ -149,27 +230,17 @@ def board_check() -> None:
 
 
 def start():
-    global address, bus
-
+    global address, bus, logger, address, epsdict
     bus = smbus.SMBus(1)
-    # for key,val in epsdict.items():
-    #    if val > 0:
-    #        pin_off(key)
-    #        time.sleep(1)
     # Create all the background threads
-    t1 = ThreadHandler(target=partial(led_on_off),
-                       name="eps-led_on_off", parent_logger=logger)
     t2 = ThreadHandler(target=partial(board_check),
                        name="eps-board_check", parent_logger=logger)
-
-    # Start the background threads
-    # t1.start()
-#    t2.start()
-
-    # TESTING PURPOSES ONLY
-    # test the LEDs - turn them all on
-    # for key in epsdict.keys():
-    #   pin_on(key)
-
-
-# TODO: Update these methods. Currently only holds placeholder methods.
+    logger = logging.getLogger("EPS")
+    address = 0x57
+    epsdict = {'a': 1, 'i2c': 2, 'c': 3, 'antenna': 4,
+            'pi': 5, 'iridium': 6, 'aprs': 7, 'h': 8, 'i': 9, 'j': 10}
+    with open('config/config_default.yml') as stream:
+        try:
+            config = yaml.safe_load(stream)
+        except yaml.YAMLError as error:
+            logger.error(error)
