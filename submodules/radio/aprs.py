@@ -39,8 +39,11 @@ class APRS(Radio):
         Closes the serial port and pauses the listening thread
         """
 
-        self.listen_thread.pause()
-        self.serial.close()
+        if self.listen_thread is not None:
+            self.listen_thread.pause()
+
+        if self.serial is not None:
+            self.serial.close()
 
         self.mode = Mode.LOW_POWER
 
@@ -51,13 +54,14 @@ class APRS(Radio):
         """
 
         if self.serial is None:
+            # First time normal mode is entered
             self.serial = Serial(self.config['aprs']['serial_port'], 19200)
         else:
             self.serial.open()
 
         if self.listen_thread is None:
-            self.listen_thread = ThreadHandler(target=partial(self.listen), name="aprs-listen",
-                                               parent_logger=self.logger)
+            # First time normal mode is entered
+            self.listen_thread = ThreadHandler(target=partial(self.listen), name="aprs-listen", parent_logger=self.logger)
             self.listen_thread.start()
         else:
             self.listen_thread.resume()
@@ -73,15 +77,24 @@ class APRS(Radio):
         raw_packet = str(packet)
         self.logger.debug("From APRS: " + raw_packet)
         header_index = raw_packet.find(':')
+        telemetry_heartbeat_header = raw_packet.find('T#')
+
         if header_index == -1:
+            if telemetry_heartbeat_header == 0:
+                # Telemetry Packet: APRS special case
+                self.logger.debug('APRS telemetry heartbeat received')
+                return raw_packet
+
             self.logger.error("Incomplete APRS header!")
-            return ""  # TODO: Update Error handling if incomplete APRS header is sent
+            # Empty strings will not be enqueued to telemetry
+            return ''
+
         header = raw_packet[:header_index]
         self.logger.debug("header: " + header)
         data = raw_packet[header_index + 1:]
 
         if len(data) == 0:
-            self.logger.warning("Empty packet body!")
+            self.logger.warning("Empty packet body! Will not be queued to telemetry")
 
         self.logger.debug("Body: " + data)
         return data
@@ -101,17 +114,16 @@ class APRS(Radio):
                 res = self.serial.readline()
                 line += res
             line = line.decode('utf-8')
-            # Update last message time
             self.last_message_time = time()
-            if line[0:2] == 'T#':  # Telemetry Packet: APRS special case
+            if 'T#' in line:
                 self.last_telem_time = time()
-                self.logger.debug('APRS telemetry heartbeat received')
-                continue  # Don't parse telemetry packets
 
-            # Dispatch command
+            # Parse the line
             parsed = self.parse_aprs_packet(line)
 
-            # TODO: Once class structure is implemented, parsed has to be dispatched to the telemetry object
+            if parsed:
+                # TODO: Pass parsed to the telemetry object
+                pass
 
     def send(self, message):
         """
