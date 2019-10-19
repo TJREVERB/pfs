@@ -121,5 +121,8 @@ class Core:
             if hasattr(self.submodules[submodule], 'start'):
                 self.submodules[submodule].start()
 
+        for process in self.processes:
+            self.processes[process].start()
+
         while True:
             time.sleep(1)
