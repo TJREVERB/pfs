@@ -4,7 +4,7 @@ from time import time, sleep
 
 from . import Radio
 from core import ThreadHandler
-from core import Mode
+from core.mode import Mode
 
 from serial import Serial
 
