@@ -4,7 +4,7 @@ from functools import partial
 from time import sleep
 
 from . import Radio
-from core import ThreadHandler
+from core import ThreadHandler, Mode
 
 from serial import Serial
 
@@ -16,6 +16,7 @@ class Iridium(Radio):
 
         self.logger = logging.getLogger("IRIDIUM")
         self.read_lock = Lock()
+        self.mode = Mode.LOW_POWER
 
         self.serial = Serial(config['iridium']['serial_port'], baudrate=19200, timeout=30)
         self.serial.flush()
@@ -122,7 +123,7 @@ class Iridium(Radio):
 
         while True:  # Continuously listen for rings
             # Wait for `read_lock` to be released, implies loop is run every 5 seconds minimum
-            while "mode is normal" == "mode is normal":  # TODO: Rewrite power logic
+            while self.mode == Mode.NORMAL:  # TODO: Rewrite power logic
                 acquired_read_lock = self.read_lock.acquire(timeout=5)
                 if acquired_read_lock:
                     ring = self.serial.readline().decode('UTF-8')
