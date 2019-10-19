@@ -18,6 +18,7 @@ class APRS(Radio):
         """
 
         self.config = config
+        self.modules = {}
 
         self.logger = logging.getLogger("APRS")
         self.last_telem_time = time()
@@ -61,6 +62,10 @@ class APRS(Radio):
             self.listen_thread.resume()
 
         self.mode = Mode.NORMAL
+
+    def set_modules(self, **kwargs):
+        for key_word in kwargs:
+            self.modules[key_word] = kwargs[key_word]
 
     def parse_aprs_packet(self, packet: str) -> str:
         """
@@ -116,8 +121,9 @@ class APRS(Radio):
             parsed = self.parse_aprs_packet(line)
 
             if parsed:
-                # TODO: Pass parsed to the telemetry object
-                pass
+                if 'telemetry' in self.modules:
+                    telemetry = self.modules['telemetry']
+                    # TODO: pass `parsed` into `telemetry`
 
     def send(self, message):
         """
