@@ -102,6 +102,9 @@ class Core:
             if hasattr(self.submodules[submodule], 'enter_emergency_mode'):
                 self.submodules[submodule].enter_emergency_mode()
 
+    def request(self, module_name):
+        return self.submodules[module_name] if module_name in self.submodules.keys() else False
+
     def start(self):
         for submodule in self.config['core']['modules']['A']:
             if hasattr(self.submodules[submodule], 'start'):
