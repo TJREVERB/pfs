@@ -72,7 +72,7 @@ class Core:
         :param reason: Reason for entering normal mode.
         """
         self.logger.warning(
-            f"Entering normal mode{'  Reason: ' if reason else ''}{reason}")
+            f"Entering normal mode{'  Reason: ' if reason else ''}{reason if reason else ''}")
         self.state = Mode.NORMAL
         for submodule in self.submodules:
             if hasattr(self.submodules[submodule], 'enter_normal_mode'):
@@ -84,7 +84,7 @@ class Core:
         :param reason: Reason for entering low power mode.
         """
         self.logger.warning(
-            f"Entering low_power mode{'  Reason: ' if reason else ''}{reason}")
+            f"Entering low power mode{'  Reason: ' if reason else ''}{reason if reason else ''}")
         self.state = Mode.LOW_POWER
         for submodule in self.submodules:
             if hasattr(self.submodules[submodule], 'enter_low_power_mode'):
@@ -96,7 +96,7 @@ class Core:
         :param reason: Reason for entering emergency power mode.
         """
         self.logger.warning(
-            f"Entering emergency mode{'  Reason: ' if reason else ''}{reason}")
+            f"Entering emergency mode{'  Reason: ' if reason else ''}{reason if reason else ''}")
         self.state = Mode.EMERGENCY
         for submodule in self.submodules:
             if hasattr(self.submodules[submodule], 'enter_emergency_mode'):
