@@ -4,14 +4,15 @@ core:
         A:
             - eps
             - command_ingest
-            - imu
         B:
             - antenna_deployer
         C:
             - aprs
             - iridium
             - telemetry
-    config_save_interval: 60
+    dump_inteval: 3600
+    sleep_interval: 1800
+
 aprs:
     serial_port: /dev/ttyUSB0
     telem_timeout: 70
@@ -19,7 +20,6 @@ aprs:
 eps:
     looptime: 20
 telemetry:
-    send_interval: 30
     buffer_size: 100
     max_packet_size: 170
 iridium:
