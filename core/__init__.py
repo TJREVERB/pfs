@@ -47,17 +47,25 @@ class Core:
         }
         self.populate_dependencies()
         self.processes = {
-            "power_monitor": ThreadHandler(target=partial(power_watchdog, args=self),
-                                           name="power_monitor", parent_logger=self.logger),
-            "telemetry_dump": Timer(interval=self.config['core']['dump_interval'],
-                                    function=partial(self.submodules["telemetry"].dump))
+            "power_monitor": ThreadHandler(
+                target=partial(power_watchdog, args=self),
+                name="power_monitor",
+                parent_logger=self.logger
+            ),
+
+            "telemetry_dump": Timer(
+                interval=self.config['core']['dump_interval'],
+                function=partial(self.submodules["telemetry"].dump)
+            )
         }
 
     def populate_dependencies(self):
         for submodule in self.submodules:
             if hasattr(self.submodules[submodule], 'set_modules'):
-                self.submodules[submodule].set_modules({dependency: self.submodules[dependency]
-                                                        for dependency in self.config[submodule]['depends_on']})
+                self.submodules[submodule].set_modules({
+                    dependency: self.submodules[dependency]
+                    for dependency in self.config[submodule]['depends_on']
+                })
 
     def get_config(self):
         """Returns the configuration data from config_*.yml as a list"""
