@@ -38,7 +38,7 @@ class Core:
         self.logger = logging.getLogger("core")
         self.state = Mode.LOW_POWER
         self.submodules = {
-            "antenna_deployer": AntennaDeployer(core=self, config=self.config),
+            "antenna_deployer": AntennaDeployer(config=self.config),
             "aprs": None,
             "command_ingest": None,
             "eps": None,
@@ -55,8 +55,9 @@ class Core:
 
     def populate_dependencies(self):
         for submodule in self.submodules:
-            self.submodules[submodule].set_modules({dependency: self.submodules[dependency]
-                                                    for dependency in self.config[submodule]['depends_on']})
+            if hasattr(self.submodules[submodule], 'set_modules'):
+                self.submodules[submodule].set_modules({dependency: self.submodules[dependency]
+                                                        for dependency in self.config[submodule]['depends_on']})
 
     def get_config(self):
         """Returns the configuration data from config_*.yml as a list"""
@@ -97,15 +98,16 @@ class Core:
             if hasattr(self.submodules[submodule], 'start'):
                 self.submodules[submodule].start()
 
-        if is_first_boot(os):
+        if is_first_boot():
             time.sleep(self.config['core']['sleep_interval'])
 
         for submodule in self.config['core']['modules']['B']:
             if hasattr(self.submodules[submodule], 'start'):
                 self.submodules[submodule].start()
 
-
-
+        for submodule in self.config['core']['modules']['C']:
+            if hasattr(self.submodules[submodule], 'start'):
+                self.submodules[submodule].start()
 
         while True:
             time.sleep(1)

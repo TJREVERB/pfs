@@ -1,3 +1,4 @@
+import os
 from core import Power
 from core import Mode
 
@@ -13,7 +14,7 @@ def power_watchdog(core):
                 f'Battery level at critical state: {eps.get_battery_bus_volts()}')
 
 
-def is_first_boot(os):
+def is_first_boot():
     if os.listdir().count("first_boot.txt") > 0: # check if the file exists
         os.remove("first_boot.txt") # remove the file if it exists
         return True

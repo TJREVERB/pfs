@@ -1,4 +1,3 @@
-# Simulate = whether or not core is running while running fake data
 core:
     modules:
         A:

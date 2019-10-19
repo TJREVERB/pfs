@@ -1,9 +1,9 @@
 from . import isisants
 
 
-class AntennaDeployer():
+class AntennaDeployer:
 
-    def __init__(self, core, config):
+    def __init__(self, config):
         self.config = config
 
     def start(self):
