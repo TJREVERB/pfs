@@ -4,6 +4,7 @@ from time import time, sleep
 
 from . import Radio
 from core import ThreadHandler
+from core import Mode
 
 from serial import Serial
 
@@ -17,16 +18,51 @@ class APRS(Radio):
     SENT_MESSAGES_PH = 50
 
     def __init__(self, config):
+        """
+        Assumes APRS is in low power mode on start. Sets up class fields.
+        :param config: the config dictionary loaded from config_default.yml
+        """
+
         self.config = config
 
         self.logger = logging.getLogger("APRS")
         self.last_telem_time = time()
         self.last_message_time = time()
 
-        self.serial = Serial(config['aprs']['serial_port'], 19200)
+        self.mode = Mode.LOW_POWER
+        self.serial = None
+        self.listen_thread = None
 
-        self.listen_thread = ThreadHandler(target=partial(self.listen), name="aprs-listen", parent_logger=self.logger)
-        self.listen_thread.start()
+    def enter_low_power_mode(self):
+        """
+        Enters the APRS into low power mode
+        Closes the serial port and pauses the listening thread
+        """
+
+        self.listen_thread.pause()
+        self.serial.close()
+
+        self.mode = Mode.LOW_POWER
+
+    def enter_normal_mode(self):
+        """
+        Enters the APRS into normal mode
+        Opens the serial port and starts/resumes the listening thread
+        """
+
+        if self.serial is None:
+            self.serial = Serial(self.config['aprs']['serial_port'], 19200)
+        else:
+            self.serial.open()
+
+        if self.listen_thread is None:
+            self.listen_thread = ThreadHandler(target=partial(self.listen), name="aprs-listen",
+                                               parent_logger=self.logger)
+            self.listen_thread.start()
+        else:
+            self.listen_thread.resume()
+
+        self.mode = Mode.NORMAL
 
     def parse_aprs_packet(self, packet: str) -> str:
         """
@@ -52,10 +88,13 @@ class APRS(Radio):
 
     def listen(self):
         """
-        Read messages from serial. If a command is received, send it to `command_ingest`
-        Run via ThreadHandler
+        Read messages from serial. If a command is received, send it to `telemetry`
+        Run via ThreadHandler listen_thread
         """
         while True:
+            if self.mode is Mode.LOW_POWER:
+                continue
+
             line = b''
             while not line.endswith(b'\n'):  # While EOL hasn't been sent
                 self.logger.debug("GOT SOMETHING")
@@ -72,7 +111,7 @@ class APRS(Radio):
             # Dispatch command
             parsed = self.parse_aprs_packet(line)
 
-            # TODO: Once class structure is implemented, parsed has to be dispatched to the command_ingest object
+            # TODO: Once class structure is implemented, parsed has to be dispatched to the telemetry object
 
     def send(self, message):
         """
@@ -81,7 +120,6 @@ class APRS(Radio):
         same time.
         :param message: Message to send into the APRS queue.
         """
-        # TODO: Need Normal Mode logic? @Ethan
 
         # Wait until `message_spacing` seconds after the last received message
         while True:
