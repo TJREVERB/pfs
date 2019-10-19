@@ -9,6 +9,7 @@ from functools import partial
 from threading import Timer
 
 from core.threadhandler import ThreadHandler
+from core.processes import power_watchdog
 
 from submodules.antenna_deploy import AntennaDeployer
 
@@ -37,9 +38,9 @@ class Core:
 
         self.logger = logging.getLogger("core")
         self.state = Mode.LOW_POWER
-
-        while True:
-            time.sleep(1)
+        self.submodules = {
+            "antenna_deployer": AntennaDeployer(config=self.config),
+        }
 
     def get_config(self):
         """Returns the configuration data from config_*.yml as a list"""
@@ -75,21 +76,14 @@ class Core:
             f"Entering emergency mode{'  Reason: ' if reason else ''}{reason}")
         self.state = Mode.EMERGENCY
 
-    def power_watchdog(self):
+    def request_module(self, module_name: str):
+        return self.submodules[module_name.lower()]
+
+    def start(self):
+        # Monitor Power Level
+        power_monitoring_thread = ThreadHandler(target=partial(power_watchdog, args=self),
+                                                name="power_monitor", parent_logger=self.logger)
+        power_monitoring_thread.start()
+
         while True:
-            if eps.get_battery_bus_volts() >= Power.NORMAL.value and state != Mode.NORMAL:
-                self.enter_normal_mode(
-                    f'Battery level at sufficient state: {eps.get_battery_bus_volts()}')
-            elif eps.get_battery_bus_volts() < Power.NORMAL.value and state != Mode.LOW_POWER:
-                self.enter_low_power_mode(
-                    f'Battery level at critical state: {eps.get_battery_bus_volts()}')
-
-
-def start():
-    # Monitor Power Level
-    power_monitoring_thread = ThreadHandler(target=partial(power_watchdog),
-                                            name="monitoring_power", parent_logger=logger)
-    power_monitoring_thread.start()
-
-    while True:
-        time.sleep(1)
+            time.sleep(1)
