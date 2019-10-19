@@ -10,12 +10,6 @@ from serial import Serial
 
 
 class APRS(Radio):
-    # Placeholder values for `telemetry.py`
-    # TODO: override this with values from `telemetry.py` ??
-    TOTAL_RECEIVED_PH = 100
-    SUCCESS_CHECKSUM_PH = 60
-    FAIL_CHECKSUM_PH = 40
-    SENT_MESSAGES_PH = 50
 
     def __init__(self, config):
         """
