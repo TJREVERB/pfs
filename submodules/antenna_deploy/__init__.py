@@ -3,7 +3,7 @@ from . import isisants
 
 class AntennaDeployer():
 
-    def __init__(self, config):
+    def __init__(self, core, config):
         self.config = config
 
     def start(self):

@@ -1,15 +1,14 @@
-import importlib
 import logging
 import os
 import time
-import yaml
 
 from enum import Enum
 from functools import partial
 from threading import Timer
+from yaml import load
 
 from core.threadhandler import ThreadHandler
-from core.processes import power_watchdog
+from core.processes import power_watchdog, is_first_boot
 
 from submodules.antenna_deploy import AntennaDeployer
 
@@ -31,15 +30,26 @@ class Core:
     def __init__(self):
         if os.path.exists('config/config_custom.yml'):
             with open('config/config_custom.yml') as f:
-                self.config = yaml.load(f)
+                self.config = load(f)
         else:
             with open('config/config_default.yml') as f:
-                self.config = yaml.load(f)
+                self.config = load(f)
 
         self.logger = logging.getLogger("core")
         self.state = Mode.LOW_POWER
         self.submodules = {
-            "antenna_deployer": AntennaDeployer(config=self.config),
+            "antenna_deployer": AntennaDeployer(core=self, config=self.config),
+            "aprs": None,
+            "command_ingest": None,
+            "eps": None,
+            "iridium": None,
+            "telemetry": None,
+        }
+        self.processes = {
+            "power_monitor": ThreadHandler(target=partial(power_watchdog, args=self),
+                                           name="power_monitor", parent_logger=self.logger),
+            "telemetry_dump": Timer(interval=self.config['core']['dump_interval'],
+                                    function=partial(self.submodules["telemetry"].dump))
         }
 
     def get_config(self):
@@ -80,10 +90,17 @@ class Core:
         return self.submodules[module_name.lower()]
 
     def start(self):
-        # Monitor Power Level
-        power_monitoring_thread = ThreadHandler(target=partial(power_watchdog, args=self),
-                                                name="power_monitor", parent_logger=self.logger)
-        power_monitoring_thread.start()
+        for submodule in self.config['core']['modules']['A']:
+            if hasattr(self.submodules[submodule], 'start'):
+                self.submodules[submodule].start()
+        if is_first_boot(os):
+            time.sleep(self.config['core']['sleep_interval'])
+        for submodule in self.config['core']['modules']['B']:
+            if hasattr(self.submodules[submodule], 'start'):
+                self.submodules[submodule].start()
+
+
+
 
         while True:
             time.sleep(1)
