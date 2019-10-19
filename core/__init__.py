@@ -74,6 +74,9 @@ class Core:
         self.logger.warning(
             f"Entering normal mode{'  Reason: ' if reason else ''}{reason}")
         self.state = Mode.NORMAL
+        for submodule in self.submodules:
+            if hasattr(self.submodules[submodule], 'enter_normal_mode'):
+                self.submodules[submodule].enter_normal_mode()
 
     def enter_low_power_mode(self, reason: str = '') -> None:
         """
@@ -83,6 +86,9 @@ class Core:
         self.logger.warning(
             f"Entering low_power mode{'  Reason: ' if reason else ''}{reason}")
         self.state = Mode.LOW_POWER
+        for submodule in self.submodules:
+            if hasattr(self.submodules[submodule], 'enter_low_power_mode'):
+                self.submodules[submodule].enter_low_power_mode()
 
     def enter_emergency_mode(self, reason: str = '') -> None:
         """
@@ -92,6 +98,9 @@ class Core:
         self.logger.warning(
             f"Entering emergency mode{'  Reason: ' if reason else ''}{reason}")
         self.state = Mode.EMERGENCY
+        for submodule in self.submodules:
+            if hasattr(self.submodules[submodule], 'enter_emergency_mode'):
+                self.submodules[submodule].enter_emergency_mode()
 
     def start(self):
         for submodule in self.config['core']['modules']['A']:
