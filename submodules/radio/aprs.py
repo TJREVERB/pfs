@@ -56,7 +56,8 @@ class APRS(Radio):
 
         if self.listen_thread is None:
             # First time normal mode is entered
-            self.listen_thread = ThreadHandler(target=partial(self.listen), name="aprs-listen", parent_logger=self.logger)
+            self.listen_thread = ThreadHandler(target=partial(self.listen), name="aprs-listen",
+                                               parent_logger=self.logger)
             self.listen_thread.start()
         else:
             self.listen_thread.resume()
@@ -132,6 +133,9 @@ class APRS(Radio):
         same time.
         :param message: Message to send into the APRS queue.
         """
+
+        # Pretty sure this method doesn't work. It does not use a queue and gets stuck in a infinite loop
+        # TODO: add an APRS queue, send should add to the queue, writing thread should pops from the queue
 
         # Wait until `message_spacing` seconds after the last received message
         while True:
