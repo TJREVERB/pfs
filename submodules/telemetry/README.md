@@ -1,5 +1,7 @@
-Tasks
-======
+# Telemetry Module
+A module that handles data input and output.
+
+
 Data Structures
 ------------------------
 - `general_queue` (type: [Queue](https://docs.python.org/3/library/queue.html))
