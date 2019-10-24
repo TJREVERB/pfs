@@ -26,42 +26,33 @@ class APRS(Radio):
 
         self.mode = Mode.LOW_POWER
         self.serial = None
-        self.listen_thread = None
+        self.listen_thread = ThreadHandler(target=partial(self.listen), name="aprs-listen", parent_logger=self.logger)
+
+    def start(self):
+        """
+        Opens the APRS serial port and starts the listening thread.
+        Assumes enough power is present therefore the tty port exists.
+        """
+        self.serial = Serial(self.config['aprs']['serial_port'], 19200)
 
     def enter_low_power_mode(self):
         """
-        Enters the APRS into low power mode
+        Enters the APRS into low power mode.
         Closes the serial port and pauses the listening thread
+        Assumes APRS is in normal mode
         """
-
-        if self.listen_thread is not None:
-            self.listen_thread.pause()
-
-        if self.serial is not None:
-            self.serial.close()
-
+        self.listen_thread.pause()
+        self.serial.close()
         self.mode = Mode.LOW_POWER
 
     def enter_normal_mode(self):
         """
-        Enters the APRS into normal mode
-        Opens the serial port and starts/resumes the listening thread
+        Enters the APRS into normal mode.
+        Re-opens the serial port and resumes the listening thread
+        Assumes APRS is in low power mode.
         """
-
-        if self.serial is None:
-            # First time normal mode is entered
-            self.serial = Serial(self.config['aprs']['serial_port'], 19200)
-        else:
-            self.serial.open()
-
-        if self.listen_thread is None:
-            # First time normal mode is entered
-            self.listen_thread = ThreadHandler(target=partial(self.listen), name="aprs-listen",
-                                               parent_logger=self.logger)
-            self.listen_thread.start()
-        else:
-            self.listen_thread.resume()
-
+        self.serial.open()
+        self.listen_thread.resume()
         self.mode = Mode.NORMAL
 
     def set_modules(self, **kwargs):
