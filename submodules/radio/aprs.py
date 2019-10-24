@@ -4,7 +4,6 @@ from time import time, sleep
 
 from . import Radio
 from core import ThreadHandler
-from core.mode import Mode
 
 from serial import Serial
 
@@ -24,7 +23,9 @@ class APRS(Radio):
         self.last_telem_time = time()
         self.last_message_time = time()
 
-        self.mode = Mode.LOW_POWER
+        self.modules = dict()
+        self._has_modules = False
+
         self.serial = None
         self.listen_thread = ThreadHandler(target=partial(self.listen), name="aprs-listen", parent_logger=self.logger)
 
@@ -34,6 +35,7 @@ class APRS(Radio):
         Assumes enough power is present therefore the tty port exists.
         """
         self.serial = Serial(self.config['aprs']['serial_port'], 19200)
+        self.listen_thread.start()
 
     def enter_low_power_mode(self):
         """
@@ -43,7 +45,6 @@ class APRS(Radio):
         """
         self.listen_thread.pause()
         self.serial.close()
-        self.mode = Mode.LOW_POWER
 
     def enter_normal_mode(self):
         """
@@ -53,11 +54,10 @@ class APRS(Radio):
         """
         self.serial.open()
         self.listen_thread.resume()
-        self.mode = Mode.NORMAL
 
-    def set_modules(self, **kwargs):
-        for key_word in kwargs:
-            self.modules[key_word] = kwargs[key_word]
+    def set_modules(self, modules):
+        self.modules = modules
+        self._has_modules = True
 
     def parse_aprs_packet(self, packet: str) -> str:
         """
@@ -96,7 +96,12 @@ class APRS(Radio):
         Run via ThreadHandler listen_thread
         """
         while True:
-            if self.mode is Mode.LOW_POWER:
+            if not self._has_modules:
+                # Modules not set yet
+                continue
+
+            if not self.serial.is_open:
+                # Low power mode
                 continue
 
             line = b''
