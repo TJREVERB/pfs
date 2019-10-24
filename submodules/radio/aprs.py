@@ -5,7 +5,7 @@ from time import time, sleep
 from . import Radio
 from core import ThreadHandler
 
-from serial import Serial
+from serial import Serial, SerialException
 
 
 class APRS(Radio):
@@ -33,27 +33,48 @@ class APRS(Radio):
         """
         Opens the APRS serial port and starts the listening thread.
         Assumes enough power is present therefore the tty port exists.
+        :return bool Success or Fail
         """
-        self.serial = Serial(self.config['aprs']['serial_port'], 19200)
+        try:
+            self.serial = Serial(self.config['aprs']['serial_port'], 19200)
+        except SerialException:
+            return False
+
         self.listen_thread.start()
+
+        return True
 
     def enter_low_power_mode(self):
         """
         Enters the APRS into low power mode.
         Closes the serial port and pauses the listening thread
         Assumes APRS is in normal mode
+        :return bool Success or Fail
         """
         self.listen_thread.pause()
-        self.serial.close()
+
+        try:
+            self.serial.close()
+        except SerialException:
+            return False
+
+        return True
 
     def enter_normal_mode(self):
         """
         Enters the APRS into normal mode.
         Re-opens the serial port and resumes the listening thread
         Assumes APRS is in low power mode.
+        :return bool Success or Fail
         """
-        self.serial.open()
+
+        try:
+            self.serial.open()
+        except SerialException:
+            return False
+
         self.listen_thread.resume()
+        return True
 
     def set_modules(self, modules):
         self.modules = modules
@@ -124,21 +145,10 @@ class APRS(Radio):
 
     def send(self, message):
         """
-        Put a packet in the APRS queue.  The APRS queue exists
-        only to make sure that we don't send and receive at the
-        same time.
-        :param message: Message to send into the APRS queue.
+        Write packet via serial. All concurrency issues should be handled by a higher packages.
+        :param message: Message to send to the APRS.
         """
 
-        # Pretty sure this method doesn't work. It does not use a queue and gets stuck in a infinite loop
-        # TODO: add an APRS queue, send should add to the queue, writing thread should pops from the queue
-
-        # Wait until `message_spacing` seconds after the last received message
-        while True:
-            while time() - self.last_message_time < self.config['aprs']['message_spacing']:
-                sleep(1)
-            self.last_message_time = time()
-
-            self.serial.write((message + '\n').encode("utf-8"))  # Send the message
-
-            sleep(1)
+        self.last_message_time = time()
+        self.serial.write((message + '\n').encode("utf-8"))  # Send the message
+        sleep(1)
