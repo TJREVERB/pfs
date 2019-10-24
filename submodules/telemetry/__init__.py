@@ -1,15 +1,14 @@
-import base64
-import collections
-import logging
-from functools import partial
-from threading import Lock
-from time import sleep
+import base64                   # packet encoding
+import collections              # general, error, log queues
+import logging                  # logger
+from functools import partial   # thread
+from threading import Lock      # packet locks
+from time import sleep          # decide method
 
-from core.threadhandler import ThreadHandler
-# from submodules import radio_output
+from core.threadhandler import ThreadHandler    # threads
+# from submodules import radio_output   # FIXME radio_output?
 
-# Log and error classes
-from core import error, log
+from core import error, log     # Log and error classes
 
 logger = logging.getLogger("TELEMETRY")
 
@@ -36,28 +35,30 @@ class Telemetry:
         """
         self.modules = modules
 
-    def enqueue(self, message) -> None:
+    def enqueue(self, message) -> bool:
         """
         Enqueue a message onto the general queue, to be processed later by thread decide()
         :param message: The message to push onto general queue. Must be a log/error class
         or command (string - must begin with semicolon, see command_ingest's readme)
-        :return None
+        :return True if a valid message was enqueued, false otherwise
         """
         if not ((type(message) is str and message[0] == ';') or type(message) is error.Error or type(
                 message) is log.Log):   # check for valid types, error if invalid
             self.logger.error("Attempted to enqueue invalid message")
-            return
+            return False
         with self.packet_lock:
             self.general_queue.append(message)  # append to general queue
+            return True
 
-    def dump(self, radio='aprs') -> None:
+    def dump(self, radio='aprs') -> bool:
         """
         Concatenates packets to fit in max_packet_size (defined in config) and send through the radio, removing the
         packets from the error and log stacks in the process
         :param radio: Radio to send telemetry through, either "aprs" or "iridium"
-        :return None
+        :return True if anything was sent, false otherwise
         """
         squishedpackets = ""
+        retVal = False
 
         with self.packet_lock:
             while len(self.log_stack) + len(self.err_stack) > 0:    # while there's stuff to pop off
@@ -69,7 +70,10 @@ class Telemetry:
                         squishedpackets += self.log_stack.pop().to_string()
                 squishedpackets = base64.b64encode(squishedpackets.encode('ascii'))
                 self.modules["aprs"].send(squishedpackets) # , radio) #FIXME currently just using APRS, what about radio_output?
+                retVal = True
                 squishedpackets = ""
+
+        return retVal
 
     def clear_buffers(self) -> None:
         """
@@ -104,10 +108,11 @@ class Telemetry:
     def start(self) -> None:
         """
         Starts the telemetry send thread
+        Config and modules must be initialized beforehand (config is through constructor, modules is through set_modules)
         :return None
         """
-        if self.config is None:
-            raise RuntimeError("Config variable empty")
+        if self.config or self.modules is None:
+            raise RuntimeError("Config variable or self.modules empty and not initialized")
 
         threadDecide = ThreadHandler(target=partial(self.decide), name="telemetry-decide")  # start telemetry 'decide' thread
         threadDecide.start()
