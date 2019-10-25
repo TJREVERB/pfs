@@ -5,11 +5,8 @@ from functools import partial
 from threading import Lock
 from time import sleep
 
-from core.mode import Mode
 
-from core import config
 from core.threadhandler import ThreadHandler
-from submodules import radio_output
 from submodules import command_ingest
 
 # Command Ingest - ability to register commands
@@ -23,7 +20,8 @@ logger = logging.getLogger("TELEMETRY")
 
 def enqueue(message) -> None:
 
-    """Enqueue a message onto the general queue, to be processed later by thread decide()
+    """
+    Enqueue a message onto the general queue, to be processed later by thread decide()
     :param message: The message to push onto general queue. Must be a log/error class
     or command (string - must begin with semicolon, see command_ingest's readme)
     :return None

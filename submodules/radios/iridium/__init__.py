@@ -6,8 +6,8 @@ import core
 
 from functools import partial
 
-from core.mode import Mode
 from core.threadhandler import ThreadHandler
+from core import Mode
 from core import config
 from submodules import command_ingest
 from submodules.command_ingest import command

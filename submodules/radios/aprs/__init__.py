@@ -6,8 +6,6 @@ from functools import partial
 import serial
 
 from core import config
-from core.mode import Mode
-from core.helpers import is_simulate
 from core.threadhandler import ThreadHandler
 from submodules import command_ingest
 from submodules import eps
