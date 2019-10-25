@@ -33,48 +33,28 @@ class APRS(Radio):
         """
         Opens the APRS serial port and starts the listening thread.
         Assumes enough power is present therefore the tty port exists.
-        :return bool Success or Fail
         """
-        try:
-            self.serial = Serial(self.config['aprs']['serial_port'], 19200)
-        except SerialException:
-            return False
-
+        self.serial = Serial(self.config['aprs']['serial_port'], 19200)
         self.listen_thread.start()
-
-        return True
 
     def enter_low_power_mode(self):
         """
         Enters the APRS into low power mode.
         Closes the serial port and pauses the listening thread
         Assumes APRS is in normal mode
-        :return bool Success or Fail
         """
         self.listen_thread.pause()
-
-        try:
-            self.serial.close()
-        except SerialException:
-            return False
-
-        return True
+        self.serial.close()
 
     def enter_normal_mode(self):
         """
         Enters the APRS into normal mode.
         Re-opens the serial port and resumes the listening thread
         Assumes APRS is in low power mode.
-        :return bool Success or Fail
         """
 
-        try:
-            self.serial.open()
-        except SerialException:
-            return False
-
+        self.serial.open()
         self.listen_thread.resume()
-        return True
 
     def set_modules(self, modules):
         self.modules = modules
