@@ -18,3 +18,5 @@ backup_tle.txt
 
 # requirements.txt can be generated using `pipenv lock -r`
 requirements.txt
+
+config_custom.yml
