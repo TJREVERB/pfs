@@ -8,10 +8,8 @@ class AntennaDeployer:
         self.config = config
         self.modules = {}
 
-    
     def set_modules(self, dependencies):
         self.modules = dependencies
-
 
     def start(self):
         # Initialize connection with device

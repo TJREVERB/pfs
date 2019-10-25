@@ -103,20 +103,20 @@ class Core:
         return self.submodules[module_name] if module_name in self.submodules.keys() else False
 
     def start(self):
-        # for submodule in self.config['core']['modules']['A']:
-        #     if hasattr(self.submodules[submodule], 'start'):
-        #         self.submodules[submodule].start()
-        #
-        # if is_first_boot():
-        #     time.sleep(self.config['core']['sleep_interval'])
-        #
-        # for submodule in self.config['core']['modules']['B']:
-        #     if hasattr(self.submodules[submodule], 'start'):
-        #         self.submodules[submodule].start()
-        #
-        # for submodule in self.config['core']['modules']['C']:
-        #     if hasattr(self.submodules[submodule], 'start'):
-        #         self.submodules[submodule].start()
+        for submodule in self.config['core']['modules']['A']:
+            if hasattr(self.submodules[submodule], 'start'):
+                self.submodules[submodule].start()
+
+        if is_first_boot():
+            time.sleep(self.config['core']['sleep_interval'])
+
+        for submodule in self.config['core']['modules']['B']:
+            if hasattr(self.submodules[submodule], 'start'):
+                self.submodules[submodule].start()
+
+        for submodule in self.config['core']['modules']['C']:
+            if hasattr(self.submodules[submodule], 'start'):
+                self.submodules[submodule].start()
 
         for process in self.processes:
             self.processes[process].start()
