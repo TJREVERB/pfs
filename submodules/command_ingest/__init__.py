@@ -10,6 +10,7 @@ class CommandIngest:
     def __init__(self, config):
         self.config = config
         self.logger = logging.getLogger("CI")
+        self.modules = {}
 
         self.total_received: int = 0
         self.total_errors: int = 0
@@ -23,6 +24,9 @@ class CommandIngest:
                 target=partial(self.dispatch)
             )
         }
+
+    def set_modules(self, dependencies):
+        self.modules = dependencies
 
     def dispatch(self):
         while True:
@@ -81,3 +85,6 @@ class CommandIngest:
         else:
             return None
 
+    def start(self):
+        for process in self.processes:
+            self.processes[process].start()
