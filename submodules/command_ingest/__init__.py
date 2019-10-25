@@ -71,7 +71,8 @@ class CommandIngest:
         self.logger.debug('CHECKOUT :' + chr(cmd_sum) + ";")
         return chr(cmd_sum)
 
-    def associate(self, cmd: str):
+    @staticmethod
+    def associate(cmd: str):
         """
         Given a function name, return a decorator that registers that function.
         :return: Decorator that registers function.
