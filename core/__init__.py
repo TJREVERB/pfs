@@ -2,10 +2,10 @@ import logging
 import os
 import time
 
-from enum import Enum
 from functools import partial
 from threading import Timer
 from yaml import safe_load
+
 
 from core.mode import Mode
 from core.power import Power
