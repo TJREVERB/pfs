@@ -49,9 +49,9 @@ def dump(radio='aprs') -> None:
             next_packet = (err_stack[-1].to_string() if len(err_stack) > 0 else log_stack[-1].to_string())
             while len(base64.b64encode((squishedpackets + next_packet).encode('ascii'))) < config["telemetry"]["max_packet_size"] and len(log_stack) + len(err_stack) > 0:
                 if len(err_stack) > 0:
-                    squishedpackets += err_stack.pop().to_string()
+                    squishedpackets += str(err_stack.pop())
                 else:
-                    squishedpackets += log_stack.pop().to_string()
+                    squishedpackets += str(log_stack.pop())
             squishedpackets = base64.b64encode(squishedpackets.encode('ascii'))
             radio_output.send(squishedpackets, radio)
             squishedpackets = ""
