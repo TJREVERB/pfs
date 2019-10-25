@@ -9,7 +9,7 @@ core:
             - aprs
             - iridium
             - telemetry
-    dump_inteval: 3600
+    dump_interval: 3600
     sleep_interval: 1800
 
 antenna_deployer:
