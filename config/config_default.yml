@@ -9,10 +9,10 @@ core:
             - aprs
             - iridium
             - telemetry
-    dump_inteval: 3600
+    dump_interval: 3600
     sleep_interval: 1800
 
-antenna:
+antenna_deployer:
     depends_on:
         - telemetry
     ANT_1: 0
@@ -27,6 +27,10 @@ aprs:
     message_spacing: 1
 command_ingest:
     depends_on:
+        - antenna_deployer
+        - aprs
+        - eps
+        - iridium
         - telemetry
 eps:
     depends_on:

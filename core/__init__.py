@@ -5,24 +5,14 @@ import time
 from enum import Enum
 from functools import partial
 from threading import Timer
-from yaml import load
+from yaml import safe_load
 
+from core.mode import Mode
+from core.power import Power
 from core.threadhandler import ThreadHandler
 from core.processes import power_watchdog, is_first_boot
 
 from submodules.antenna_deploy import AntennaDeployer
-
-
-class Mode(Enum):
-    NORMAL = 0
-    LOW_POWER = 1
-    EMERGENCY = 2
-
-
-class Power(Enum):
-    STARTUP = 8.2
-    NORMAL = 7.6
-    EMERGENCY = 0
 
 
 class Core:
@@ -30,10 +20,10 @@ class Core:
     def __init__(self):
         if os.path.exists('config/config_custom.yml'):
             with open('config/config_custom.yml') as f:
-                self.config = load(f)
+                self.config = safe_load(f)
         else:
             with open('config/config_default.yml') as f:
-                self.config = load(f)
+                self.config = safe_load(f)
 
         self.logger = logging.getLogger("core")
         self.state = Mode.LOW_POWER
@@ -48,11 +38,10 @@ class Core:
         self.populate_dependencies()
         self.processes = {
             "power_monitor": ThreadHandler(
-                target=partial(power_watchdog, args=self),
+                target=partial(power_watchdog, core=self, eps=self.submodules['eps']),
                 name="power_monitor",
                 parent_logger=self.logger
             ),
-
             "telemetry_dump": Timer(
                 interval=self.config['core']['dump_interval'],
                 function=partial(self.submodules["telemetry"].dump)

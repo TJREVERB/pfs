@@ -1,10 +1,9 @@
 import os
-from core import Power
-from core import Mode
+from core.power import Power
+from core.mode import Mode
 
 
-def power_watchdog(core):
-    eps = core.request_module("eps")
+def power_watchdog(core, eps):
     while True:
         if eps.get_battery_bus_volts() >= Power.NORMAL.value and core.state != Mode.NORMAL:
             core.enter_normal_mode(
