@@ -116,12 +116,12 @@ class APRS(Radio):
                 self.last_telem_time = time()
 
             # Parse the line
-            parsed = self.parse_aprs_packet(line)
+            parsed_message = self.parse_aprs_packet(line)
 
-            if parsed:
+            if parsed_message:
                 if 'telemetry' in self.modules:
                     telemetry = self.modules['telemetry']
-                    # TODO: pass `parsed` into `telemetry`
+                    telemetry.enqueue(parsed_message)
 
     def send(self, message):
         """
