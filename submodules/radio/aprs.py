@@ -106,10 +106,22 @@ class APRS(Radio):
                 continue
 
             line = b''
+            port_closed = False
             while not line.endswith(b'\n'):  # While EOL hasn't been sent
-                self.logger.debug("GOT SOMETHING")
-                res = self.serial.readline()
-                line += res
+
+                if not self.serial.is_open:
+                    port_closed = True
+                    break
+
+                result = self.serial.read()
+                line += result
+
+            if port_closed:
+                self.logger.debug('PORT GOT CLOSED WHILE READING LINE')
+                continue
+
+            self.logger.debug("GOT SOMETHING")
+
             line = line.decode('utf-8')
             self.last_message_time = time()
             if 'T#' in line:
