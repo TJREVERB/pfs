@@ -4,7 +4,7 @@ from functools import partial
 from time import sleep
 
 from . import Radio
-from core import ThreadHandler, Mode
+from core import ThreadHandler
 
 from serial import Serial
 
@@ -12,29 +12,66 @@ from serial import Serial
 class Iridium(Radio):
 
     def __init__(self, config):
+        """
+        Assumes Iridium is in low power mode on start. Sets up class fields.
+        :param config: the config dictionary loaded from config_default.yml
+        """
         self.config = config
+        self.modules = dict()
 
         self.logger = logging.getLogger("IRIDIUM")
         self.read_lock = Lock()
-        self.mode = Mode.LOW_POWER
 
-        self.serial = Serial(config['iridium']['serial_port'], baudrate=19200, timeout=30)
+        self.serial = None
+        self.listen_thread = ThreadHandler(target=partial(self.listen), name="iridium-listen",
+                                           parent_logger=self.logger)
+
+    def start(self):
+        """
+           Opens the Iridium serial port and starts the listening thread.
+           Assumes enough power is present therefore the tty port exists.
+           If the Iridium check fails, it raises an error
+        """
+
+        self.serial = Serial(self.config['iridium']['serial_port'], baudrate=19200, timeout=30)
         self.serial.flush()
 
         if self.check(5):
             self.logger.debug("Iridium Check Successful")
         else:
-            self.logger.error("Iridium Check Failed")
+            raise RuntimeError('Iridium Check Failed')
 
-        listen_thread = ThreadHandler(target=partial(self.listen), name="iridium-listen", parent_logger=self.logger)
-        listen_thread.start()
+    def enter_low_power_mode(self):
+        """
+        Enters the Iridium into low power mode.
+        Closes the serial port and pauses the listening thread
+        Assumes Iridium is in normal mode
+        """
+        self.listen_thread.pause()
+        self.serial.close()
+
+    def enter_normal_mode(self):
+        """
+        Enters the Iridium into normal mode.
+        Re-opens the serial port and resumes the listening thread
+        Assumes Iridium is in low power mode.
+        """
+
+        self.serial.open()
+        self.listen_thread.resume()
+
+    def set_modules(self, modules):
+        self.modules = modules
+
+    def has_modules(self):
+        return len(self.modules) is not 0
 
     def write_to_serial(self, command: str) -> (str, bool):
         """
         Write a command to the serial port.
 
         :param command: Command to write
-        :return: Tuple consisting of (response text, boolean if error or not)
+        :return: (str, boolean) response text, boolean if error or not
         """
 
         # Remove unnecessary newlines that cut off the full command
@@ -123,21 +160,20 @@ class Iridium(Radio):
 
         while True:  # Continuously listen for rings
             # Wait for `read_lock` to be released, implies loop is run every 5 seconds minimum
-            while self.mode == Mode.NORMAL:  # TODO: Rewrite power logic
-                acquired_read_lock = self.read_lock.acquire(timeout=5)
-                if acquired_read_lock:
-                    ring = self.serial.readline().decode('UTF-8')
-                    self.read_lock.release()
-                    self.logger.debug("Got SBDRING")
-                    if "SBDRING" in ring:
-                        message = self.retrieve()
-                        self.logger.debug(f"Message was {message}")
-                        if message:  # Evaluates to True if message not empty
-                            self.logger.debug(message)
-                            # TODO: Once class structure is implemented, parsed has to be dispatched to the command_ingest object
+            acquired_read_lock = self.read_lock.acquire(timeout=5)
+            if acquired_read_lock:
+                ring = self.serial.readline().decode('UTF-8')
+                self.read_lock.release()
+                self.logger.debug("Got SBDRING")
+                if "SBDRING" in ring:
+                    message = self.retrieve()
+                    self.logger.debug(f"Message was {message}")
+                    if message:  # Evaluates to True if message not empty
+                        self.logger.debug(message)
+                        # TODO: Once class structure is implemented, parsed has to be dispatched to the command_ingest object
             sleep(1)
 
-    def send(self, message) -> bool:
+    def send(self, message):
         """
         Send a message using the Iridium network.
         :param message: The message to send in plain text
