@@ -17,14 +17,11 @@ class APRS(Radio):
         """
 
         self.config = config
-        self.modules = {}
+        self.modules = dict()
 
         self.logger = logging.getLogger("APRS")
         self.last_telem_time = time()
         self.last_message_time = time()
-
-        self.modules = dict()
-        self._has_modules = False
 
         self.serial = None
         self.listen_thread = ThreadHandler(target=partial(self.listen), name="aprs-listen", parent_logger=self.logger)
@@ -58,7 +55,9 @@ class APRS(Radio):
 
     def set_modules(self, modules):
         self.modules = modules
-        self._has_modules = True
+
+    def had_modules(self):
+        return len(self.modules) is not 0
 
     def parse_aprs_packet(self, packet: str) -> str:
         """
@@ -97,7 +96,7 @@ class APRS(Radio):
         Run via ThreadHandler listen_thread
         """
         while True:
-            if not self._has_modules:
+            if not self.has_modules:
                 # Modules not set yet
                 continue
 
