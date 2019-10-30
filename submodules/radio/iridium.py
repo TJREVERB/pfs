@@ -1,7 +1,6 @@
 import logging
 from threading import Lock
 from functools import partial
-from time import sleep
 
 from . import Radio
 from core import ThreadHandler
@@ -74,6 +73,9 @@ class Iridium(Radio):
         :return: (str, boolean) response text, boolean if error or not
         """
 
+        if not self.serial.is_open:
+            return 'ERROR', False
+
         # Remove unnecessary newlines that cut off the full command
         command = command.replace("\r\n", "")
         # Add the newline character to the end of the command
@@ -85,7 +87,9 @@ class Iridium(Radio):
         response = ""  # Received response
         self.read_lock.acquire()
         while ("OK" or "ERROR") not in response:  # Wait to get the 'OK' or 'ERROR' from Iridium
-            response += self.serial.readline().decode('UTF-8')  # Append contents of serial
+            if not self.serial.is_open:
+                return 'ERROR', False
+            response += self.serial.read().decode('UTF-8')  # Append contents of serial
         self.read_lock.release()
 
         # Determine if an "OK" or an "ERROR" was received
@@ -99,10 +103,12 @@ class Iridium(Radio):
             self.serial.flush()  # Flush the serial
             return response, False
 
-    def wait_for_signal(self) -> None:
+    def wait_for_signal(self):
         """
         Wait for the Iridium to establish a connection with the constellation.
         """
+        if not self.serial.is_open:
+            return
         response = 0
         while response == 0:
             response = int(self.write_to_serial("AT+CSQ")[0].split(":")[1])
@@ -139,11 +145,17 @@ class Iridium(Radio):
         self.wait_for_signal()
 
         # "Sync" with the GSS, retrieving and sending messages
-        sync_resp = self.write_to_serial("AT+SBDIXA")[0]
+        sync = self.write_to_serial("AT+SBDIXA")
+        if not sync[1]:
+            return ''
+
+        sync_resp = sync[0]
         sync_resp_list = sync_resp.strip(",")
 
         if sync_resp_list[2] == 1:  # Message successfully received
             message = self.write_to_serial("AT+SBDRT")
+            if not message[1]:
+                return ''
             return message[0]  # Return the actual message content
         else:
             return ""  # Return nothing; either there was no message or retrieval failed
@@ -159,19 +171,47 @@ class Iridium(Radio):
         self.write_to_serial("AT+SBDMTA=1")
 
         while True:  # Continuously listen for rings
+            if not self.has_modules:
+                # Modules not set yet
+                continue
+
+            if not self.serial.is_open:
+                # Low power mode
+                continue
+
             # Wait for `read_lock` to be released, implies loop is run every 5 seconds minimum
             acquired_read_lock = self.read_lock.acquire(timeout=5)
             if acquired_read_lock:
-                ring = self.serial.readline().decode('UTF-8')
+
+                ring = b''
+                port_closed = False
+                while not ring.endswith(b'\n'):  # While EOL hasn't been sent
+
+                    if not self.serial.is_open:
+                        port_closed = True
+                        break
+
+                    result = self.serial.read()
+                    ring += result
+
+                if port_closed:
+                    self.logger.debug('PORT GOT CLOSED WHILE READING LINE')
+                    continue
+
+                ring = ring.decode('utf-8')
+
                 self.read_lock.release()
                 self.logger.debug("Got SBDRING")
+
                 if "SBDRING" in ring:
                     message = self.retrieve()
                     self.logger.debug(f"Message was {message}")
+
                     if message:  # Evaluates to True if message not empty
                         self.logger.debug(message)
-                        # TODO: Once class structure is implemented, parsed has to be dispatched to the command_ingest object
-            sleep(1)
+                        if 'telemetry' in self.modules:
+                            telemetry = self.modules['telemetry']
+                            telemetry.enqueue(message)
 
     def send(self, message):
         """

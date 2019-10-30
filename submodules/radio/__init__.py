@@ -13,6 +13,7 @@ class Radio:
     def set_modules(self, **kwargs):
         raise NotImplementedError
 
+    @property
     def has_modules(self):
         raise NotImplementedError
 
