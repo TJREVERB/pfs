@@ -9,7 +9,6 @@ from serial import Serial
 
 
 class Iridium(Radio):
-
     def __init__(self, config):
         """
         Assumes Iridium is in low power mode on start. Sets up class fields.
@@ -22,8 +21,13 @@ class Iridium(Radio):
         self.read_lock = Lock()
 
         self.serial = None
-        self.listen_thread = ThreadHandler(target=partial(self.listen), name="iridium-listen",
-                                           parent_logger=self.logger)
+        self.processes = {
+            "listen_thread": ThreadHandler(
+                target=partial(self.listen),
+                name="iridium-listen",
+                parent_logger=self.logger,
+            )
+        }
 
     def start(self):
         """
@@ -32,13 +36,17 @@ class Iridium(Radio):
            If the Iridium check fails, it raises an error
         """
 
-        self.serial = Serial(self.config['iridium']['serial_port'], baudrate=19200, timeout=30)
+        self.serial = Serial(
+            self.config["iridium"]["serial_port"], baudrate=19200, timeout=30
+        )
         self.serial.flush()
 
         if self.check(5):
             self.logger.debug("Iridium Check Successful")
         else:
-            raise RuntimeError('Iridium Check Failed')
+            raise RuntimeError("Iridium Check Failed")
+
+        self.processes["listen_thread"].start()
 
     def enter_low_power_mode(self):
         """
@@ -46,7 +54,7 @@ class Iridium(Radio):
         Closes the serial port and pauses the listening thread
         Assumes Iridium is in normal mode
         """
-        self.listen_thread.pause()
+        self.processes["listen_thread"].pause()
         self.serial.close()
 
     def enter_normal_mode(self):
@@ -57,7 +65,7 @@ class Iridium(Radio):
         """
 
         self.serial.open()
-        self.listen_thread.resume()
+        self.processes["listen_thread"].resume()
 
     def set_modules(self, modules):
         self.modules = modules
@@ -74,7 +82,7 @@ class Iridium(Radio):
         """
 
         if not self.serial.is_open:
-            return 'ERROR', False
+            return "ERROR", False
 
         # Remove unnecessary newlines that cut off the full command
         command = command.replace("\r\n", "")
@@ -82,14 +90,16 @@ class Iridium(Radio):
         command = command + "\r\n"
 
         # Encode the message with utf-8, write to serial
-        self.serial.write(command.encode('UTF-8'))
+        self.serial.write(command.encode("UTF-8"))
 
         response = ""  # Received response
         self.read_lock.acquire()
-        while ("OK" or "ERROR") not in response:  # Wait to get the 'OK' or 'ERROR' from Iridium
+        while (
+            "OK" or "ERROR"
+        ) not in response:  # Wait to get the 'OK' or 'ERROR' from Iridium
             if not self.serial.is_open:
-                return 'ERROR', False
-            response += self.serial.read().decode('UTF-8')  # Append contents of serial
+                return "ERROR", False
+            response += self.serial.read().decode("UTF-8")  # Append contents of serial
         self.read_lock.release()
 
         # Determine if an "OK" or an "ERROR" was received
@@ -147,7 +157,7 @@ class Iridium(Radio):
         # "Sync" with the GSS, retrieving and sending messages
         sync = self.write_to_serial("AT+SBDIXA")
         if not sync[1]:
-            return ''
+            return ""
 
         sync_resp = sync[0]
         sync_resp_list = sync_resp.strip(",")
@@ -155,7 +165,7 @@ class Iridium(Radio):
         if sync_resp_list[2] == 1:  # Message successfully received
             message = self.write_to_serial("AT+SBDRT")
             if not message[1]:
-                return ''
+                return ""
             return message[0]  # Return the actual message content
         else:
             return ""  # Return nothing; either there was no message or retrieval failed
@@ -163,8 +173,8 @@ class Iridium(Radio):
     def listen(self):
         """
         Listen for an SBD ring.
-        If a ring is present, retrieve the message, and dispatch it to *command_ingest.*
-        This function is meant to be run in a Thread.
+        If a ring is present, retrieve the message, and dispatch it to telemetry
+        Run via ThreadHandler process['listen_thread']
         """
 
         # Turn SBD ring alerts on
@@ -183,9 +193,9 @@ class Iridium(Radio):
             acquired_read_lock = self.read_lock.acquire(timeout=5)
             if acquired_read_lock:
 
-                ring = b''
+                ring = b""
                 port_closed = False
-                while not ring.endswith(b'\n'):  # While EOL hasn't been sent
+                while not ring.endswith(b"\n"):  # While EOL hasn't been sent
 
                     if not self.serial.is_open:
                         port_closed = True
@@ -195,10 +205,10 @@ class Iridium(Radio):
                     ring += result
 
                 if port_closed:
-                    self.logger.debug('PORT GOT CLOSED WHILE READING LINE')
+                    self.logger.debug("PORT GOT CLOSED WHILE READING LINE")
                     continue
 
-                ring = ring.decode('utf-8')
+                ring = ring.decode("utf-8")
 
                 self.read_lock.release()
                 self.logger.debug("Got SBDRING")
@@ -209,8 +219,8 @@ class Iridium(Radio):
 
                     if message:  # Evaluates to True if message not empty
                         self.logger.debug(message)
-                        if 'telemetry' in self.modules:
-                            telemetry = self.modules['telemetry']
+                        if "telemetry" in self.modules:
+                            telemetry = self.modules["telemetry"]
                             telemetry.enqueue(message)
 
     def send(self, message):
@@ -232,7 +242,9 @@ class Iridium(Radio):
         if not response_sbdi[1]:
             return False
 
-        response_sbdi_array = response_sbdi[0].split(":")[1].strip().split(",")  # Array of SBDI response
+        response_sbdi_array = (
+            response_sbdi[0].split(":")[1].strip().split(",")
+        )  # Array of SBDI response
 
         if response_sbdi_array[0] == 2:  # Index 0 holds the success code
             return True
