@@ -46,7 +46,8 @@ class Iridium(Radio):
         else:
             raise RuntimeError("Iridium Check Failed")
 
-        self.processes["listen_thread"].start()
+        for i in self.processes:
+            self.processes[i].start()
 
     def enter_low_power_mode(self):
         """
@@ -71,7 +72,7 @@ class Iridium(Radio):
         self.modules = modules
 
     def has_modules(self):
-        return len(self.modules) is not 0
+        return len(self.modules) != 0
 
     def write_to_serial(self, command: str) -> (str, bool):
         """

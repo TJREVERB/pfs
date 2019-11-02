@@ -37,7 +37,8 @@ class APRS(Radio):
         Assumes enough power is present therefore the tty port exists.
         """
         self.serial = Serial(self.config["aprs"]["serial_port"], 19200)
-        self.processes["listen_thread"].start()
+        for i in self.processes:
+            self.processes[i].start()
 
     def enter_low_power_mode(self):
         """
@@ -62,7 +63,7 @@ class APRS(Radio):
         self.modules = modules
 
     def had_modules(self):
-        return len(self.modules) is not 0
+        return len(self.modules) != 0
 
     def parse_aprs_packet(self, packet: str) -> str:
         """
