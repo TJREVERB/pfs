@@ -3,7 +3,7 @@ from functools import partial
 from time import time, sleep
 
 from . import Radio
-from core import ThreadHandler
+from core.threadhandler import ThreadHandler
 
 from serial import Serial
 
@@ -62,7 +62,7 @@ class APRS(Radio):
     def set_modules(self, modules):
         self.modules = modules
 
-    def had_modules(self):
+    def has_modules(self):
         return len(self.modules) != 0
 
     def parse_aprs_packet(self, packet: str) -> str:

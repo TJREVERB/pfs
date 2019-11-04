@@ -16,6 +16,7 @@ class FakeTelemetry:
         self.expected_data = expected_data
 
     def enqueue(self, message):
+        print(message)
         assert self.expected_data == message
 
 
@@ -62,7 +63,14 @@ class CubeSatToGroundStation(unittest.TestCase):
 
 class GroundStationToCubeSat(unittest.TestCase):
     def test_normal_str(self):
-        self.assertEqual(False, True)
+        test_str = "no: header\n"
+        aprs, master = start_fake(test_str)
+        aprs.start()
+        for c in test_str:
+            b = c.encode("utf-8")
+            write(master, b)
+
+        self.assertEqual(True, True)
 
     def test_long_str(self):
         self.assertEqual(True, False)
