@@ -6,14 +6,13 @@ from threading import Lock
 from time import sleep
 
 
-from core.threadhandler import ThreadHandler
+from helpers.threadhandler import ThreadHandler
 from submodules import command_ingest
 
 # Command Ingest - ability to register commands
-from submodules.command_ingest import command
 
 # Log and error classes
-from core import error, log
+from helpers import log, error
 
 logger = logging.getLogger("TELEMETRY")
 

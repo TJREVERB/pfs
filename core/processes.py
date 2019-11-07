@@ -1,6 +1,6 @@
 import os
-from core.power import Power
-from core.mode import Mode
+from helpers.power import Power
+from helpers.mode import Mode
 
 
 def power_watchdog(core, eps):
