@@ -3,10 +3,10 @@ from inspect import signature
 from collections import deque as queue
 from core import ThreadHandler
 from functools import partial
+from helpers.error import Error
 
 
 class CommandIngest:
-
     def __init__(self, config):
         self.config = config
         self.logger = logging.getLogger("CI")
@@ -43,17 +43,14 @@ class CommandIngest:
                     # Check num args and arg types
 
                     if not len(arguments) == len(associated_sig.parameters):
-                        # TODO: log error (incorrect num of args)
-                        print("ERR: incorrect length")
+                        self.modules["telemetry"].enqueue(Error(sys_name="CI", msg="Incorrect number of arguments"))
                     try:
-                        print("REACHED")
+                        # TODO: Actually execute
                         print(associated(*arguments))  # Actually run the command
                     except:
-                        # TODO: send error immediately
-                        print("ERR: bad function")
+                        self.modules["telemetry"].enqueue(Error(sys_name="CI", msg="Bad function"))
             else:
-                # TODO: log that checksum is incorrect
-                print("ERR: incorrect checksum")
+                self.modules["telemetry"].enqueue(Error(sys_name="CI", msg="Incorrect checksum"))
 
     def enqueue(self, cmd: str):
         self.general_queue.append(cmd)
@@ -61,7 +58,7 @@ class CommandIngest:
     def generate_checksum(self, cmd: str):
         """
         Given a message body, generate its checksum
-        :param body: The body of the message.
+        :param cmd: Command to send.
         :return: Generated checksum for the message.
         """
 
