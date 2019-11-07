@@ -12,7 +12,7 @@ from core.power import Power
 from core.threadhandler import ThreadHandler
 from core.processes import power_watchdog, is_first_boot
 
-# from submodules.antenna_deploy import AntennaDeployer
+from submodules.antenna_deploy import AntennaDeployer
 
 
 class Core:
@@ -28,7 +28,7 @@ class Core:
         self.logger = logging.getLogger("core")
         self.state = Mode.LOW_POWER
         self.submodules = {
-            # "antenna_deployer": AntennaDeployer(config=self.config),
+            "antenna_deployer": AntennaDeployer(config=self.config),
             "aprs": None,
             "command_ingest": None,
             "eps": None,
