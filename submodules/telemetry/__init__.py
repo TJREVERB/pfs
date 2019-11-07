@@ -26,6 +26,10 @@ class Telemetry:
         self.err_stack = collections.deque()
         self.packet_lock = Lock()
         self.logger = logging.getLogger("TELEMETRY")
+        self.threadDecide = ThreadHandler(target=partial(self.decide), name="telemetry-decide")
+        self.processes = {
+            "telemetry-decide": self.threadDecide
+        }
 
     def set_modules(self, modules: {}) -> None:
         """
@@ -60,6 +64,9 @@ class Telemetry:
         squishedpackets = ""
         retVal = False
 
+        if not self.has_modules:
+            raise RuntimeError("self.modules empty and not initialized")
+
         with self.packet_lock:
             while len(self.log_stack) + len(self.err_stack) > 0:    # while there's stuff to pop off
                 next_packet = (str(self.err_stack[-1]) if len(self.err_stack) > 0 else str(self.log_stack[-1]))   # for the purposes of determining packet length
@@ -70,7 +77,7 @@ class Telemetry:
                         squishedpackets += str(self.log_stack.pop())
                 squishedpackets = base64.b64encode(squishedpackets.encode('ascii'))
                 # print(squishedpackets)
-                self.modules["aprs"].send(squishedpackets) # , radio) #FIXME currently just using APRS, what about radio_output?
+                self.modules[radio].send(str(squishedpackets))
                 retVal = True
                 squishedpackets = ""
 
@@ -93,6 +100,8 @@ class Telemetry:
         """
         while True:
             if len(self.general_queue) != 0:
+                if not self.has_modules:
+                    raise RuntimeError("self.modules empty and not initialized")
                 with self.packet_lock:
                     message = self.general_queue.popleft()
                     if type(message) is str and message[0] == ';':
@@ -115,8 +124,16 @@ class Telemetry:
         if self.config is None or self.modules is None:
             raise RuntimeError("Config variable or self.modules empty and not initialized")
 
-        threadDecide = ThreadHandler(target=partial(self.decide), name="telemetry-decide")  # start telemetry 'decide' thread
-        threadDecide.start()
+        for thread in self.processes.values():
+            thread.start()
+
+    @property
+    def has_modules(self) -> bool:
+        """
+        Determines if modules dictionary is set
+        :return: True if modules dictionary has some elements and is not None, false otherwise
+        """
+        return self.modules is not None and len(self.modules) >= 1
 
     # def enter_normal_mode() -> None:
     #     """

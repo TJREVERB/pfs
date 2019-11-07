@@ -45,21 +45,18 @@ def main():
     print(config)
     telemObj = telemetry.Telemetry(config)
     aprsObj = APRS(config)
-    iridumObj = Iridium(config)
 
     modules = {"aprs": aprsObj,
             "command_ingest": None,
             "eps": None,
-            "iridium": iridumObj,
+            "iridium": None,
             "telemetry": telemObj,
         }
 
     telemObj.set_modules(modules)
-    iridumObj.set_modules(modules)
     aprsObj.set_modules(modules)
 
     telemObj.start()
-    iridumObj.start()
     aprsObj.start()
 
     while True:
