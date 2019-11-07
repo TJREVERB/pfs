@@ -7,6 +7,9 @@ from smbus2 import SMBusWrapper
 from submodules import telemetry
 from core.log import Log
 from core.error import Error
+# Threadhandler dependencies
+# from functools import partial
+# from core.threadhandler import ThreadHandler
 
 class EPS():
     def __init__(self, config: dict):
@@ -99,30 +102,30 @@ class EPS():
             return False
         # TODO: All code below is unconverted
         message = "From Pin {} ({}) reboot: sleeping {} second(s) after turn off.".format(
-            epsdict[device_name], device_name, wait_time_after_off)
+            self.epsdict[device_name], device_name, wait_after_off)
         logger.debug(message)
         log = Log(sys_name="EPS", lvl="INFO", msg=message)
         telemetry.enqueue(message)
-        time.sleep(wait_time_after_off)  # Wait for specified time
+        time.sleep(wait_after_off)  # Wait for specified time
 
         if not pin_on(device_name):
             return False
         message = "From Pin {} ({}) reboot: sleeping {} second(s) after turn on.".format(
-            epsdict[device_name], device_name, wait_time_after_off)
+            self.epsdict[device_name], device_name, wait_after_off)
         logger.debug(message)
         log = Log(sys_name="EPS", lvl="INFO", msg=message)
         telemetry.enqueue(message)
-        time.sleep(wait_time_after_on)
+        time.sleep(wait_after_off)
 
         if get_PDM_status(device_name) == 1:
-            message = "Pin {} ({}) reboot successful.".format(epsdict[device_name], device_name)
+            message = "Pin {} ({}) reboot successful.".format(self.epsdict[device_name], device_name)
             logger.debug(message)
             log = Log(sys_name="EPS", lvl="INFO", msg=message)
             telemetry.enqueue(message)
             return True
         else:
             message = "Pin {} ({}) reboot NOT successful. Recommend PDM status check in {} second(s).".format(
-                epsdict[device_name], device_name, wait_time_after_on)
+                self.epsdict[device_name], device_name, wait_after_off)
             logger.error(message)
             log = Error(sys_name="EPS", msg=message)
             telemetry.enqueue(message)
@@ -134,9 +137,51 @@ class EPS():
             bus.write_byte_data(self.address, 0x0E, PDM_val)
             return bus.read_byte(self.address)
 
+    def is_module_on(self, device_name) -> bool:
+        with SMBusWrapper(1) as bus:
+            PDM_val = self.eps_dict[device_name]
+            if self.get_PDM_status(device_name) == 0:
+                return False
+            return True
+
+    def get_board_status(self):
+        with SMBusWrapper(1) as bus:
+            return bus.read_byte_data(self.address, 0x01)
+
+    def get_device_statuses(self) -> dict:
+        temp_dict = dict()
+        with SMBusWrapper(1) as bus:
+            for device_name in self.eps_dict.keys():
+                temp_dict.update({device_name, self.get_PDM_status(device_name)})
+        return temp_dict
+
+    # TODO: The following are semi-extraneous, need to test
+    def get_bcr1_volts(self):
+        with SMBusWrapper(1) as bus:
+            bus.write_i2c_block_data(self.address, 0x10, 0x00)
+            return bus.read_byte(self.address)
+
+    def get_bcr1_amps_a(self):
+        with SMBusWrapper(1) as bus:
+            bus.write_i2c_block_data(self.address, 0x10, 0x01)
+            return bus.read_byte(self.address)
+
+    def get_bcr1_amps_b(self):
+        with SMBusWrapper(1) as bus:
+            bus.write_i2c_block_data(self.address, 0x10, 0x02)
+            return bus.read_byte(self.address)
+
+    def get_battery_bus_volts(self):
+        with SMBusWrapper(1) as bus:
+            bus.write_i2c_block_data(self.address, 0x10, 0x23)
+            return bus.read_byte(self.address)
+
     def set_modules(self, dictionary: dict):
         self.modules = dictionary
 
     def start(self):
         # self.bus = smbus.SMBus(1)
         self.logger = logging.getLogger("EPS")
+        # NOTE: Feels like the ThreadHandler is not really used at all.
+        # self.t2 = ThreadHandler(target=partial(board_check),
+        #     name="eps-board_check", parent_logger=self.logger)
