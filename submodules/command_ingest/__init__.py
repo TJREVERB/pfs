@@ -45,8 +45,7 @@ class CommandIngest:
                     if not len(arguments) == len(associated_sig.parameters):
                         self.modules["telemetry"].enqueue(Error(sys_name="CI", msg="Incorrect number of arguments"))
                     try:
-                        # TODO: Actually execute
-                        print(associated(*arguments))  # Actually run the command
+                        associated(*arguments)()
                     except:
                         self.modules["telemetry"].enqueue(Error(sys_name="CI", msg="Bad function"))
             else:
