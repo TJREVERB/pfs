@@ -62,14 +62,15 @@ class Telemetry:
 
         with self.packet_lock:
             while len(self.log_stack) + len(self.err_stack) > 0:    # while there's stuff to pop off
-                next_packet = (self.err_stack[-1].to_string() if len(self.err_stack) > 0 else self.log_stack[-1].to_string())   # for the purposes of determining packet length
+                next_packet = (str(self.err_stack[-1]) if len(self.err_stack) > 0 else str(self.log_stack[-1]))   # for the purposes of determining packet length
                 while len(base64.b64encode((squishedpackets + next_packet).encode('ascii'))) < self.config["telemetry"]["max_packet_size"] and len(self.log_stack) + len(self.err_stack) > 0:
                     if len(self.err_stack) > 0: # prefer error messages over log messages
-                        squishedpackets += self.err_stack.pop().to_string()
+                        squishedpackets += str(self.err_stack.pop())
                     else:
-                        squishedpackets += self.log_stack.pop().to_string()
+                        squishedpackets += str(self.log_stack.pop())
                 squishedpackets = base64.b64encode(squishedpackets.encode('ascii'))
-                self.modules["aprs"].send(squishedpackets) # , radio) #FIXME currently just using APRS, what about radio_output?
+                print(squishedpackets)
+                # self.modules["aprs"].send(squishedpackets) # , radio) #FIXME currently just using APRS, what about radio_output?
                 retVal = True
                 squishedpackets = ""
 
@@ -111,7 +112,7 @@ class Telemetry:
         Config and modules must be initialized beforehand (config is through constructor, modules is through set_modules)
         :return None
         """
-        if self.config or self.modules is None:
+        if self.config is None or self.modules is None:
             raise RuntimeError("Config variable or self.modules empty and not initialized")
 
         threadDecide = ThreadHandler(target=partial(self.decide), name="telemetry-decide")  # start telemetry 'decide' thread

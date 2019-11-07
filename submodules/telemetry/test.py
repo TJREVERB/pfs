@@ -28,27 +28,45 @@ When "ready" is printed, type any one of:
 from datetime import datetime
 from submodules import telemetry
 from core import error, log
+from yaml import load
+from os import ttyname, openpty
 
 def main():
+    master, slave = openpty()
+    port_name = ttyname(slave)
+    print(port_name)
+
+    config = load(open("../../config/config_default.yml"))
+    config['aprs']['serial_port'] = port_name
+    print(config)
+    telemObj = telemetry.Telemetry(config)
+
+    telemObj.set_modules({"aprs": "",
+            "command_ingest": None,
+            "eps": None,
+            "iridium": None,
+            "telemetry": None,
+        })
+
+    telemObj.start()
+
     while True:
         print("Ready")
         c = input()
         if c[0] == 'e':
             if c[1] == 'e':
-                telemetry.enqueue(error.Error("TEST", datetime.utcnow(), "testing"))
+                telemObj.enqueue(error.Error("TEST", datetime.utcnow(), "testing"))
             elif c[1] == 'l':
-                telemetry.enqueue(log.Log("TEST", "INFO", datetime.utcnow(), "testinglog"))
+                telemObj.enqueue(log.Log("TEST", "INFO", datetime.utcnow(), "testinglog"))
             else:
-                telemetry.enqueue(c[1:])
-            telemetry.decide()
+                telemObj.enqueue(c[1:])
         elif c[0] == 'd':
-            telemetry.dump()
+            telemObj.dump()
         elif c[0] == 'p':
-            print(telemetry.general_queue, telemetry.err_stack, telemetry.log_stack)
+            print(telemObj.general_queue, telemObj.err_stack, telemObj.log_stack)
         elif c[0] == 'c':
-            telemetry.clear_buffers()
+            telemObj.clear_buffers()
 
 
 if __name__ == '__main__':
-    telemetry.start()
     main()
