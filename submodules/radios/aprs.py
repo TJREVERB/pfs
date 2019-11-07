@@ -62,7 +62,7 @@ class APRS(Radio):
     def set_modules(self, modules):
         self.modules = modules
 
-    def had_modules(self):
+    def has_modules(self):
         return len(self.modules) != 0
 
     def parse_aprs_packet(self, packet: str) -> str:
@@ -104,7 +104,7 @@ class APRS(Radio):
         while True:
             if not self.has_modules:
                 # Modules not set yet
-                continue
+                raise RuntimeError("No Modules Set")
 
             if not self.serial.is_open:
                 # Low power mode
