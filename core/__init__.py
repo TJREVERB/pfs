@@ -6,13 +6,8 @@ from functools import partial
 from threading import Timer
 from yaml import safe_load
 
-from core import log
-from core import error
-
-from core.mode import Mode
-from core.power import Power
-
-from core.threadhandler import ThreadHandler
+from helpers.mode import Mode
+from helpers.threadhandler import ThreadHandler
 from core.processes import power_watchdog, is_first_boot
 
 from submodules.antenna_deploy import AntennaDeployer
@@ -74,21 +69,9 @@ class Core:
         self.logger.warning(
             f"Entering normal mode{'  Reason: ' if reason else ''}{reason if reason else ''}")
         self.state = Mode.NORMAL
-        self.submodules['telemetry'].enqueue(log.Log(
-            sys_name='CORE',
-            lvl='INFO',
-            msg=f"Entering normal mode{' Reason: ' if reason else ''}{reason if reason else ''}"
-        ))
         for submodule in self.submodules:
             if hasattr(self.submodules[submodule], 'enter_normal_mode'):
-                try:
-                    self.submodules[submodule].enter_normal_mode()
-                except:
-                    self.logger.warning(f"Module {submodule} failed to enter normal mode")
-                    self.submodules['telemetry'].enqueue(error.Error(
-                        sys_name='CORE',
-                        msg=f"Module {submodule} failed to enter normal mode"
-                    ))
+                self.submodules[submodule].enter_normal_mode()
 
     def enter_low_power_mode(self, reason: str = '') -> None:
         """
@@ -98,20 +81,9 @@ class Core:
         self.logger.warning(
             f"Entering low power mode{'  Reason: ' if reason else ''}{reason if reason else ''}")
         self.state = Mode.LOW_POWER
-        self.submodules['telemetry'].enqueue(log.Log(
-            sys_name="CORE",
-            lvl="WARN",
-            msg=f"Entering low power mode{'  Reason: ' if reason else ''}{reason if reason else ''}"
-        ))
         for submodule in self.submodules:
             if hasattr(self.submodules[submodule], 'enter_low_power_mode'):
-                try:
-                    self.submodules[submodule].enter_low_power_mode()
-                except:
-                    self.submodules['telemetry'].enqueue(error.Error(
-                        sys_name='CORE',
-                        msg=f"Submodule {submodule} failed to enter low power mode"
-                    ))
+                self.submodules[submodule].enter_low_power_mode()
 
     def enter_emergency_mode(self, reason: str = '') -> None:
         """
@@ -121,20 +93,9 @@ class Core:
         self.logger.warning(
             f"Entering emergency mode{'  Reason: ' if reason else ''}{reason if reason else ''}")
         self.state = Mode.EMERGENCY
-        self.submodules['telemetry'].enqueue(log.Log(
-            sys_name="CORE",
-            lvl="WARN",
-            msg=f"Entering emergency mode{'  Reason: ' if reason else ''}{reason if reason else ''}"
-        ))
         for submodule in self.submodules:
             if hasattr(self.submodules[submodule], 'enter_emergency_mode'):
-                try:
-                    self.submodules[submodule].enter_emergency_mode()
-                except:
-                    self.submodules['telemetry'].enqueue(error.Error(
-                        sys_name='CORE',
-                        msg=f"Submodule {submodule} failed to enter emergency mode"
-                    ))
+                self.submodules[submodule].enter_emergency_mode()
 
     def request(self, module_name):
         return self.submodules[module_name] if module_name in self.submodules.keys() else False
