@@ -30,6 +30,10 @@ from submodules import telemetry
 from core import error, log
 from yaml import load
 from os import ttyname, openpty
+from submodules import radios
+from submodules.radios import aprs, iridium
+from submodules.radios.aprs import *
+from submodules.radios.iridium import *
 
 def main():
     master, slave = openpty()
@@ -40,15 +44,23 @@ def main():
     config['aprs']['serial_port'] = port_name
     print(config)
     telemObj = telemetry.Telemetry(config)
+    aprsObj = APRS(config)
+    iridumObj = Iridium(config)
 
-    telemObj.set_modules({"aprs": "",
+    modules = {"aprs": aprsObj,
             "command_ingest": None,
             "eps": None,
-            "iridium": None,
-            "telemetry": None,
-        })
+            "iridium": iridumObj,
+            "telemetry": telemObj,
+        }
+
+    telemObj.set_modules(modules)
+    iridumObj.set_modules(modules)
+    aprsObj.set_modules(modules)
 
     telemObj.start()
+    iridumObj.start()
+    aprsObj.start()
 
     while True:
         print("Ready")

@@ -69,8 +69,8 @@ class Telemetry:
                     else:
                         squishedpackets += str(self.log_stack.pop())
                 squishedpackets = base64.b64encode(squishedpackets.encode('ascii'))
-                print(squishedpackets)
-                # self.modules["aprs"].send(squishedpackets) # , radio) #FIXME currently just using APRS, what about radio_output?
+                # print(squishedpackets)
+                self.modules["aprs"].send(squishedpackets) # , radio) #FIXME currently just using APRS, what about radio_output?
                 retVal = True
                 squishedpackets = ""
 
