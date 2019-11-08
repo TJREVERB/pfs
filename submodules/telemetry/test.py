@@ -27,7 +27,8 @@ When "ready" is printed, type any one of:
 
 from datetime import datetime
 from submodules import telemetry
-from core import error, log
+from helpers import log, error
+
 
 def main():
     while True:

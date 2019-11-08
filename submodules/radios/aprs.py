@@ -3,7 +3,7 @@ from functools import partial
 from time import time, sleep
 
 from . import Radio
-from core.threadhandler import ThreadHandler
+from helpers.threadhandler import ThreadHandler
 
 from serial import Serial
 
