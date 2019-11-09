@@ -6,10 +6,9 @@ import yaml
 from smbus2 import SMBusWrapper
 from functools import partial
 
-from core.mode import Mode
-from core.threadhandler import ThreadHandler
-from core.error import Error
-from core.log import Log
+from helpers.threadhandler import ThreadHandler
+from helpers.error import Error
+from helpers.log import Log
 from submodules import telemetry
 from core import config
 

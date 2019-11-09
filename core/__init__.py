@@ -2,14 +2,12 @@ import logging
 import os
 import time
 
-from enum import Enum
 from functools import partial
 from threading import Timer
 from yaml import safe_load
 
-from core.mode import Mode
-from core.power import Power
-from core.threadhandler import ThreadHandler
+from helpers.mode import Mode
+from helpers.threadhandler import ThreadHandler
 from core.processes import power_watchdog, is_first_boot
 
 from submodules.antenna_deploy import AntennaDeployer

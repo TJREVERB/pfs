@@ -1,5 +1,5 @@
 from . import isisants
-from core import log
+from helpers import log
 
 
 class AntennaDeployer:
