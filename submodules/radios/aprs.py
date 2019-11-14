@@ -31,7 +31,6 @@ class APRS(Radio):
                 parent_logger=self.logger,
                 daemon=False
             )
-            # "listen_thread": Thread(target=partial(self.listen))
         }
 
     def start(self):
@@ -107,7 +106,7 @@ class APRS(Radio):
         while True:
             if not self.has_modules:
                 # Modules not set yet
-                continue
+                raise RuntimeError("No Modules Set")
 
             if not self.serial.is_open:
                 # Low power mode
