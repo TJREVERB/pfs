@@ -10,15 +10,17 @@ config = {
 }
 
 WORDS = ["Wood", "Low hanging FrUit", "documentation"]
+PORT = "FAKE"
 
 
 class FakeTelemetry:
-    def __init__(self, expected_data):
+    def __init__(self, expected_data, always_print=False):
         self.expected_data = expected_data
+        self.always_print = always_print
 
     def enqueue(self, message):
         _assert = self.expected_data == message
-        if not _assert:
+        if not _assert or self.always_print:
             print(f"received: {list(message)}, expected: {list(self.expected_data)}")
         assert _assert
 
@@ -95,14 +97,25 @@ def test_escape_chars():
     test_write(test_str, content)
 
 
-def run_tests():
+def run_tests(port="FAKE"):
     print("EXPECT THE APRS TESTS TO TAKE SOME TIME TO RUN\n")
 
-    test_with_header()
-    test_with_no_header()
-    test_short_str()
-    test_empty_str()
-    test_spaces()
-    test_escape_chars()
+    if port == "FAKE":
+        test_with_header()
+        test_with_no_header()
+        test_short_str()
+        test_empty_str()
+        test_spaces()
+        test_escape_chars()
 
-    test_long_str()
+        test_long_str()
+    else:
+        config["aprs"]["serial_port"] = port
+        while True:
+            expected_data = input("What message should pFS receive? ") + "\n"
+            modules = {
+                "telemetry": FakeTelemetry(expected_data, always_print=True)
+            }
+            aprs = APRS(config)
+            aprs.set_modules(modules)
+            aprs.start()
