@@ -1,4 +1,3 @@
-import unittest
 from pty import openpty
 from os import ttyname, read, write
 
@@ -16,7 +15,7 @@ class FakeTelemetry:
         self.expected_data = expected_data
 
     def enqueue(self, message):
-        print(message)
+        print(f"messaage: {list(message)}, ed: {list(self.expected_data)}")
         assert self.expected_data == message
 
 
@@ -38,58 +37,15 @@ def start_fake(expected_data=""):
     return aprs, master
 
 
-class CubeSatToGroundStation(unittest.TestCase):
-    def test_normal_str(self):
-        self.assertEqual(True, False)
+def test_normal_str():
+    test_str = "header:content\n"
+    content = "content\n"
+    aprs, master = start_fake(content)
+    aprs.start()
 
-    def test_long_str(self):
-        self.assertEqual(True, False)
+    for c in test_str:
+        b = c.encode("utf-8")
+        write(master, b)
 
-    def test_short_str(self):
-        self.assertEqual(True, False)
-
-    def test_empty_str(self):
-        self.assertEqual(True, False)
-
-    def test_spaces(self):
-        self.assertEqual(True, False)
-
-    def test_escape_chars(self):
-        self.assertEqual(True, False)
-
-    def close_port(self):
-        self.assertEqual(True, False)
-
-
-class GroundStationToCubeSat(unittest.TestCase):
-    def test_normal_str(self):
-        test_str = "no: header\n"
-        aprs, master = start_fake(test_str)
-        aprs.start()
-        for c in test_str:
-            b = c.encode("utf-8")
-            write(master, b)
-
-        self.assertEqual(True, True)
-
-    def test_long_str(self):
-        self.assertEqual(True, False)
-
-    def test_short_str(self):
-        self.assertEqual(True, False)
-
-    def test_empty_str(self):
-        self.assertEqual(True, False)
-
-    def test_spaces(self):
-        self.assertEqual(True, False)
-
-    def test_escape_chars(self):
-        self.assertEqual(True, False)
-
-    def close_port(self):
-        self.assertEqual(True, False)
-
-
-if __name__ == '__main__':
-    unittest.main()
+def run_tests():
+    test_normal_str()
