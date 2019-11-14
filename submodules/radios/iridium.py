@@ -184,7 +184,7 @@ class Iridium(Radio):
         while True:  # Continuously listen for rings
             if not self.has_modules:
                 # Modules not set yet
-                continue
+                raise RuntimeError("No Modules Set")
 
             if not self.serial.is_open:
                 # Low power mode
