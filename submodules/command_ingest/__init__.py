@@ -1,9 +1,9 @@
 import logging
-from inspect import signature
 from collections import deque as queue
 from core import ThreadHandler
 from functools import partial
 from helpers.error import Error
+from helpers.log import Log
 
 
 class CommandIngest:
@@ -11,10 +11,6 @@ class CommandIngest:
         self.config = config
         self.logger = logging.getLogger("CI")
         self.modules = {}
-
-        self.total_received: int = 0
-        self.total_errors: int = 0
-        self.total_success: int = 0
 
         self.registered_commands = {}
         self.general_queue = queue()
@@ -28,48 +24,51 @@ class CommandIngest:
     def set_modules(self, dependencies):
         self.modules = dependencies
 
+    def has_module(self, module_name):
+        return module_name in self.modules and self.modules[module_name] is not None
+
     def dispatch(self):
         while True:
             body = self.general_queue.pop()
 
             if "CMD$" in body:
+                cmd = [part for part in body[body.find("$") + 1:].split(";") if part]
                 try:
-                    module, func, args = [part for part in body[body.find("$") + 1:].split(";") if part]
-                except ValueError:
-                    # FIXME: Possibly report error
-                    pass
-
-                if self.generate_checksum(command) == checksum:
-                    associated = self.associate(command)
-                    if associated is not None:
-                        associated_sig = signature(associated)
-                        # Check num args and arg types
-
-                        if not len(arguments) == len(associated_sig.parameters):
-                            self.modules["telemetry"].enqueue(Error(sys_name="CI", msg="Incorrect number of arguments"))
-                        try:
-                            associated(*arguments)()
-                        except:
-                            self.modules["telemetry"].enqueue(Error(sys_name="CI", msg="Bad function"))
-
+                    module, func = cmd[0], cmd[1]
+                except IndexError:
+                    pass #TODO: Invalid command report as such
+                if self.validate_func(module, func):
+                    try:
+                        getattr(self.modules[module], func)()
+                        self.send_through_aprs(f"CMDSUC: Command {cmd} executed successfully")
+                        if self.has_module("telemetry"):
+                            self.modules["telemetry"].enqueue(Log()) #TODO: ADD LOG
+                        else:
+                            raise RuntimeError("[command_ingest]:[telemetry] not found")
+                    except Exception as e:
+                        self.send_through_aprs(f"CMDERR: Command {cmd} failed with {e}")
             else:
-                self.modules["telemetry"].enqueue(Error(sys_name="CI", msg="Incorrect checksum"))
+                continue
 
-    def enqueue(self, cmd: str):
+    def enqueue(self, cmd):
         self.general_queue.append(cmd)
 
-    def generate_checksum(self, cmd: str):
-        """
-        Given a message body, generate its checksum
-        :param cmd: Command to send.
-        :return: Generated checksum for the message.
-        """
+    def validate_func(self, module, func):
+        if module not in self.modules:
+            self.send_through_aprs(f"CMDERR: Module not found")
+            return False
+        if self.has_module(module):
+            raise RuntimeError(f"[command_ingest]:[{module}] not found")
+        if hasattr(module, func):
+            self.send_through_aprs(f"CMDERR: Function {func} not found in {module}")
+            return False
+        return True
 
-        cmd_sum = sum([ord(x) for x in cmd])
-        cmd_sum %= 26
-        cmd_sum += 65
-        self.logger.debug('CHECKOUT :' + chr(cmd_sum) + ";")
-        return chr(cmd_sum)
+    def send_through_aprs(self, message):
+        if self.has_module("aprs"):
+            self.modules["aprs"].send(message) #FIXME FORMATTING
+        else:
+            raise RuntimeError("[aprs] not found")
 
     def start(self):
         for process in self.processes:
