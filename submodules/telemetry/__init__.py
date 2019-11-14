@@ -27,9 +27,8 @@ class Telemetry:
         self.err_stack = collections.deque()
         self.packet_lock = Lock()
         self.logger = logging.getLogger("TELEMETRY")
-        self.threadDecide = ThreadHandler(target=partial(self.decide), name="telemetry-decide")
         self.processes = {
-            "telemetry-decide": self.threadDecide
+            "telemetry-decide": ThreadHandler(target=partial(self.decide), name="telemetry-decide")
         }
 
     def set_modules(self, modules: {}) -> None:
