@@ -37,7 +37,7 @@ def start_fake(expected_data=""):
     return aprs, master
 
 
-def test_normal_str():
+def test_with_header():
     test_str = "header:content\n"
     content = "content\n"
     aprs, master = start_fake(content)
@@ -47,5 +47,6 @@ def test_normal_str():
         b = c.encode("utf-8")
         write(master, b)
 
+
 def run_tests():
-    test_normal_str()
+    test_with_header()
