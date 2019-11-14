@@ -3,7 +3,8 @@ from functools import partial
 from time import time, sleep
 
 from . import Radio
-from core import ThreadHandler
+from helpers.threadhandler import ThreadHandler
+from threading import Thread
 
 from serial import Serial
 
@@ -25,9 +26,10 @@ class APRS(Radio):
         self.serial = None
         self.processes = {
             "listen_thread": ThreadHandler(
-                target=partial(self.listen),
+                target=self.listen,
                 name="aprs-listen",
                 parent_logger=self.logger,
+                daemon=False
             )
         }
 
@@ -113,13 +115,13 @@ class APRS(Radio):
             line = b""
             port_closed = False
             while not line.endswith(b"\n"):  # While EOL hasn't been sent
-
                 if not self.serial.is_open:
                     port_closed = True
                     break
-
                 result = self.serial.read()
                 line += result
+                print(line)
+            print(line)
 
             if port_closed:
                 self.logger.debug("PORT GOT CLOSED WHILE READING LINE")
