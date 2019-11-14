@@ -15,8 +15,10 @@ class FakeTelemetry:
         self.expected_data = expected_data
 
     def enqueue(self, message):
-        print(f"messaage: {list(message)}, ed: {list(self.expected_data)}")
-        assert self.expected_data == message
+        _assert = self.expected_data == message
+        if not _assert:
+            print(f"received: {list(message)}, expected: {list(self.expected_data)}")
+        assert _assert
 
 
 def start_fake(expected_data=""):
@@ -38,14 +40,15 @@ def start_fake(expected_data=""):
 
 
 def test_with_header():
-    test_str = "header:content\n"
-    content = "content\n"
-    aprs, master = start_fake(content)
-    aprs.start()
+    for word in ["Wood", "Low hanging FrUit", "documentation"]:
+        test_str = f"header:{word}\n"
+        content = f"{word}\n"
+        aprs, master = start_fake(content)
+        aprs.start()
 
-    for c in test_str:
-        b = c.encode("utf-8")
-        write(master, b)
+        for c in test_str:
+            b = c.encode("utf-8")
+            write(master, b)
 
 
 def run_tests():
