@@ -4,6 +4,7 @@ import logging                  # logger
 from functools import partial   # thread
 from threading import Lock      # packet locks
 from time import sleep          # decide method
+import time
 
 from core.threadhandler import ThreadHandler    # threads
 # from submodules import radio_output   # FIXME radio_output?
@@ -114,6 +115,15 @@ class Telemetry:
                     else:  # Shouldn't execute (enqueue() should catch it) but here just in case
                         self.logger.error("Message prefix invalid.")
             sleep(1)
+
+    def heartbeat(self) -> None:
+        """
+        Send a heartbeat through Iridium.
+        :return: None
+        """
+        if not self.has_modules:
+            raise RuntimeError("self.modules empty and not initialized")
+        self.modules["iridium"].send("TJREVERB ALIVE, {0}".format(time.time()))
 
     def start(self) -> None:
         """
