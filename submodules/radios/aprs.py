@@ -26,10 +26,9 @@ class APRS(Radio):
         self.serial = None
         self.processes = {
             "listen_thread": ThreadHandler(
-                target=self.listen,
+                target=partial(self.listen),
                 name="aprs-listen",
                 parent_logger=self.logger,
-                daemon=False
             )
         }
 
@@ -120,8 +119,6 @@ class APRS(Radio):
                     break
                 result = self.serial.read()
                 line += result
-                print(line)
-            print(line)
 
             if port_closed:
                 self.logger.debug("PORT GOT CLOSED WHILE READING LINE")
