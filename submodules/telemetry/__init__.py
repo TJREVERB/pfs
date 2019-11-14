@@ -100,11 +100,11 @@ class Telemetry:
         """
         while True:
             if len(self.general_queue) != 0:
-                if not self.has_modules:
-                    raise RuntimeError("self.modules empty and not initialized")
                 with self.packet_lock:
                     message = self.general_queue.popleft()
                     if type(message) is str and message[0] == ';':
+                        if not self.has_modules:
+                            raise RuntimeError("self.modules empty and not initialized")
                         self.modules["command_ingest"].enqueue(message)
                         # print("Running command_ingest.enqueue(" + message + ")")
                     elif type(message) is error.Error:
