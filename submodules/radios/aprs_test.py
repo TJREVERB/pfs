@@ -1,7 +1,7 @@
 from pty import openpty
 from os import ttyname, read, write
 
-from .aprs import APRS
+from submodules.radios.aprs import APRS
 
 config = {
     "aprs": {
