@@ -4,11 +4,14 @@ from helpers import log
 
 class AntennaDeployer:
 
-    def __init__(self, config):
+    def __init__(self, config: dict):
         self.config = config
-        self.modules = {}
+        self.modules = dict()
 
-    def set_modules(self, dependencies):
+    def has_module(self, module_name):
+        return module_name in self.modules and self.modules[module_name] is not None
+
+    def set_modules(self, dependencies: dict):
         self.modules = dependencies
 
     def start(self):
@@ -23,10 +26,13 @@ class AntennaDeployer:
         isisants.py_k_ants_deploy(self.config['antenna']['ANT_2'], False, 5)
         isisants.py_k_ants_deploy(self.config['antenna']['ANT_3'], False, 5)
         isisants.py_k_ants_deploy(self.config['antenna']['ANT_4'], False, 5)
-        self.modules["telemetry"].enqueue(
-            log.Log(
-                sys_name="antenna_deployer",
-                lvl='INFO',
-                msg="antenna deployed"
+        
+        if self.has_module("telemetry"):
+            self.modules["telemetry"].enqueue(
+                log.Log(
+                    sys_name="antenna_deployer",
+                    lvl='INFO',
+                    msg="antenna deployed"
+                )
             )
-        )
+        # No need for RuntimeError for the process will terminate

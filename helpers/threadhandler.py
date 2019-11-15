@@ -6,7 +6,7 @@ import time
 
 class ThreadHandler:
     def __init__(self, target: callable, name: str = None, parent_logger=logging, interval: int = 3,
-                 suppress_out: bool = False, auto_restart: bool = True):
+                 suppress_out: bool = False, auto_restart: bool = True, daemon: bool = False):
         """
         Initialize a ThreadHandler.
 
@@ -16,6 +16,7 @@ class ThreadHandler:
         :param interval: Amount of time between checking the status of the child function; default 3s.
         :param suppress_out: Suppresses the logging of messages; default False.
         :param auto_restart: Whether or not to automatically restart the thread.
+        :param daemon: Set True to stop thread when main thread terminates
         """
 
         self.target = target
@@ -37,12 +38,13 @@ class ThreadHandler:
         self.auto_restart = auto_restart
         self.is_active = True
         self.is_alive = False
+        self.daemon = daemon
 
     def start(self):
         """
         Start the ThreadHandler. This function actually starts a threading.Thread, with the run() method as the target.
         """
-        threading.Thread(target=self.run, name=self.name, daemon=True).start()
+        threading.Thread(target=self.run, name=self.name, daemon=self.daemon).start()
 
     def run(self):
         while True:
