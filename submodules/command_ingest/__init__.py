@@ -74,8 +74,24 @@ class CommandIngest(Submodule):
         """
         self.get_module_or_raise_error("aprs").send(f"{message}")  # FIXME FORAMTTING
 
-    def enter_low_power_mode(self):  # TODO: WILL IMPLEMENT IN CYCLE 2
-        pass
+    def enter_low_power_mode(self) -> bool:
+        """
+        Places command_ingest in LOW_POWER_MODE. 
+        Returns True if successful, False if any errors are encountered.
+        """
+        try:
+            self.processes["dispatch"].pause()
+            return True
+        except:
+            return False
 
-    def enter_normal_mode(self):  # TODO: WILL IMPLEMENT IN CYCLE 2
-        pass
+    def enter_normal_mode(self) -> bool:
+        """
+        Places command_ingest in NORMAL_MODE.
+        Returns True if successful, False if any errors are encountered.
+        """
+        try:
+            self.processes["dispatch"].resume()
+            return True
+        except:
+            return False
