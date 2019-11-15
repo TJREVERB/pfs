@@ -12,7 +12,7 @@ pymap3d==2.1.0
 pyorbital==1.5.0
 pyparsing==2.4.5
 pyserial==3.4
-pysmbus==0.1
+pysmbus
 python-dateutil==2.8.1
 PyYAML==5.1.2
 Represent==1.6.0
