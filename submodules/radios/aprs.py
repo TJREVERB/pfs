@@ -3,7 +3,8 @@ from functools import partial
 from time import time, sleep
 
 from . import Radio
-from core import ThreadHandler
+from helpers.threadhandler import ThreadHandler
+from threading import Thread
 
 from serial import Serial
 
@@ -113,11 +114,9 @@ class APRS(Radio):
             line = b""
             port_closed = False
             while not line.endswith(b"\n"):  # While EOL hasn't been sent
-
                 if not self.serial.is_open:
                     port_closed = True
                     break
-
                 result = self.serial.read()
                 line += result
 
