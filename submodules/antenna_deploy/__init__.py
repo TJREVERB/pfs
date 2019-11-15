@@ -36,3 +36,9 @@ class AntennaDeployer(Submodule):
                     msg="antenna deployed"
                 )
             )
+
+    def enter_low_power_mode(self):
+        pass  # Antenna Deployer has no-op
+
+    def enter_normal_mode(self):
+        pass  # Antenna Deployer has no-op
