@@ -18,20 +18,24 @@ def pin_on(device_name) -> bool:
         if device_name in epsdict:
             PDM_val = epsdict[device_name]
         else:
-            message = "Device name \'{}\' INVALID. Aborting command.".format(device_name)
+            message = "Device name \'{}\' INVALID. Aborting command.".format(
+                device_name)
             logger.error(message)
             log = Error(sys_name="EPS", msg=message)
             telemetry.enqueue(log)
             return False
 
         if get_PDM_status(device_name) == 1:
-            message = "Pin {} ({}) is already ON.".format(epsdict[device_name], device_name)
+            message = "Pin {} ({}) is already ON.".format(
+                epsdict[device_name], device_name)
             logger.debug(message)  # Log to console for debugging
-            log = Log(sys_name="EPS", lvl="INFO", msg=message)  # Create log instance
+            log = Log(sys_name="EPS", lvl="INFO",
+                      msg=message)  # Create log instance
             telemetry.enqueue(log)  # Push to telemetry stack
             return True
         else:
-            bus.write_byte_data(address, 0x12, PDM_val)  # Attempt to execute pin on
+            # Attempt to execute pin on
+            bus.write_byte_data(address, 0x12, PDM_val)
 
             if get_PDM_status(device_name) == 1:  # PDM is ON
                 message = "Pin {} ({}) communication successful. Pin is now ON.".format(
@@ -75,7 +79,8 @@ def reboot_device(device_name, wait_time_after_off, wait_time_after_on) -> bool:
     time.sleep(wait_time_after_on)
 
     if get_PDM_status(device_name) == 1:
-        message = "Pin {} ({}) reboot successful.".format(epsdict[device_name], device_name)
+        message = "Pin {} ({}) reboot successful.".format(
+            epsdict[device_name], device_name)
         logger.debug(message)
         log = Log(sys_name="EPS", lvl="INFO", msg=message)
         telemetry.enqueue(message)
@@ -94,20 +99,24 @@ def pin_off(device_name) -> bool:
         if device_name in epsdict:
             PDM_val = epsdict[device_name]
         else:
-            message = "Device name \'{}\' INVALID. Aborting command.".format(device_name)
+            message = "Device name \'{}\' INVALID. Aborting command.".format(
+                device_name)
             logger.error(message)
             log = Error(sys_name="EPS", msg=message)
             telemetry.enqueue(log)
             return False
 
         if get_PDM_status(device_name) == 0:
-            message = "Pin {} ({}) is already OFF.".format(epsdict[device_name], device_name)
+            message = "Pin {} ({}) is already OFF.".format(
+                epsdict[device_name], device_name)
             logger.debug(message)  # Log to console for debugging
-            log = Log(sys_name="EPS", lvl="INFO", msg=message)  # Create log instance
+            log = Log(sys_name="EPS", lvl="INFO",
+                      msg=message)  # Create log instance
             telemetry.enqueue(log)  # Push to telemetry stack
             return True
         else:
-            bus.write_byte_data(address, 0x13, PDM_val)  # Attempt to execute pin off
+            # Attempt to execute pin off
+            bus.write_byte_data(address, 0x13, PDM_val)
 
             if get_PDM_status(device_name) == 0:  # PDM is OFF
                 message = "Pin {} ({}) communication successful. Pin is now OFF.".format(
@@ -125,6 +134,8 @@ def pin_off(device_name) -> bool:
                 return False
 
 # TODO: Finish status integrity method
+
+
 def verify_status_integrity(device_name):
     arr = []
     val = int(get_PDM_status(device_name))
@@ -148,7 +159,7 @@ def send_pin_statuses() -> bool:
 
         log = Log(sys_name="EPS", lvl="DATA", msg=statuses)
         telemetry.enqueue(statuses)
-        
+
         message = "Pin statuses packed and sent to enqueued into telemetry. Next status check: \
             {} second(s).".format(config['eps']['status_check_interval'])
         logger.debug(message)
@@ -237,7 +248,7 @@ def start():
     logger = logging.getLogger("EPS")
     address = 0x57
     epsdict = {'a': 1, 'i2c': 2, 'c': 3, 'antenna': 4,
-            'pi': 5, 'iridium': 6, 'aprs': 7, 'h': 8, 'i': 9, 'j': 10}
+               'pi': 5, 'iridium': 6, 'aprs': 7, 'h': 8, 'i': 9, 'j': 10}
     with open('config/config_default.yml') as stream:
         try:
             config = yaml.safe_load(stream)

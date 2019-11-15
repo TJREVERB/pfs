@@ -86,10 +86,11 @@ class APRS(Radio):
 
         header = raw_packet[:header_index]
         self.logger.debug("header: " + header)
-        data = raw_packet[header_index + 1 :]
+        data = raw_packet[header_index + 1:]
 
         if len(data) == 0:
-            self.logger.warning("Empty packet body! Will not be queued to telemetry")
+            self.logger.warning(
+                "Empty packet body! Will not be queued to telemetry")
 
         self.logger.debug("Body: " + data)
         return data

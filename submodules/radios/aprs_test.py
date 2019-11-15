@@ -21,7 +21,8 @@ class FakeTelemetry:
     def enqueue(self, message):
         _assert = self.expected_data == message
         if not _assert or self.always_print:
-            print(f"received: {list(message)}, expected: {list(self.expected_data)}")
+            print(
+                f"received: {list(message)}, expected: {list(self.expected_data)}")
         assert _assert
 
 

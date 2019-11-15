@@ -18,7 +18,6 @@ logger = logging.getLogger("TELEMETRY")
 
 
 def enqueue(message) -> None:
-
     """
     Enqueue a message onto the general queue, to be processed later by thread decide()
     :param message: The message to push onto general queue. Must be a log/error class
@@ -45,7 +44,8 @@ def dump(radio='aprs') -> None:
 
     with packet_lock:
         while len(log_stack) + len(err_stack) > 0:
-            next_packet = (err_stack[-1].to_string() if len(err_stack) > 0 else log_stack[-1].to_string())
+            next_packet = (
+                err_stack[-1].to_string() if len(err_stack) > 0 else log_stack[-1].to_string())
             while len(base64.b64encode((squishedpackets + next_packet).encode('ascii'))) < config["telemetry"]["max_packet_size"] and len(log_stack) + len(err_stack) > 0:
                 if len(err_stack) > 0:
                     squishedpackets += str(err_stack.pop())
@@ -101,7 +101,9 @@ def start() -> None:
     err_stack = collections.deque()
     packet_lock = Lock()
 
-    threadDecide = ThreadHandler(target=partial(decide), name="telemetry-decide")  # start telemetry 'decide' thread
+    # start telemetry 'decide' thread
+    threadDecide = ThreadHandler(
+        target=partial(decide), name="telemetry-decide")
     threadDecide.start()
 
 

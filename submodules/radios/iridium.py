@@ -139,7 +139,8 @@ class Iridium(Radio):
             if response == 2:  # Check succeeded
                 return True
             else:  # Check failed, retry
-                response = int(self.write_to_serial("AT+SBDREG?")[0].split(":")[1])
+                response = int(self.write_to_serial(
+                    "AT+SBDREG?")[0].split(":")[1])
                 num_checks -= 1
         return False  # Check failed all times, return False
 
