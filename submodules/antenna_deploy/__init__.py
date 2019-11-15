@@ -1,12 +1,13 @@
-from . import isisants
 from helpers import log
+from submodules import Submodule
+
+from . import isisants
 
 
 class AntennaDeployer(Submodule):
 
     def __init__(self, config: dict):
-        self.config = config
-        self.modules = dict()
+        Submodule.__init__(self, "antenna_deployer", config)
 
     def has_module(self, module_name):
         return module_name in self.modules and self.modules[module_name] is not None

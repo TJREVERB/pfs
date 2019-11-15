@@ -1,10 +1,13 @@
 import logging
-from collections import deque as queue
+
+from submodules import Submodule
 from core import ThreadHandler
+
+from collections import deque as queue
 from functools import partial
 
 
-class CommandIngest:
+class CommandIngest(Submodule):
     def __init__(self, config):
         self.config = config
         self.logger = logging.getLogger("CI")
