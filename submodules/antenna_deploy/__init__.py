@@ -23,4 +23,10 @@ class AntennaDeployer:
         isisants.py_k_ants_deploy(self.config['antenna']['ANT_2'], False, 5)
         isisants.py_k_ants_deploy(self.config['antenna']['ANT_3'], False, 5)
         isisants.py_k_ants_deploy(self.config['antenna']['ANT_4'], False, 5)
-        self.modules["telemetry"].enqueue(log.Log(sys_name="antenna_deployer", lvl='INFO', msg="antenna deployed"))
+        self.modules["telemetry"].enqueue(
+            log.Log(
+                sys_name="antenna_deployer",
+                lvl='INFO',
+                msg="antenna deployed"
+            )
+        )
