@@ -20,15 +20,8 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pipenv
-        pipenv run pip freeze > requirements.txt
         pip install -r requirements.txt
-    
-    - name: Lint with autopep8
-      run: |
-        pip install autopep8
-        autopep8 --in-place --recursive *
-    
+
     - name: Merge source branch with testing
       shell: bash
       run: |
