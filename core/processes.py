@@ -13,8 +13,8 @@ def power_watchdog(core, eps):
                 f'Battery level at critical state: {eps.get_battery_bus_volts()}')
 
 
-def is_first_boot():
-    if os.listdir().count("first_boot.txt") > 0: # check if the file exists
+def is_first_boot(): # FIXME: Use suprocess to get the output of `last reboot`
+    if os.listdir(os.path.join(os.getcwd(), 'boot.txt')).count("first_boot.txt") > 0: # check if the file exists
         os.remove("first_boot.txt") # remove the file if it exists
         return True
     else:
