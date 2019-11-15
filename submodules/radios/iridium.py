@@ -3,7 +3,7 @@ from threading import Lock
 from functools import partial
 
 from . import Radio
-from core import ThreadHandler
+from helpers.threadhandler import ThreadHandler
 
 from serial import Serial
 

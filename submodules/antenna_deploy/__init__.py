@@ -2,7 +2,7 @@ from . import isisants
 from helpers import log
 
 
-class AntennaDeployer:
+class AntennaDeployer(Submodule):
 
     def __init__(self, config: dict):
         self.config = config
