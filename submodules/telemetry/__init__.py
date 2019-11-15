@@ -46,7 +46,7 @@ class Telemetry:
         or command (string - must begin with semicolon, see command_ingest's readme)
         :return True if a valid message was enqueued, false otherwise
         """
-        if not ((type(message) is str and message[0] == ';') or type(message) is error.Error or type(
+        if not ((type(message) is str and message[0:4] == 'CMD$' and message[-1] == ';') or type(message) is error.Error or type(
                 message) is log.Log):   # check for valid types, error if invalid
             self.logger.error("Attempted to enqueue invalid message")
             return False
@@ -64,7 +64,7 @@ class Telemetry:
         squishedpackets = ""
         retVal = False
 
-        if not self.has_modules:
+        if not self.has_module(radio):
             raise RuntimeError("self.modules empty and not initialized")
 
         with self.packet_lock:
@@ -102,8 +102,8 @@ class Telemetry:
             if len(self.general_queue) != 0:
                 with self.packet_lock:
                     message = self.general_queue.popleft()
-                    if type(message) is str and message[0] == ';':
-                        if not self.has_modules:
+                    if type(message) is str and message[0:4] == 'CMD$' and message[-1] == ';':
+                        if not self.has_module("command_ingest"):
                             raise RuntimeError("self.modules empty and not initialized")
                         self.modules["command_ingest"].enqueue(message)
                         # print("Running command_ingest.enqueue(" + message + ")")
@@ -120,7 +120,7 @@ class Telemetry:
         Send a heartbeat through Iridium.
         :return: None
         """
-        if not self.has_modules:
+        if not self.has_module("iridium"):
             raise RuntimeError("self.modules empty and not initialized")
         self.modules["iridium"].send("TJREVERB ALIVE, {0}".format(time.time()))
 
@@ -136,13 +136,13 @@ class Telemetry:
         for thread in self.processes.values():
             thread.start()
 
-    @property
-    def has_modules(self) -> bool:
+    def has_module(self, module_name: str) -> bool:
         """
         Determines if modules dictionary is set
+        :param module_name: The module name
         :return: True if modules dictionary has some elements and is not None, false otherwise
         """
-        return self.modules is not None and len(self.modules) >= 1
+        return module_name in self.modules and self.modules[module_name] is not None
 
     # def enter_normal_mode() -> None:
     #     """
