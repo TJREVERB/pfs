@@ -26,6 +26,7 @@ jobs:
       shell: bash
       run: |
         git checkout testing
+        echo "Current Branch ${GITHUB_REF##*/}"
         git pull origin ${GITHUB_REF##*/}
     
     - name: Run test cases
