@@ -1,13 +1,18 @@
+import logging
+
+
 class Submodule:
 
     def __init__(self, name, config):
         self.name = name
         self.config = config
+        self.logger = logging.getLogger(self.name)
         self.modules = dict()
         self.processes = dict()
 
     def start(self):
-        raise NotImplementedError
+        for process in self.processes:
+            self.processes[process].start()
 
     def enter_low_power_mode(self):
         raise NotImplementedError

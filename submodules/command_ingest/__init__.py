@@ -1,5 +1,3 @@
-import logging
-
 from submodules import Submodule
 from core import ThreadHandler
 
@@ -9,26 +7,16 @@ from functools import partial
 
 class CommandIngest(Submodule):
     def __init__(self, config):
-        self.config = config
-        self.logger = logging.getLogger("CI")
-        self.modules = {}
-
-        self.registered_commands = {}
+        Submodule.__init__(self, "command_ingest", config)
         self.general_queue = queue()
 
         self.processes = {
             "dispatch": ThreadHandler(
                 target=partial(self.dispatch),
-                name="command-ingest-dispatch",
+                name="command_ingest_dispatch",
                 parent_logger=self.logger,
             )
         }
-
-    def set_modules(self, dependencies):
-        self.modules = dependencies
-
-    def has_module(self, module_name):
-        return module_name in self.modules and self.modules[module_name] is not None
 
     def dispatch(self):
         while True:
@@ -38,7 +26,7 @@ class CommandIngest(Submodule):
                 try:
                     module, func = cmd[0], cmd[1]
                 except IndexError:
-                    pass  # TODO: Invalid command report as such
+                    self.send_through_aprs(f"CMDERR: Unable to parse Commnd {cmd}")
                     continue
                 if self.validate_func(module, func):
                     try:
@@ -54,19 +42,18 @@ class CommandIngest(Submodule):
         if module not in self.modules:
             self.send_through_aprs(f"CMDERR: Module not found")
             return False
-        if self.has_module(module):
-            raise RuntimeError(f"[command_ingest]:[{module}] not found")
+        if not self.has_module(module):
+            raise RuntimeError(f"[{self.name}]:[{module}] not found")
         if hasattr(module, func):
             self.send_through_aprs(f"CMDERR: Function {func} not found in {module}")
             return False
         return True
 
     def send_through_aprs(self, message):
-        if self.has_module("aprs"):
-            self.modules["aprs"].send(message)  # FIXME FORMATTING
-        else:
-            raise RuntimeError("[aprs] not found")
+        self.get_module_or_raise_error("aprs").send(f"{message}")  # FIXME FORAMTTING
 
-    def start(self):
-        for process in self.processes:
-            self.processes[process].start()
+    def enter_low_power_mode(self):  # TODO: WILL IMPLEMENT IN CYCLE 2
+        pass
+
+    def enter_normal_mode(self):  # TODO: WILL IMPLEMENT IN CYCLE 2
+        pass
