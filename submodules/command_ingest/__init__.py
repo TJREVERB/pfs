@@ -6,7 +6,14 @@ from functools import partial
 
 
 class CommandIngest(Submodule):
+    """
+    Submodule class that handles the processing and execution of commands
+    """
     def __init__(self, config):
+        """
+        Instantiates a new CommandIngest instance
+        :param config: dictionary of configuration data
+        """
         Submodule.__init__(self, "command_ingest", config)
         self.general_queue = queue()
 
@@ -18,7 +25,12 @@ class CommandIngest(Submodule):
             )
         }
 
-    def dispatch(self):
+    def dispatch(self) -> None:
+        """
+        Continuously pop from the general queue, parse the message as a command, and, if valid, execute
+        the command as such
+        :return: None
+        """
         while True:
             body = self.general_queue.pop()
             if "CMD$" in body:
@@ -35,10 +47,15 @@ class CommandIngest(Submodule):
                     except Exception as e:
                         self.send_through_aprs(f"CMDERR: Command {cmd} failed with {e}")
 
-    def enqueue(self, cmd):
+    def enqueue(self, cmd) -> None:
+        """
+        Enqueue a new message to the CommandIngest general queue
+        :param cmd: message to be enqueued
+        :return: None
+        """
         self.general_queue.append(cmd)
 
-    def validate_func(self, module, func):
+    def validate_func(self, module, func) -> bool:
         if module not in self.modules:
             self.send_through_aprs(f"CMDERR: Module not found")
             return False
@@ -49,7 +66,12 @@ class CommandIngest(Submodule):
             return False
         return True
 
-    def send_through_aprs(self, message):
+    def send_through_aprs(self, message) -> None:
+        """
+        Sends a message directly through the APRS radio
+        :param message: message to be sent
+        :return: None
+        """
         self.get_module_or_raise_error("aprs").send(f"{message}")  # FIXME FORAMTTING
 
     def enter_low_power_mode(self):  # TODO: WILL IMPLEMENT IN CYCLE 2

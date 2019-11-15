@@ -5,17 +5,21 @@ from . import isisants
 
 
 class AntennaDeployer(Submodule):
-
+    """
+    Submodule class that interfaces with the ISIS Antenna Deployer
+    """
     def __init__(self, config: dict):
-        Submodule.__init__(self, "antenna_deployer", config)
+        """
+        Instantiates a new AntennaDeployer instance
+        :param config: dictionary of configuration data
+        """
+        Submodule.__init__(self, name="antenna_deployer", config=config)
 
-    def has_module(self, module_name):
-        return module_name in self.modules and self.modules[module_name] is not None
-
-    def set_modules(self, dependencies: dict):
-        self.modules = dependencies
-
-    def start(self):
+    def start(self) -> None:
+        """
+        Deploys the ISIS Antenna via I2C
+        :return: None
+        """
         # Initialize connection with device
         isisants.py_k_ants_init(b"/dev/i2c-1", 0x31, 0x32, 4, 10)
 
@@ -37,8 +41,16 @@ class AntennaDeployer(Submodule):
                 )
             )
 
-    def enter_low_power_mode(self):
+    def enter_low_power_mode(self) -> None:
+        """
+        Empty because Antenna Deployer does not react to changes in Modes
+        :return: None
+        """
         pass  # Antenna Deployer has no-op
 
-    def enter_normal_mode(self):
+    def enter_normal_mode(self) -> None:
+        """
+        Empty because Antenna Deployer does not react to changes in Modes
+        :return: None
+        """
         pass  # Antenna Deployer has no-op
