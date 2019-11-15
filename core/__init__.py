@@ -11,6 +11,9 @@ from helpers.threadhandler import ThreadHandler
 from core.processes import power_watchdog, is_first_boot
 
 from submodules.antenna_deploy import AntennaDeployer
+from submodules.command_ingest import CommandIngest
+from submodules.radios.aprs import APRS
+from submodules.radios.iridium import Iridium
 
 
 class Core:
@@ -27,10 +30,10 @@ class Core:
         self.state = Mode.LOW_POWER
         self.submodules = {
             "antenna_deployer": AntennaDeployer(config=self.config),
-            "aprs": None,
-            "command_ingest": None,
+            "aprs": APRS(config=self.config),
+            "command_ingest": CommandIngest(config=self.config),
             "eps": None,
-            "iridium": None,
+            "iridium": Iridium(config=self.config),
             "telemetry": None,
         }
         self.populate_dependencies()
