@@ -12,7 +12,6 @@ from helpers.threadhandler import ThreadHandler    # threads
 from helpers import error, log     # Log and error classes
 
 
-
 class Telemetry(Submodule):
     def __init__(self, config):
         """
@@ -73,7 +72,7 @@ class Telemetry(Submodule):
                         squishedpackets += str(self.log_stack.pop())
                 squishedpackets = base64.b64encode(squishedpackets.encode('ascii'))
                 # print(squishedpackets)
-                self.modules[radio].send(str(squishedpackets))
+                self.get_module_or_raise_error(radio).send(str(squishedpackets))
                 retVal = True
                 squishedpackets = ""
 
@@ -116,15 +115,14 @@ class Telemetry(Submodule):
         """
         self.get_module_or_raise_error("iridium").send("TJREVERB ALIVE, {0}".format(time.time()))
 
-    def enter_normal_mode() -> None: # TODO: IMPLEMENT IN CYCLE 2
+    def enter_normal_mode(self) -> None: # TODO: IMPLEMENT IN CYCLE 2
         """
         Enter normal mode.
         :return: None
         """
         pass
     
-    
-    def enter_low_power_mode() -> None: # TODO: IMPLEMENT IN CYCLE 2
+    def enter_low_power_mode(self) -> None: # TODO: IMPLEMENT IN CYCLE 2
         """
         Enter low power mode.
         :return: None
