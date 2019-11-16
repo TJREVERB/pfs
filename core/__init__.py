@@ -131,6 +131,7 @@ class Core:
         
         while self.submodules['eps'].get_battery_bus_volts() < Power.STARTUP.value:
             time.sleep(1)
+        self.mode = Mode.NORMAL
 
         for submodule in self.config['core']['modules']['C']:
             if hasattr(self.submodules[submodule], 'start'):
