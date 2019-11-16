@@ -1,9 +1,9 @@
-import logging
 from functools import partial
 from time import time, sleep
 
-from . import Radio
-from core import ThreadHandler
+from submodules.radios import Radio
+from helpers.threadhandler import ThreadHandler
+
 
 from serial import Serial
 
@@ -15,10 +15,8 @@ class APRS(Radio):
         :param config: the config dictionary loaded from config_default.yml
         """
 
-        self.config = config
-        self.modules = dict()
+        Radio.__init__(self, "aprs", config)
 
-        self.logger = logging.getLogger("APRS")
         self.last_telem_time = time()
         self.last_message_time = time()
 
@@ -62,7 +60,7 @@ class APRS(Radio):
     def set_modules(self, modules):
         self.modules = modules
 
-    def had_modules(self):
+    def has_modules(self):
         return len(self.modules) != 0
 
     def parse_aprs_packet(self, packet: str) -> str:
@@ -104,7 +102,7 @@ class APRS(Radio):
         while True:
             if not self.has_modules:
                 # Modules not set yet
-                continue
+                raise RuntimeError("No Modules Set")
 
             if not self.serial.is_open:
                 # Low power mode
@@ -113,11 +111,9 @@ class APRS(Radio):
             line = b""
             port_closed = False
             while not line.endswith(b"\n"):  # While EOL hasn't been sent
-
                 if not self.serial.is_open:
                     port_closed = True
                     break
-
                 result = self.serial.read()
                 line += result
 

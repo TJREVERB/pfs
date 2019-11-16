@@ -1,17 +1,25 @@
+from helpers import log
+from submodules import Submodule
+
 from . import isisants
-from core import log
 
 
-class AntennaDeployer:
+class AntennaDeployer(Submodule):
+    """
+    Submodule class that interfaces with the ISIS Antenna Deployer
+    """
+    def __init__(self, config: dict):
+        """
+        Instantiates a new AntennaDeployer instance
+        :param config: dictionary of configuration data
+        """
+        Submodule.__init__(self, name="antenna_deployer", config=config)
 
-    def __init__(self, config):
-        self.config = config
-        self.modules = {}
-
-    def set_modules(self, dependencies):
-        self.modules = dependencies
-
-    def start(self):
+    def start(self) -> None:
+        """
+        Deploys the ISIS Antenna via I2C
+        :return: None
+        """
         # Initialize connection with device
         isisants.py_k_ants_init(b"/dev/i2c-1", 0x31, 0x32, 4, 10)
 
@@ -23,4 +31,26 @@ class AntennaDeployer:
         isisants.py_k_ants_deploy(self.config['antenna']['ANT_2'], False, 5)
         isisants.py_k_ants_deploy(self.config['antenna']['ANT_3'], False, 5)
         isisants.py_k_ants_deploy(self.config['antenna']['ANT_4'], False, 5)
-        self.modules["telemetry"].enqueue(log.Log(sys_name="antenna_deployer", lvl='INFO', msg="antenna deployed"))
+        
+        if self.has_module("telemetry"):  # No need for RuntimeError for the process will terminate
+            self.modules["telemetry"].enqueue(
+                log.Log(
+                    sys_name="antenna_deployer",
+                    lvl='INFO',
+                    msg="antenna deployed"
+                )
+            )
+
+    def enter_low_power_mode(self) -> None:
+        """
+        Empty because Antenna Deployer does not react to changes in Modes
+        :return: None
+        """
+        pass  # Antenna Deployer has no-op
+
+    def enter_normal_mode(self) -> None:
+        """
+        Empty because Antenna Deployer does not react to changes in Modes
+        :return: None
+        """
+        pass  # Antenna Deployer has no-op
