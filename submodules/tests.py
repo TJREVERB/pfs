@@ -35,4 +35,5 @@ except:
 if __name__ == '__main__':
     for module, func in MODULES.items():
         if func:
+            print(f"Running test cases for module {module}")
             func()
