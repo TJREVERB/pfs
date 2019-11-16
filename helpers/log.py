@@ -1,7 +1,7 @@
 from datetime import datetime
 
 
-class Log():
+class Log:
     """
     A class representing log messages.
     """
@@ -20,8 +20,7 @@ class Log():
         self.message = msg
         self.header = 'LOG&'
 
-
-    def to_string(self):
+    def __str__(self):
         """
         :return: String representation of log message.
         """

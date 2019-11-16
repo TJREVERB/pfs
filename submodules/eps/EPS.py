@@ -3,13 +3,14 @@ import time
 import smbus
 import yaml
 
+from functools import partial
+
 from smbus2 import SMBusWrapper
 from submodules import telemetry
-from core.log import Log
-from core.error import Error
-# Threadhandler dependencies
-# from functools import partial
-# from core.threadhandler import ThreadHandler
+
+from helpers.log import Log
+from helpers.error import Error
+from helpers.threadhandler import ThreadHandler
 
 class EPS():
     def __init__(self, config: dict):
