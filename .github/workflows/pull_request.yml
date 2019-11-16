@@ -27,6 +27,8 @@ jobs:
       shell: bash
       run: |
         git checkout testing
+        git config user.name "CI"
+        git config user.email "tjreverb@gmail.com"
         git pull origin ${{ env.GITHUB_HEAD_REF_SLUG }}
     
     - name: Run test cases
