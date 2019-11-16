@@ -13,6 +13,7 @@ from core.processes import power_watchdog, is_first_boot
 
 from submodules.antenna_deployer import AntennaDeployer
 from submodules.command_ingest import CommandIngest
+from submodules.eps import EPS
 from submodules.radios.aprs import APRS
 from submodules.radios.iridium import Iridium
 from submodules.telemetry import Telemetry
@@ -34,7 +35,7 @@ class Core:
             "antenna_deployer": AntennaDeployer(config=self.config),
             "aprs": APRS(config=self.config),
             "command_ingest": CommandIngest(config=self.config),
-            "eps": None,
+            "eps": EPS(config=self.config),
             "iridium": Iridium(config=self.config),
             "telemetry": Telemetry(config=self.config),
         }
