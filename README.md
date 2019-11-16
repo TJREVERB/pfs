@@ -1,30 +1,43 @@
 # pFS
 ## Python Flight Software
 
-## Development
-1. Clone this repo
-2. Use `venv` to manage the development environment.
-3. Create a new `virtualenv`
-```
-$ python3 -m venv venv
-```
-4. Activate the `virtualenv`
-```
-$ source venv/bin/activate
-```
-5. Install dependencies from requirements.txt
-```
-$ pip install -r requirements.txt
-```
-6. Run pFS
-```
-$ python main.py
-```
-Alternatively, you can set `main.py` as executable and run `main.py as a script
-```
-$ chmod +x main.py # only do this once
-$ ./main.py
-```
+### This branch is used for testing purposes only
 
-## Dependencies
-- `Python 3.6` or greater is required along with `pip`
+#### Process
+1. Clone this repo
+2. Checkout onto `testing`
+```
+$ git checkout testing
+```
+3. Update from `master`
+```
+$ git pull origin master
+```
+4. For unit testing, add unit test files in the respective submodules' directory
+  * e.g. Unit Test for telemetry
+  ```
+  submodules/
+    telemetry/
+      __init__.py 
+      test.py # create this file
+  ```
+5. Each unit test file should have a `run_tests` method which basically runs all unit test cases
+6. `submodules/tests.py` will automatically scrape each submodule for a `test.py` file and call `run_tests` on that file if present
+7. Record any errors and submit them as Issues on this repository
+
+#### Testing Framework
+* Each submodule directory should have a `test.py` file.
+  * EXCEPTION: Radios
+    * test files for Radios
+      * `submodules/radios/aprs_test.py`
+      * `submodules/radios/iridium_test.py`
+  * Everything else:
+    * `submodules/[submodule]/test.py`
+* `submodules/tests.py` shall attempt to import `test.py` for all submodules and will try to run the `run_tests` function in each submodule that it successfully imported
+* A submodule's `test.py` should create a new instance of its target submodule's class along with any dependencies it requires. A submodule's `test.py` should also create a fake `config` variable to mimic `config_*.yml`
+
+#### Reporting Bugs
+1. Record the submodule, test case, input, actual output, and expected output
+2. Record the exact process of how the bug was discovered
+3. Include any information that can possibily aid in debugging
+4. Create a new Issue, with the testers and developers as assignees. Also keep the programming lead informed of this process
