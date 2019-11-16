@@ -7,6 +7,7 @@
 venv/
 
 # Custom configuration file
+config/config_custom.yml
 config_custom.yml
 
 # Unneeded Python files
@@ -16,5 +17,4 @@ __pycache__/
 # ADCS TLE backup file
 backup_tle.txt
 
-# requirements.txt can be generated using `pipenv lock -r`
-requirements.txt
+

@@ -1,7 +1,7 @@
 from datetime import datetime
 
 
-class Log():
+class Log:
     """
     A class representing log messages.
     """

@@ -1,7 +1,7 @@
 from datetime import datetime
 
 
-class Error():
+class Error:
     """
     A class representing error messages.
     """

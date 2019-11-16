@@ -1,10 +1,9 @@
-import logging
 from functools import partial
 from time import time, sleep
 
-from . import Radio
+from submodules.radios import Radio
 from helpers.threadhandler import ThreadHandler
-from threading import Thread
+
 
 from serial import Serial
 
@@ -16,10 +15,8 @@ class APRS(Radio):
         :param config: the config dictionary loaded from config_default.yml
         """
 
-        self.config = config
-        self.modules = dict()
+        Radio.__init__(self, "aprs", config)
 
-        self.logger = logging.getLogger("APRS")
         self.last_telem_time = time()
         self.last_message_time = time()
 
