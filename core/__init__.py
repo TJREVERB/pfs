@@ -15,6 +15,7 @@ from submodules.antenna_deployer import AntennaDeployer
 from submodules.command_ingest import CommandIngest
 from submodules.radios.aprs import APRS
 from submodules.radios.iridium import Iridium
+from submodules.telemetry import Telemetry
 
 
 class Core:
@@ -35,7 +36,7 @@ class Core:
             "command_ingest": CommandIngest(config=self.config),
             "eps": None,
             "iridium": Iridium(config=self.config),
-            "telemetry": None,
+            "telemetry": Telemetry(config=self.config),
         }
         self.populate_dependencies()
         self.processes = {
