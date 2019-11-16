@@ -11,7 +11,7 @@ from helpers.power import Power
 from helpers.threadhandler import ThreadHandler
 from core.processes import power_watchdog, is_first_boot
 
-from submodules.antenna_deploy import AntennaDeployer
+from submodules.antenna_deployer import AntennaDeployer
 from submodules.command_ingest import CommandIngest
 from submodules.radios.aprs import APRS
 from submodules.radios.iridium import Iridium
