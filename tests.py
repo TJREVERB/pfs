@@ -1,17 +1,17 @@
 MODULES = {}
 # Try to import test cases, ignore modules on fail
 try:
-    from submodules.antenna_deploy.tests import run_tests as run_antenna_tests
+    from submodules.antenna_deploy.test import run_tests as run_antenna_tests
     MODULES["antenna"] = run_antenna_tests
 except:
     MODULES["antenna"] = False
 try:
-    from submodules.command_ingest.tests import run_tests as run_command_tests
+    from submodules.command_ingest.test import run_tests as run_command_tests
     MODULES["command"] = run_command_tests
 except:
     MODULES["command"] = False
 try:
-    from submodules.eps.tests import run_tests as run_eps_tests
+    from submodules.eps.test import run_tests as run_eps_tests
     MODULES["eps"] = run_eps_tests
 except:
     MODULES["eps"] = False
@@ -22,12 +22,12 @@ try:
 except:
     MODULES["radios.aprs"] = False
 try:
-    from submodules.radios.iridium_tests import run_tests as run_iridium_tests
+    from submodules.radios.iridium_test import run_tests as run_iridium_tests
     MODULES["radios.iridium"] = run_iridium_tests
 except:
     MODULES["radios.iridium"] = False
 try:
-    from submodules.telemetry.tests import run_tests as run_telemetry_tests
+    from submodules.telemetry.test import run_tests as run_telemetry_tests
     MODULES["telemetry"] = run_telemetry_tests
 except:
     MODULES["telemetry"] = False
