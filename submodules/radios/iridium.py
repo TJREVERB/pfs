@@ -1,9 +1,8 @@
-import logging
 from threading import Lock
 from functools import partial
 
-from . import Radio
-from core import ThreadHandler
+from submodules.radios import Radio
+from helpers.threadhandler import ThreadHandler
 
 from serial import Serial
 
@@ -14,10 +13,7 @@ class Iridium(Radio):
         Assumes Iridium is in low power mode on start. Sets up class fields.
         :param config: the config dictionary loaded from config_default.yml
         """
-        self.config = config
-        self.modules = dict()
-
-        self.logger = logging.getLogger("IRIDIUM")
+        Radio.__init__(self, "iridium", config)
         self.read_lock = Lock()
 
         self.serial = None

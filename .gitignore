@@ -7,6 +7,7 @@
 venv/
 
 # Custom configuration file
+config/config_custom.yml
 config_custom.yml
 
 # Unneeded Python files
