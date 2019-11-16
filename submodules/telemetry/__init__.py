@@ -1,17 +1,14 @@
 import base64                   # packet encoding
-import collections              # general, error, log queues
 import logging                  # logger
+import time
+
 from functools import partial   # thread
 from threading import Lock      # packet locks
 from time import sleep          # decide method
-import time
+from collections import deque   # general, error, log queues
 
 from core.threadhandler import ThreadHandler    # threads
-# from submodules import radio_output   # FIXME radio_output?
-
 from core import error, log     # Log and error classes
-
-logger = logging.getLogger("TELEMETRY")
 
 
 class Telemetry:
@@ -22,13 +19,17 @@ class Telemetry:
         """
         self.config = config
         self.modules = {}
-        self.general_queue = collections.deque()  # initialize global variables
-        self.log_stack = collections.deque()
-        self.err_stack = collections.deque()
+        self.general_queue = deque()  # initialize global variables
+        self.log_stack = deque()
+        self.err_stack = deque()
         self.packet_lock = Lock()
         self.logger = logging.getLogger("TELEMETRY")
         self.processes = {
-            "telemetry-decide": ThreadHandler(target=partial(self.decide), name="telemetry-decide")
+            "telemetry-decide": ThreadHandler(
+                target=partial(self.decide), 
+                name="telemetry-decide",
+                parent_logger=self.logger
+                )
         }
 
     def set_modules(self, modules: {}) -> None:
