@@ -26,10 +26,8 @@ jobs:
     - name: Merge source branch with testing
       shell: bash
       run: |
-        echo ${{ env.GITHUB_REF_SLUG }}
-        echo ${{ env.GITHUB_HEAD_REF_SLUG }}
-        echo ${{ env.GITHUB_BASE_REF_SLUG }}
-        git pull origin ${GITHUB_REF##*/}
+        git checkout testing
+        git pull origin ${{ env.GITHUB_HEAD_REF_SLUG }}
     
     - name: Run test cases
       shell: bash
