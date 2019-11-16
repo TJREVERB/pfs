@@ -37,3 +37,5 @@ if __name__ == '__main__':
         if func:
             print(f"Running test cases for module {module}")
             func()
+        else:
+            print(f"run_tests not found for module {module}")
