@@ -7,38 +7,32 @@ from threading import Lock      # packet locks
 from time import sleep          # decide method
 from collections import deque   # general, error, log queues
 
-from core.threadhandler import ThreadHandler    # threads
-from core import error, log     # Log and error classes
+from submodules import Submodule
+from helpers.threadhandler import ThreadHandler    # threads
+from helpers import error, log     # Log and error classes
 
 
-class Telemetry:
+
+class Telemetry(Submodule):
     def __init__(self, config):
         """
         Constructor method. Initializes variables
         :param config: Config variable passed in from core.
         """
-        self.config = config
-        self.modules = {}
-        self.general_queue = deque()  # initialize global variables
+        Submodule.__init__(self, name="telemetry", config=config)
+
+        self.general_queue = deque()
         self.log_stack = deque()
         self.err_stack = deque()
         self.packet_lock = Lock()
-        self.logger = logging.getLogger("TELEMETRY")
         self.processes = {
             "telemetry-decide": ThreadHandler(
                 target=partial(self.decide), 
                 name="telemetry-decide",
-                parent_logger=self.logger
+                parent_logger=self.logger,
+                daemon=False
                 )
         }
-
-    def set_modules(self, modules: {}) -> None:
-        """
-        Sets modules variable
-        :param modules: Maps strings to classes, like {"telemetry": Telemetry()}
-        :return: None
-        """
-        self.modules = modules
 
     def enqueue(self, message) -> bool:
         """
@@ -47,8 +41,9 @@ class Telemetry:
         or command (string - must begin with semicolon, see command_ingest's readme)
         :return True if a valid message was enqueued, false otherwise
         """
-        if not ((type(message) is str and message[0:4] == 'CMD$' and message[-1] == ';') or type(message) is error.Error or type(
-                message) is log.Log):   # check for valid types, error if invalid
+        if not ((type(message) is str and message[0:4] == 'CMD$' and message[-1] == ';') # message is Command
+         or type(message) is error.Error # message is Error
+         or type(message) is log.Log):   # message is Log
             self.logger.error("Attempted to enqueue invalid message")
             return False
         with self.packet_lock:
@@ -66,7 +61,7 @@ class Telemetry:
         retVal = False
 
         if not self.has_module(radio):
-            raise RuntimeError("self.modules empty and not initialized")
+            raise RuntimeError(f"[{self.name}]:[{radio}] module not found")
 
         with self.packet_lock:
             while len(self.log_stack) + len(self.err_stack) > 0:    # while there's stuff to pop off
@@ -104,9 +99,7 @@ class Telemetry:
                 with self.packet_lock:
                     message = self.general_queue.popleft()
                     if type(message) is str and message[0:4] == 'CMD$' and message[-1] == ';':
-                        if not self.has_module("command_ingest"):
-                            raise RuntimeError("self.modules empty and not initialized")
-                        self.modules["command_ingest"].enqueue(message)
+                        self.get_module_or_raise_error("command_ingest").enqueue(message)
                         # print("Running command_ingest.enqueue(" + message + ")")
                     elif type(message) is error.Error:
                         self.err_stack.append(message)
@@ -121,52 +114,20 @@ class Telemetry:
         Send a heartbeat through Iridium.
         :return: None
         """
-        if not self.has_module("iridium"):
-            raise RuntimeError("self.modules empty and not initialized")
-        self.modules["iridium"].send("TJREVERB ALIVE, {0}".format(time.time()))
+        self.get_module_or_raise_error("iridium").send("TJREVERB ALIVE, {0}".format(time.time()))
 
-    def start(self) -> None:
+    def enter_normal_mode() -> None: # TODO: IMPLEMENT IN CYCLE 2
         """
-        Starts the telemetry send thread
-        Config and modules must be initialized beforehand (config is through constructor, modules is through set_modules)
-        :return None
+        Enter normal mode.
+        :return: None
         """
-        if self.config is None or self.modules is None:
-            raise RuntimeError("Config variable or self.modules empty and not initialized")
-
-        for thread in self.processes.values():
-            thread.start()
-
-    def has_module(self, module_name: str) -> bool:
+        pass
+    
+    
+    def enter_low_power_mode() -> None: # TODO: IMPLEMENT IN CYCLE 2
         """
-        Determines if modules dictionary is set
-        :param module_name: The module name
-        :return: True if modules dictionary has some elements and is not None, false otherwise
+        Enter low power mode.
+        :return: None
         """
-        return module_name in self.modules and self.modules[module_name] is not None
-
-    # def enter_normal_mode() -> None:
-    #     """
-    #     Enter normal mode.
-    #     :return: None
-    #     """
-    #     global state
-    #     state = Mode.NORMAL
-    #
-    #
-    # def enter_low_power_mode() -> None:
-    #     """
-    #     Enter low power mode.
-    #     :return: None
-    #     """
-    #     global state
-    #     state = Mode.LOW_POWER
-    #
-    #
-    # def enter_emergency_mode() -> None:
-    #     """
-    #     Enter emergency mode.
-    #     :return: None
-    #     """
-    #     global state
-    #     state = Mode.EMERGENCY
+        pass
+    

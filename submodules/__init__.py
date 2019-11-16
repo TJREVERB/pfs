@@ -22,6 +22,7 @@ class Submodule:
         Iterates through self.processes and starts all processes.
         This method is meant to be overridden
         """
+
         for process in self.processes:
             self.processes[process].start()
 
