@@ -22,7 +22,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - uses: rlespinasse/github-slug-action@1.0.1
+    - uses: rlespinasse/github-slug-action@1.0.0
     - name: Merge source branch with testing
       shell: bash
       run: |
