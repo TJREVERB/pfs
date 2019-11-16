@@ -33,6 +33,6 @@ except:
     MODULES["telemetry"] = False
 
 if __name__ == '__main__':
-    for module, func in MODULES:
+    for module, func in MODULES.items():
         if func:
             func()
