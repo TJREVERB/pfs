@@ -7,13 +7,15 @@ from threading import Timer
 from yaml import safe_load
 
 from helpers.mode import Mode
+from helpers.power import Power
 from helpers.threadhandler import ThreadHandler
 from core.processes import power_watchdog, is_first_boot
 
-from submodules.antenna_deploy import AntennaDeployer
+from submodules.antenna_deployer import AntennaDeployer
 from submodules.command_ingest import CommandIngest
 from submodules.radios.aprs import APRS
 from submodules.radios.iridium import Iridium
+from submodules.telemetry import Telemetry
 
 
 class Core:
@@ -34,7 +36,7 @@ class Core:
             "command_ingest": CommandIngest(config=self.config),
             "eps": None,
             "iridium": Iridium(config=self.config),
-            "telemetry": None,
+            "telemetry": Telemetry(config=self.config),
         }
         self.populate_dependencies()
         self.processes = {
@@ -49,7 +51,12 @@ class Core:
             )
         }
 
-    def populate_dependencies(self):
+    def populate_dependencies(self) -> None:
+        """
+        Iterates through configuration data dictionary and sets each submodule's self.modules dictionary
+        with a dictionary that contains references to all the other submodules listed in the first 
+        submodule's depends_on key
+        """
         for submodule in self.submodules:
             if hasattr(self.submodules[submodule], 'set_modules'):
                 self.submodules[submodule].set_modules({
@@ -57,11 +64,11 @@ class Core:
                     for dependency in self.config[submodule]['depends_on']
                 })
 
-    def get_config(self):
+    def get_config(self) -> dict:
         """Returns the configuration data from config_*.yml as a list"""
         return self.config
 
-    def get_state(self):
+    def get_state(self) -> Mode:
         return self.state
 
     def enter_normal_mode(self, reason: str = '') -> None:
@@ -100,10 +107,17 @@ class Core:
             if hasattr(self.submodules[submodule], 'enter_emergency_mode'):
                 self.submodules[submodule].enter_emergency_mode()
 
-    def request(self, module_name):
+    def request(self, module_name: str):
+        """
+        Returns a reference to a specified module if specified module is present
+        @param module_name: name of module requested
+        """
         return self.submodules[module_name] if module_name in self.submodules.keys() else False
 
-    def start(self):
+    def start(self) -> None:
+        """
+        Runs the startup process for core
+        """
         for submodule in self.config['core']['modules']['A']:
             if hasattr(self.submodules[submodule], 'start'):
                 self.submodules[submodule].start()
@@ -114,6 +128,9 @@ class Core:
         for submodule in self.config['core']['modules']['B']:
             if hasattr(self.submodules[submodule], 'start'):
                 self.submodules[submodule].start()
+        
+        while self.submodules['eps'].get_battery_bus_volts() < Power.STARTUP.value:
+            time.sleep(1)
 
         for submodule in self.config['core']['modules']['C']:
             if hasattr(self.submodules[submodule], 'start'):
@@ -123,4 +140,4 @@ class Core:
             self.processes[process].start()
 
         while True:
-            time.sleep(1)
+            time.sleep(1) # Keep main thread alive so that child threads do not terminate

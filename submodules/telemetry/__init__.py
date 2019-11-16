@@ -1,134 +1,130 @@
-import base64
-import collections
-import logging
-from functools import partial
-from threading import Lock
-from time import sleep
+import base64                   # packet encoding
+import logging                  # logger
+import time
+
+from functools import partial   # thread
+from threading import Lock      # packet locks
+from time import sleep          # decide method
+from collections import deque   # general, error, log queues
+
+from submodules import Submodule
+from helpers.threadhandler import ThreadHandler    # threads
+from helpers import error, log     # Log and error classes
 
 
-from helpers.threadhandler import ThreadHandler
-from submodules import command_ingest
+class Telemetry(Submodule):
+    def __init__(self, config):
+        """
+        Constructor method. Initializes variables
+        :param config: Config variable passed in from core.
+        """
+        Submodule.__init__(self, name="telemetry", config=config)
 
-# Command Ingest - ability to register commands
+        self.general_queue = deque()
+        self.log_stack = deque()
+        self.err_stack = deque()
+        self.packet_lock = Lock()
+        self.processes = {
+            "telemetry-decide": ThreadHandler(
+                target=partial(self.decide), 
+                name="telemetry-decide",
+                parent_logger=self.logger,
+                daemon=False
+                )
+        }
 
-# Log and error classes
-from helpers import log, error
+    def enqueue(self, message) -> bool:
+        """
+        Enqueue a message onto the general queue, to be processed later by thread decide()
+        :param message: The message to push onto general queue. Must be a log/error class
+        or command (string - must begin with semicolon, see command_ingest's readme)
+        :return True if a valid message was enqueued, false otherwise
+        """
+        if not ((type(message) is str and message[0:4] == 'CMD$' and message[-1] == ';') # message is Command
+         or type(message) is error.Error # message is Error
+         or type(message) is log.Log):   # message is Log
+            self.logger.error("Attempted to enqueue invalid message")
+            return False
+        with self.packet_lock:
+            self.general_queue.append(message)  # append to general queue
+            return True
 
-logger = logging.getLogger("TELEMETRY")
+    def dump(self, radio='aprs') -> bool:
+        """
+        Concatenates packets to fit in max_packet_size (defined in config) and send through the radio, removing the
+        packets from the error and log stacks in the process
+        :param radio: Radio to send telemetry through, either "aprs" or "iridium"
+        :return True if anything was sent, false otherwise
+        """
+        squishedpackets = ""
+        retVal = False
 
+        if not self.has_module(radio):
+            raise RuntimeError(f"[{self.name}]:[{radio}] module not found")
 
-def enqueue(message) -> None:
-    """
-    Enqueue a message onto the general queue, to be processed later by thread decide()
-    :param message: The message to push onto general queue. Must be a log/error class
-    or command (string - must begin with semicolon, see command_ingest's readme)
-    :return None
-    """
-    global packet_lock, general_queue
-    if not ((type(message) is str and message[0] == ';') or type(message) is error.Error or type(message) is log.Log):
-        logger.error("Attempted to enqueue invalid message")
-        return
-    with packet_lock:
-        general_queue.append(message)
+        with self.packet_lock:
+            while len(self.log_stack) + len(self.err_stack) > 0:    # while there's stuff to pop off
+                next_packet = (str(self.err_stack[-1]) if len(self.err_stack) > 0 else str(self.log_stack[-1]))   # for the purposes of determining packet length
+                while len(base64.b64encode((squishedpackets + next_packet).encode('ascii'))) < self.config["telemetry"]["max_packet_size"] and len(self.log_stack) + len(self.err_stack) > 0:
+                    if len(self.err_stack) > 0: # prefer error messages over log messages
+                        squishedpackets += str(self.err_stack.pop())
+                    else:
+                        squishedpackets += str(self.log_stack.pop())
+                squishedpackets = base64.b64encode(squishedpackets.encode('ascii'))
+                # print(squishedpackets)
+                self.get_module_or_raise_error(radio).send(str(squishedpackets))
+                retVal = True
+                squishedpackets = ""
 
+        return retVal
 
-def dump(radio='aprs') -> None:
-    """
-    Concatenates packets to fit in max_packet_size (defined in config) and send through the radio, removing the
-    packets from the error and log stacks in the process
-    :param radio: Radio to send telemetry through, either "aprs" or "iridium"
-    :return None
-    """
-    global packet_lock, log_stack, err_stack
-    squishedpackets = ""
+    def clear_buffers(self) -> None:
+        """
+        Clear the telemetry buffers - clearing general_queue, the log, and error stacks.
+        :return: None
+        """
+        with self.packet_lock:
+            self.general_queue.clear()
+            self.log_stack.clear()
+            self.err_stack.clear()
 
-    with packet_lock:
-        while len(log_stack) + len(err_stack) > 0:
-            next_packet = (
-                err_stack[-1].to_string() if len(err_stack) > 0 else log_stack[-1].to_string())
-            while len(base64.b64encode((squishedpackets + next_packet).encode('ascii'))) < config["telemetry"]["max_packet_size"] and len(log_stack) + len(err_stack) > 0:
-                if len(err_stack) > 0:
-                    squishedpackets += str(err_stack.pop())
-                else:
-                    squishedpackets += str(log_stack.pop())
-            squishedpackets = base64.b64encode(squishedpackets.encode('ascii'))
-            radio_output.send(squishedpackets, radio)
-            squishedpackets = ""
+    def decide(self) -> None:
+        """
+        A thread method to constantly check general_queue for messages and process them if there are any.
+        :return: None
+        """
+        while True:
+            if len(self.general_queue) != 0:
+                with self.packet_lock:
+                    message = self.general_queue.popleft()
+                    if type(message) is str and message[0:4] == 'CMD$' and message[-1] == ';':
+                        self.get_module_or_raise_error("command_ingest").enqueue(message)
+                        # print("Running command_ingest.enqueue(" + message + ")")
+                    elif type(message) is error.Error:
+                        self.err_stack.append(message)
+                    elif type(message) is log.Log:
+                        self.log_stack.append(message)
+                    else:  # Shouldn't execute (enqueue() should catch it) but here just in case
+                        self.logger.error("Message prefix invalid.")
+            sleep(1)
 
+    def heartbeat(self) -> None:
+        """
+        Send a heartbeat through Iridium.
+        :return: None
+        """
+        self.get_module_or_raise_error("iridium").send("TJREVERB ALIVE, {0}".format(time.time()))
 
-def clear_buffers() -> None:
-    """
-    Clear the telemetry buffers - clearing general_queue, the log, and error stacks.
-    :return: None
-    """
-    global packet_lock, log_stack, err_stack, general_queue
-    with packet_lock:
-        general_queue.clear()
-        log_stack.clear()
-        err_stack.clear()
-
-
-def decide() -> None:
-    """
-    A thread method to constantly check general_queue for messages and process them if there are any.
-    :return: None
-    """
-    global packet_lock, err_stack, log_stack, general_queue
-    while True:
-        if len(general_queue) != 0:
-            with packet_lock:
-                message = general_queue.popleft()
-                if type(message) is str and message[0] == ';':
-                    command_ingest.enqueue(message)
-                    #print("Running command_ingest.enqueue(" + message + ")")
-                elif type(message) is error.Error:
-                    err_stack.append(message)
-                elif type(message) is log.Log:
-                    log_stack.append(message)
-                else:  # Shouldn't execute (enqueue() should catch it) but here just in case
-                    logger.error("Message prefix invalid.")
-        sleep(1)
-
-
-def start() -> None:
-    """
-    Starts the telemetry send thread
-    :return None
-    """
-    global err_stack, log_stack, general_queue, packet_lock
-    general_queue = collections.deque()  # initialize global variables
-    log_stack = collections.deque()
-    err_stack = collections.deque()
-    packet_lock = Lock()
-
-    # start telemetry 'decide' thread
-    threadDecide = ThreadHandler(
-        target=partial(decide), name="telemetry-decide")
-    threadDecide.start()
-
-
-def enter_normal_mode() -> None:
-    """
-    Enter normal mode.
-    :return: None
-    """
-    global state
-    state = Mode.NORMAL
-
-
-def enter_low_power_mode() -> None:
-    """
-    Enter low power mode.
-    :return: None
-    """
-    global state
-    state = Mode.LOW_POWER
-
-
-def enter_emergency_mode() -> None:
-    """
-    Enter emergency mode.
-    :return: None
-    """
-    global state
-    state = Mode.EMERGENCY
+    def enter_normal_mode(self) -> None: # TODO: IMPLEMENT IN CYCLE 2
+        """
+        Enter normal mode.
+        :return: None
+        """
+        pass
+    
+    def enter_low_power_mode(self) -> None: # TODO: IMPLEMENT IN CYCLE 2
+        """
+        Enter low power mode.
+        :return: None
+        """
+        pass
