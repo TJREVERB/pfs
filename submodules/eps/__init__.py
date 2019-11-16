@@ -136,9 +136,8 @@ class EPS(Submodule):
 
     def get_device_statuses(self) -> dict:
         temp_dict = dict()
-        with SMBusWrapper(1) as bus:
-            for device_name in self.eps_dict.keys():
-                temp_dict.update({device_name, self.get_PDM_status(device_name)})
+        for device_name in self.eps_dict.keys():
+            temp_dict.update({device_name, self.get_PDM_status(device_name)})
         return temp_dict
 
     # TODO: The following are semi-extraneous, need to test
