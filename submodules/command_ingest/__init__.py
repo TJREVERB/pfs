@@ -1,5 +1,5 @@
-from submodules import Submodule
-from core import ThreadHandler
+from submodules.submodule import Submodule
+from helpers.threadhandler import ThreadHandler
 
 from collections import deque as queue
 from functools import partial

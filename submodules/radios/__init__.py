@@ -1,4 +1,4 @@
-from submodules import Submodule
+from submodules.submodule import Submodule
 
 
 class Radio(Submodule):

@@ -1,5 +1,5 @@
 from helpers import log
-from submodules import Submodule
+from submodules.submodule import Submodule
 
 from . import isisants
 

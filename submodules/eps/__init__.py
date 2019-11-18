@@ -8,7 +8,7 @@ from functools import partial
 from smbus2 import SMBusWrapper
 from submodules import telemetry
 
-from submodules import Submodule
+from submodules.submodule import Submodule
 from helpers.log import Log
 from helpers.error import Error
 from helpers.threadhandler import ThreadHandler
