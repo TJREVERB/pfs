@@ -7,7 +7,7 @@ from threading import Lock      # packet locks
 from time import sleep          # decide method
 from collections import deque   # general, error, log queues
 
-from submodules import Submodule
+from submodules.submodule import Submodule
 from helpers.threadhandler import ThreadHandler    # threads
 from helpers import error, log     # Log and error classes
 
