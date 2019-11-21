@@ -2,7 +2,7 @@
 import logging
 import sys
 
-import core
+from core.core import Core
 
 logger = logging.getLogger()
 if '--debug' in sys.argv or '-d' in sys.argv:
@@ -12,5 +12,5 @@ else:
 
 if __name__ == '__main__':
     logging.info("Starting application")
-    c = core.Core()
+    c = Core()
     c.start()
