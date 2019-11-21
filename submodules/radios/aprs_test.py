@@ -53,14 +53,35 @@ def test_write(test_str, content):
         write(master, b)
 
 
-def test_with_header():
+def test_read(word):
+    aprs, master = start_fake("na")
+    aprs.start()
+
+    aprs.send(f"{word}")
+
+    result = ""
+    expected = f"{word}\n"
+
+    last_item = ""
+    while not last_item == "\n":
+        last_item = read(master, 1).decode('utf-8')
+        result += last_item
+
+    _assert = result == expected
+    if not _assert:
+        print(
+            f"received: {list(result)}, expected: {list(expected)}")
+        assert _assert
+
+
+def test_g2f_with_header():
     for word in WORDS:
         test_str = f"header:{word}\n"
         content = f"{word}\n"
         test_write(test_str, content)
 
 
-def test_with_no_header():
+def test_g2f_with_no_header():
     print(f"Expect {len(WORDS)} `Incomplete APRS header!`")
     for word in WORDS:
         test_str = f"{word}\n"
@@ -68,48 +89,76 @@ def test_with_no_header():
         test_write(test_str, content)
 
 
-def test_long_str():
+def test_f2g_normal():
+    for word in WORDS:
+        test_read(word)
+
+
+def test_g2f_long_str():
     test_str = f"header:{'182nzfei92' * 5000}\n"
     content = '182nzfei92' * 5000 + "\n"
     test_write(test_str, content)
 
 
-def test_short_str():
+def test_f2g_long_str():
+    test_str = f"header:{'182nzfei92' * 5000}"
+    test_read(test_str)
+
+
+def test_g2f_short_str():
     test_str = f"header:i\n"
     content = "i\n"
     test_write(test_str, content)
 
 
-def test_empty_str():
+def test_f2g_short_str():
+    test_read("a")
+
+
+def test_g2f_empty_str():
     test_str = "header:\n"
     content = "\n"
     test_write(test_str, content)
 
 
-def test_spaces():
+def test_f2g_empty_str():
+    test_read("")
+
+
+def test_g2f_spaces():
     test_str = "header:        \n"
     content = "        \n"
     test_write(test_str, content)
 
 
-def test_escape_chars():
+def test_f2g_spaces():
+    test_read("                      ")
+
+
+def test_g2f_escape_chars():
     test_str = "header:\t\r\t\a\n"
     content = "\t\r\t\a\n"
     test_write(test_str, content)
 
 
-def run_tests(port="FAKE"):
-    print("EXPECT THE APRS TESTS TO TAKE SOME TIME TO RUN\n")
+def test_f2g_escape_chars():
+    test_read("\t\r\t\a")
 
+
+def ground_to_pfs(port="FAKE", fast=False):
+    print("EXPECT THE APRS TESTS TO TAKE SOME TIME TO RUN\n\n")
+
+    print("GROUND STATION -> pFS Test Running... \n")
     if port == "FAKE":
-        test_with_header()
-        test_with_no_header()
-        test_short_str()
-        test_empty_str()
-        test_spaces()
-        test_escape_chars()
-
-        test_long_str()
+        test_g2f_with_header()
+        test_g2f_with_no_header()
+        test_g2f_short_str()
+        test_g2f_empty_str()
+        test_g2f_spaces()
+        test_g2f_escape_chars()
+        if not fast:
+            # takes a while to run long str
+            test_g2f_long_str()
     else:
         config["aprs"]["serial_port"] = port
         while True:
@@ -120,3 +169,34 @@ def run_tests(port="FAKE"):
             aprs = APRS(config)
             aprs.set_modules(modules)
             aprs.start()
+
+
+def pfs_to_ground(port="FAKE", fast=False):
+    print("EXPECT THE APRS TESTS TO TAKE SOME TIME TO RUN\n\n")
+
+    print("pFS -> GROUND STATION Test Running....\n")
+    if port == "FAKE":
+        test_f2g_normal()
+        test_f2g_short_str()
+        test_f2g_empty_str()
+        test_f2g_spaces()
+        test_f2g_escape_chars()
+        if not fast:
+            # takes a while to run long str
+            test_f2g_long_str()
+    else:
+        config["aprs"]["serial_port"] = port
+        while True:
+            message = input("What message should pFS send? ")
+            modules = {
+                "telemetry": FakeTelemetry(message, always_print=True)
+            }
+            aprs = APRS(config)
+            aprs.set_modules(modules)
+            aprs.start()
+            aprs.send(message)
+
+
+def run_tests(port="FAKE"):
+    ground_to_pfs(port)
+    pfs_to_ground(port)
