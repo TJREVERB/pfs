@@ -1,5 +1,5 @@
-from submodules.submodule import Submodule
-from helpers.threadhandler import ThreadHandler
+from submodules import Submodule
+from core import ThreadHandler
 
 from collections import deque as queue
 from functools import partial
@@ -34,18 +34,22 @@ class CommandIngest(Submodule):
         while True:
             body = self.general_queue.pop()
             if "CMD$" in body:
-                cmd = [part for part in body[body.find("$") + 1:].split(";") if part]
+                cmd = [part for part in body[body.find(
+                    "$") + 1:].split(";") if part]
                 try:
                     module, func = cmd[0], cmd[1]
                 except IndexError:
-                    self.send_through_aprs(f"CMDERR: Unable to parse Commnd {cmd}")
+                    self.send_through_aprs(
+                        f"CMDERR: Unable to parse Commnd {cmd}")
                     continue
                 if self.validate_func(module, func):
                     try:
                         getattr(self.modules[module], func)()
-                        self.send_through_aprs(f"CMDSUC: Command {cmd} executed successfully")
+                        self.send_through_aprs(
+                            f"CMDSUC: Command {cmd} executed successfully")
                     except Exception as e:
-                        self.send_through_aprs(f"CMDERR: Command {cmd} failed with {e}")
+                        self.send_through_aprs(
+                            f"CMDERR: Command {cmd} failed with {e}")
 
     def enqueue(self, cmd) -> None:
         """
@@ -62,9 +66,11 @@ class CommandIngest(Submodule):
         if not self.has_module(module):
             raise RuntimeError(f"[{self.name}]:[{module}] not found")
         if hasattr(module, func):
-            self.send_through_aprs(f"CMDERR: Function {func} not found in {module}")
+            self.send_through_aprs(
+                f"CMDERR: Function {func} not found in {module}")
             return False
         return True
+
 
     def send_through_aprs(self, message) -> None:
         """
