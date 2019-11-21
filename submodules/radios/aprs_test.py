@@ -101,8 +101,7 @@ def test_g2f_long_str():
 
 
 def test_f2g_long_str():
-    test_str = f"header:{'182nzfei92' * 5000}"
-    test_read(test_str)
+    test_read('182nzfei92' * 100)
 
 
 def test_g2f_short_str():
@@ -150,13 +149,19 @@ def ground_to_pfs(port="FAKE", fast=False):
 
     print("GROUND STATION -> pFS Test Running... \n")
     if port == "FAKE":
-        test_g2f_with_header()
-        test_g2f_with_no_header()
-        test_g2f_short_str()
-        test_g2f_empty_str()
-        test_g2f_spaces()
-        test_g2f_escape_chars()
+        tests = [
+            test_g2f_with_header,
+            test_g2f_with_no_header,
+            test_g2f_short_str,
+            test_g2f_empty_str,
+            test_g2f_spaces,
+            test_g2f_escape_chars
+        ]
+        for count, test in enumerate(tests):
+            print(f"RUNNING TEST {count}.....\n")
+            test()
         if not fast:
+            print(f"RUNNING TEST {count + 1}")
             # takes a while to run long str
             test_g2f_long_str()
     else:
@@ -176,12 +181,13 @@ def pfs_to_ground(port="FAKE", fast=False):
 
     print("pFS -> GROUND STATION Test Running....\n")
     if port == "FAKE":
-        test_f2g_normal()
-        test_f2g_short_str()
-        test_f2g_empty_str()
-        test_f2g_spaces()
-        test_f2g_escape_chars()
+        tests = [test_f2g_normal, test_f2g_short_str, test_f2g_empty_str, test_f2g_spaces, test_f2g_escape_chars]
+        for count, test in enumerate(tests):
+            print(f"RUNNING TEST {count}.....\n")
+            test()
+
         if not fast:
+            print(f"RUNNING TEST {count + 1}.....\n")
             # takes a while to run long str
             test_f2g_long_str()
     else:
