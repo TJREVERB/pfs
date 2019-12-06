@@ -3,11 +3,7 @@ from os import ttyname, read, write
 
 from submodules.radios.aprs import APRS
 
-config = {
-    "aprs": {
-        "serial_port": ""
-    }
-}
+config = {"aprs": {"serial_port": ""}}
 
 WORDS = ["Wood", "Low hanging FrUit", "documentation"]
 PORT = "FAKE"
@@ -22,8 +18,7 @@ class FakeTelemetry:
     def enqueue(self, message):
         _assert = self.expected_data == message
         if not _assert or self.always_print:
-            print(
-                f"received: {list(message)}, expected: {list(self.expected_data)}")
+            print(f"received: {list(message)}, expected: {list(self.expected_data)}")
         if self.try_assert:
             assert _assert
 
@@ -38,9 +33,7 @@ def start_fake(expected_data=""):
     port_name = ttyname(slave)
     config["aprs"]["serial_port"] = port_name
 
-    modules = {
-        "telemetry": FakeTelemetry(expected_data)
-    }
+    modules = {"telemetry": FakeTelemetry(expected_data)}
     aprs = APRS(config)
     aprs.set_modules(modules)
     return aprs, master
@@ -66,13 +59,12 @@ def test_read(word):
 
     last_item = ""
     while not last_item == "\n":
-        last_item = read(master, 1).decode('utf-8')
+        last_item = read(master, 1).decode("utf-8")
         result += last_item
 
     _assert = result == expected
     if not _assert:
-        print(
-            f"received: {list(result)}, expected: {list(expected)}")
+        print(f"received: {list(result)}, expected: {list(expected)}")
         assert _assert
 
 
@@ -98,12 +90,12 @@ def test_f2g_normal():
 
 def test_g2f_long_str():
     test_str = f"header:{'182nzfei92' * 5000}\n"
-    content = '182nzfei92' * 5000 + "\n"
+    content = "182nzfei92" * 5000 + "\n"
     test_write(test_str, content)
 
 
 def test_f2g_long_str():
-    test_read('182nzfei92' * 100)
+    test_read("182nzfei92" * 100)
 
 
 def test_g2f_short_str():
@@ -146,71 +138,87 @@ def test_f2g_escape_chars():
     test_read("\t\r\t\a")
 
 
-def ground_to_pfs(port="FAKE", fast=False):
+def simulate_ground_to_pfs(fast=False):
     print("EXPECT THE APRS TESTS TO TAKE SOME TIME TO RUN\n\n")
 
     print("GROUND STATION -> pFS Test Running... \n")
-    if port == "FAKE":
-        tests = [
-            test_g2f_with_header,
-            test_g2f_with_no_header,
-            test_g2f_short_str,
-            test_g2f_empty_str,
-            test_g2f_spaces,
-            test_g2f_escape_chars
-        ]
-        for count, test in enumerate(tests):
-            print(f"RUNNING TEST {count}.....\n")
-            test()
-        if not fast:
-            print(f"RUNNING TEST {count + 1}")
-            # takes a while to run long str
-            test_g2f_long_str()
-    else:
-        config["aprs"]["serial_port"] = port
-        while True:
-            expected_data = input("What message should pFS receive? ") + "\n"
-            modules = {
-                "telemetry": FakeTelemetry(expected_data, always_print=True)
-            }
-            aprs = APRS(config)
-            aprs.set_modules(modules)
-            aprs.start()
+    tests = [
+        test_g2f_with_header,
+        test_g2f_with_no_header,
+        test_g2f_short_str,
+        test_g2f_empty_str,
+        test_g2f_spaces,
+        test_g2f_escape_chars,
+    ]
+    for count, test in enumerate(tests):
+        print(f"RUNNING TEST {count}.....\n")
+        test()
+    if not fast:
+        print(f"RUNNING TEST {count + 1}")
+        # takes a while to run long str
+        test_g2f_long_str()
 
 
-def pfs_to_ground(port="FAKE", fast=False):
+def simulate_pfs_to_ground(fast=False):
     print("EXPECT THE APRS TESTS TO TAKE SOME TIME TO RUN\n\n")
 
     print("pFS -> GROUND STATION Test Running....\n")
-    if port == "FAKE":
-        tests = [test_f2g_normal, test_f2g_short_str, test_f2g_empty_str, test_f2g_spaces, test_f2g_escape_chars]
-        for count, test in enumerate(tests):
-            print(f"RUNNING TEST {count}.....\n")
-            test()
+    tests = [
+        test_f2g_normal,
+        test_f2g_short_str,
+        test_f2g_empty_str,
+        test_f2g_spaces,
+        test_f2g_escape_chars,
+    ]
+    for count, test in enumerate(tests):
+        print(f"RUNNING TEST {count}.....\n")
+        test()
 
-        if not fast:
-            print(f"RUNNING TEST {count + 1}.....\n")
-            # takes a while to run long str
-            test_f2g_long_str()
-    else:
-        config["aprs"]["serial_port"] = port
-        telem = FakeTelemetry('', always_print=True, try_assert=True)
-        modules = {
-            "telemetry": telem
-        }
-        aprs = APRS(config)
-        aprs.set_modules(modules)
-        aprs.start()
-        while True:
-            _try = input("Should pFS send or receive [0/1]? ")
-            if _try == '1':
-                message = input("What message should pFS receive from ground station? ")
-                telem.expected_data = message
-            else:
-                message = input("What message should pFS send to the ground station")
-                aprs.send(message)
+    if not fast:
+        print(f"RUNNING TEST {count + 1}.....\n")
+        # takes a while to run long str
+        test_f2g_long_str()
 
 
-def run_tests(port="FAKE"):
+def ground_to_pfs(port):
+    config["aprs"]["serial_port"] = port
+    telem = FakeTelemetry("", always_print=True, try_assert=False)
+    modules = {"telemetry": telem}
+    aprs = APRS(config)
+    aprs.set_modules(modules)
+    aprs.start()
+    while True:
+        message = input("What message should pFS receive from the ground station? ")
+        telem.expected_data = message
+
+
+def pfs_to_ground(port):
+    config["aprs"]["serial_port"] = port
+    telem = FakeTelemetry("", always_print=True, try_assert=False)
+    modules = {"telemetry": telem}
+    aprs = APRS(config)
+    aprs.set_modules(modules)
+    aprs.start()
+    while True:
+        message = input("What message should pFS send to the ground station? ")
+        aprs.send(message)
+
+
+def run_tests():
+    simulate = input("Are you testing hardware + software? [y]/N ") == 'N'
+    if simulate:
+        fast = not input("Test slow methods? [y]/N ") == 'N'
+        simulate_ground_to_pfs(fast)
+        simulate_pfs_to_ground(fast)
+        return
+
+    port = input("What port is APRS on? ")
+    if not port:
+        port = '/dev/ttyAMC0'
+
+    send = not input("Do you want to test sending from pFS? [y]/N ") == 'N'
+    if send:
+        pfs_to_ground(port)
+        return
+
     ground_to_pfs(port)
-    pfs_to_ground(port)

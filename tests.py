@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 MODULES = {}
 # Try to import test cases, ignore modules on fail
 try:
@@ -35,8 +37,7 @@ except:
 if __name__ == '__main__':
     for module, func in MODULES.items():
         print()
-        if func:
-            print(f"Running test cases for module {module}")
+        if func and not input(f"Run test cases for module {module}? [y]/N ") == 'N':
             func()
         else:
             print(f"run_tests not found for module {module}")
