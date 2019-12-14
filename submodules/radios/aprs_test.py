@@ -18,7 +18,11 @@ class FakeTelemetry:
     def enqueue(self, message):
         _assert = self.expected_data == message
         if not _assert or self.always_print:
+            print()
+            print()
             print(f"received: {list(message)}, expected: {list(self.expected_data)}")
+            print()
+            print()
         if self.try_assert:
             assert _assert
 
@@ -180,25 +184,14 @@ def simulate_pfs_to_ground(fast=False):
         test_f2g_long_str()
 
 
-def ground_to_pfs(port):
+def aprs_hardware_testing(port):
     config["aprs"]["serial_port"] = port
     telem = FakeTelemetry("", always_print=True, try_assert=False)
     modules = {"telemetry": telem}
     aprs = APRS(config)
     aprs.set_modules(modules)
     aprs.start()
-    while True:
-        message = input("What message should pFS receive from the ground station? ")
-        telem.expected_data = message
-
-
-def pfs_to_ground(port):
-    config["aprs"]["serial_port"] = port
-    telem = FakeTelemetry("", always_print=True, try_assert=False)
-    modules = {"telemetry": telem}
-    aprs = APRS(config)
-    aprs.set_modules(modules)
-    aprs.start()
+    print("Anything printed in the console is what pFS received from the ground station: ")
     while True:
         message = input("What message should pFS send to the ground station? ")
         aprs.send(message)
@@ -215,10 +208,5 @@ def run_tests():
     port = input("What port is APRS on? ")
     if not port:
         port = '/dev/ttyAMC0'
+        aprs_hardware_testing(port)
 
-    send = not input("Do you want to test sending from pFS? [y]/N ") == 'N'
-    if send:
-        pfs_to_ground(port)
-        return
-
-    ground_to_pfs(port)
