@@ -1,5 +1,5 @@
 from pty import openpty
-from os import ttyname, read, write
+from os import ttyname, read, write, system
 
 from submodules.radios.aprs import APRS
 
@@ -185,16 +185,51 @@ def simulate_pfs_to_ground(fast=False):
 
 
 def aprs_hardware_testing(port):
+    def clear():
+        system('clear')
     config["aprs"]["serial_port"] = port
     telem = FakeTelemetry("", always_print=True, try_assert=False)
     modules = {"telemetry": telem}
     aprs = APRS(config)
     aprs.set_modules(modules)
     aprs.start()
-    print("Anything printed in the console is what pFS received from the ground station: ")
+
+    clear()
+    print("Interactive APRS Testing shell")
+    print("Anything pFS receives will be printed to the console.")
+    print("Type in help to see the commands")
+
     while True:
-        message = input("What message should pFS send to the ground station? ")
-        aprs.send(message)
+        cmd = input("")
+        args = cmd.split(" ")
+        if cmd == "help":
+            print()
+            print("Type in `help` to get help")
+            print("Type in `send {MESSAGE}` to send a message")
+            print("Type in `send-l {X}` to send a str of length X")
+            print("Type in `send-o {X} {Y}` to send a str of length X, Y Times")
+            print("Type in `send-c {X} {C}` to send a str with length X filled with the substring C")
+            print("Type in `clear` to clear the console")
+            print("Type `exit` to quit")
+            print()
+
+        elif args[0] == "send":
+            aprs.send(" ".join(args[1:]))
+        elif args[0] == "send-l":
+            aprs.send(int(args[1]) * 'A')
+        elif args[0] == "send-o":
+            for i in range(int(args[2])):
+                aprs.send(int(args[1]) * 'A')
+        elif args[0] == "send-c":
+            aprs.send(int(args[1]) * " ".join(args[2:]))
+        elif args[0] == "exit":
+            return
+        elif args[0] == "clear":
+            clear()
+        elif cmd == "":
+            continue
+        else:
+            print(f"Command `{cmd}` not found.")
 
 
 def run_tests():
@@ -205,8 +240,8 @@ def run_tests():
         simulate_pfs_to_ground(fast)
         return
 
-    port = input("What port is APRS on? ")
+    port = input("What port is APRS on? (default /dev/ttyACM0) ")
     if not port:
         port = '/dev/ttyAMC0'
-        aprs_hardware_testing(port)
+    aprs_hardware_testing(port)
 
