@@ -27,7 +27,7 @@ When "ready" is printed, type any one of:
 
 from datetime import datetime
 from submodules import telemetry
-from core import error, log
+from helpers import error, log
 from yaml import load
 from os import ttyname, openpty
 from submodules import radios
@@ -40,7 +40,7 @@ def main():
     port_name = ttyname(slave)
     print(port_name)
 
-    config = load(open("../../config/config_default.yml"))
+    config = load(open("../../../config/config_default.yml"))
     config['aprs']['serial_port'] = port_name
     print(config)
     telemObj = telemetry.Telemetry(config)

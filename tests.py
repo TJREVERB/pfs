@@ -29,7 +29,7 @@ try:
 except:
     MODULES["radios.iridium"] = False
 try:
-    from submodules.telemetry.test import run_tests as run_telemetry_tests
+    from submodules.telemetry.test.run_tests import run_tests as run_telemetry_tests
     MODULES["telemetry"] = run_telemetry_tests
 except:
     MODULES["telemetry"] = False
@@ -42,4 +42,3 @@ if __name__ == '__main__':
         else:
             print(f"run_tests not found for module {module}")
         print()
-9

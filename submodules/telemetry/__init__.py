@@ -12,13 +12,13 @@ from helpers.threadhandler import ThreadHandler    # threads
 from helpers import error, log     # Log and error classes
 
 
-class Telemetry(Submodule):
+class Telemetry(Submodule.Submodule):
     def __init__(self, config):
         """
         Constructor method. Initializes variables
         :param config: Config variable passed in from core.
         """
-        Submodule.__init__(self, name="telemetry", config=config)
+        Submodule.Submodule.__init__(self, name="telemetry", config=config)
 
         self.general_queue = deque()
         self.log_stack = deque()
@@ -65,16 +65,27 @@ class Telemetry(Submodule):
         with self.packet_lock:
             while len(self.log_stack) + len(self.err_stack) > 0:    # while there's stuff to pop off
                 next_packet = (str(self.err_stack[-1]) if len(self.err_stack) > 0 else str(self.log_stack[-1]))   # for the purposes of determining packet length
-                while len(base64.b64encode((squishedpackets + next_packet).encode('ascii'))) < self.config["telemetry"]["max_packet_size"] and len(self.log_stack) + len(self.err_stack) > 0:
-                    if len(self.err_stack) > 0: # prefer error messages over log messages
+                if len(base64.b64encode((squishedpackets + next_packet).encode('ascii'))) > self.config["telemetry"]["max_packet_size"]:
+                    if len(self.err_stack) > 0:  # prefer error messages over log messages
                         squishedpackets += str(self.err_stack.pop())
                     else:
                         squishedpackets += str(self.log_stack.pop())
+                else:
+                    while len(base64.b64encode((squishedpackets + next_packet).encode('ascii'))) < self.config["telemetry"]["max_packet_size"] and len(self.log_stack) + len(self.err_stack) > 0:
+                        if len(self.err_stack) > 0: # prefer error messages over log messages
+                            squishedpackets += str(self.err_stack.pop())
+                        else:
+                            squishedpackets += str(self.log_stack.pop())
+                        if len(self.err_stack) > 0 or len(self.log_stack) > 0:
+                            next_packet = (str(self.err_stack[-1]) if len(self.err_stack) > 0 else str(self.log_stack[-1]))
+                        else:
+                            break
                 squishedpackets = base64.b64encode(squishedpackets.encode('ascii'))
                 # print(squishedpackets)
                 self.get_module_or_raise_error(radio).send(str(squishedpackets))
                 retVal = True
                 squishedpackets = ""
+                # sleep(0.5)  # Give it a bit
 
         return retVal
 
