@@ -8,6 +8,15 @@ config = {"aprs": {"serial_port": ""}}
 WORDS = ["Wood", "Low hanging FrUit", "documentation"]
 PORT = "FAKE"
 
+R = {
+    '\\n': '\n',
+    '\\t': '\t',
+    '\\b': '\b',
+    '\\f': '\f',
+    '\\a': '\a',
+    '\\r': '\r',
+}
+
 
 class FakeTelemetry:
     def __init__(self, expected_data, always_print=False, try_assert=True):
@@ -154,6 +163,8 @@ def simulate_ground_to_pfs(fast=False):
         test_g2f_spaces,
         test_g2f_escape_chars,
     ]
+
+    count = 0
     for count, test in enumerate(tests):
         print(f"RUNNING TEST {count}.....\n")
         test()
@@ -174,6 +185,8 @@ def simulate_pfs_to_ground(fast=False):
         test_f2g_spaces,
         test_f2g_escape_chars,
     ]
+
+    count = 0
     for count, test in enumerate(tests):
         print(f"RUNNING TEST {count}.....\n")
         test()
@@ -209,6 +222,7 @@ def aprs_hardware_testing(port):
             print("Type in `send-l {X}` to send a str of length X")
             print("Type in `send-o {X} {Y}` to send a str of length X, Y Times")
             print("Type in `send-c {X} {C}` to send a str with length X filled with the substring C")
+            print("Type in `send-e {MESSAGE}` where any \\c in str MESSAGE will be replaced by the actual escape character")
             print("Type in `clear` to clear the console")
             print("Type `exit` to quit")
             print()
@@ -222,6 +236,12 @@ def aprs_hardware_testing(port):
                 aprs.send(int(args[1]) * 'A')
         elif args[0] == "send-c":
             aprs.send(int(args[1]) * " ".join(args[2:]))
+        elif args[0] == "send-e":
+            message = " ".join(args[1:])
+            for key in R:
+                message = message.replace(key, R[key])
+            print(f"The message with escape characters should looks like: {list(message)}")
+            aprs.send(message)
         elif args[0] == "exit":
             return
         elif args[0] == "clear":
