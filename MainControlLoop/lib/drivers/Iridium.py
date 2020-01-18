@@ -114,7 +114,13 @@ class Iridium(Device):
                 return False
         if self.serial.is_open:
             return True
-        return False
+
+        try:
+            self.serial.open()
+            return True
+        except SerialException:
+            # FIXME: for production any and every error should be caught here
+            return False
 
     def write(self, message: str):
         """
@@ -139,3 +145,10 @@ class Iridium(Device):
             return False
 
         return self.serial.read(size=1)
+
+    def disable(self):
+        try:
+            self.serial.close()
+        except SerialException:
+            # FIXME: for production any and every error should be caught here
+            pass
