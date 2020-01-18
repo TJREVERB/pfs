@@ -1,5 +1,14 @@
 from serial import Serial, SerialException
 from time import sleep
+from enum import Enum
+
+
+class Commands(Enum):
+    SIGNAL = 'AT+CSQ'
+    CHECK_REGISTRATION = 'AT+SBDREG?'
+    SBD_RING_ALERT_ON = 'AT+SBDMTA=1'
+    SBD_RING_ALERT_OFF = 'AT+SBDMTA=0'
+    TEST_IRIDIUM = 'AT'
 
 
 class Iridium:
@@ -62,7 +71,7 @@ class Iridium:
             return
         response = 0
         while response == 0:
-            response = self.get_response('AT+CSQ')
+            response = self.get_response(Commands.SIGNAL.value)
 
     def check(self, num_checks: int) -> bool:
         """
@@ -71,20 +80,18 @@ class Iridium:
         :return: (bool) Check is successful
         """
 
-        # Test Iridium
-        self.write_to_serial("AT")
+        self.write_to_serial(Commands.TEST_IRIDIUM.value)
 
         self.wait_for_signal()
 
         # Check if current registration status of the Iridium `response` is 2
-        response = self.get_response("AT+SBDREG?")
+        response = self.get_response(Commands.CHECK_REGISTRATION.value)
         while num_checks > 0:
             if response == 2:
-                # Turn SBD ring alerts on
-                self.write_to_serial("AT+SBDMTA=1")
+                self.write_to_serial(Commands.SBD_RING_ALERT_ON.value)
                 return True
 
-            response = self.get_response("AT+SBDREG?")
+            response = self.get_response(Commands.CHECK_REGISTRATION.value)
             num_checks -= 1
 
         return False
