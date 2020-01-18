@@ -14,3 +14,7 @@ StateFieldTypeCheck = {
     StateField.APRS_BEACON_INTERVAL: int,
     StateField.IRIDIUM_BEACON_INTERVAL: int,
 }
+
+for state_field in StateField:
+    if state_field not in StateFieldTypeCheck:
+        raise NotImplementedError(f"{state_field}'s type has not been declared in StateFieldTypeCheck dictionary.")
