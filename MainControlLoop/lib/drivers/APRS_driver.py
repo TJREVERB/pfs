@@ -27,6 +27,11 @@ class APRS_Driver:
         return False
 
     def write(self, message: str):
+        """
+         Writes the message to the APRS radio through the serial port
+        :param message: (str) message to write
+        :return: (bool) response, whether or not the write worked
+        """
         if not self.serial_safe():
             return False
 
@@ -35,6 +40,10 @@ class APRS_Driver:
         return True
 
     def read(self):
+        """
+        Reads in a maximum of one byte if timeout permits.
+        :return: (byte) byte read from Iridium
+        """
         if not self.serial_safe():
             return False
 

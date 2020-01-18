@@ -10,13 +10,17 @@ class IridiumDriver:
         self.baudrate = 9600
 
     def get_response(self, command):
+        """
+        Returns the response code in the command
+        :param command: (str) command to look in
+        :return: (int) response code
+        """
         return int(self.write_to_serial(command)[0].split(":")[1])
 
     def write_to_serial(self, command: str) -> (str, bool):
         """
         Write a command to the serial port.
-
-        :param command: Command to write
+        :param command: (str) Command to write
         :return: (str, boolean) response text, boolean if error or not
         """
 
@@ -63,31 +67,26 @@ class IridiumDriver:
     def check(self, num_checks: int) -> bool:
         """
         Check that the Iridium works and is registered.
-        :param num_checks: Number of times to check if the Iridium is registered (before it returns)
-        :return: True if check was successful, False if not
+        :param num_checks: (int) Number of times to check if the Iridium is registered (before it returns)
+        :return: (bool) Check is successful
         """
 
-        self.write_to_serial("AT")  # Test the Iridium
+        # Test Iridium
+        self.write_to_serial("AT")
 
         self.wait_for_signal()
 
-        # Get the current registration status of the Iridium
-        # Return OK and end lines when they should be removed in write_to_serial
+        # Check if current registration status of the Iridium `response` is 2
         response = self.get_response("AT+SBDREG?")
-
-        # `response` should be 2, which means the Iridium is registered
-
-        # Recheck the Iridium for `num_checks` number of times
         while num_checks > 0:
-            # Check succeeded
             if response == 2:
+                # Turn SBD ring alerts on
+                self.write_to_serial("AT+SBDMTA=1")
                 return True
 
-            # Check failed, retry
             response = self.get_response("AT+SBDREG?")
             num_checks -= 1
 
-        # Check failed all times, return False
         return False
 
     def serial_safe(self):
@@ -108,15 +107,24 @@ class IridiumDriver:
         return False
 
     def write(self, message: str):
+        """
+         Writes the message to the Iridium radio through the serial port
+        :param message: (str) message to write
+        :return: (str, bool) response, whether or not the write worked
+        """
         if not self.serial_safe():
             return '', False
 
-        command = message  # FIXME: convert message into an Iridium command to send =
+        command = message  # FIXME: convert message into an Iridium command to send
         response, success = self.write_to_serial(command)
-        sleep(1)   # TODO: test if this wait is necessary
+        sleep(1)  # TODO: test if this wait is necessary
         return response, success
 
     def read(self):
+        """
+        Reads in a maximum of one byte if timeout permits.
+        :return: (byte) byte read from Iridium
+        """
         if not self.serial_safe():
             return False
 
