@@ -2,7 +2,7 @@ from serial import Serial, SerialException
 from time import sleep
 
 
-class APRS_Driver:
+class APRS:
 
     def __init__(self):
         self.serial: Serial = None

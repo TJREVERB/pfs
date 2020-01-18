@@ -2,7 +2,7 @@ from serial import Serial, SerialException
 from time import sleep
 
 
-class IridiumDriver:
+class Iridium:
 
     def __init__(self):
         self.serial: Serial = None
