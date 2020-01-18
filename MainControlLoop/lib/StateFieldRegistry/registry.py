@@ -1,19 +1,17 @@
-from typing import Type
-
-from .state_fields import StateField
+from .state_fields import StateField, StateFieldTypeCheck
 
 
 class StateFieldRegistry:
-    TYPE_CHECK = {
-        StateField.EPS_BATTERY_VOLTAGE: float,
-    }
 
     def __init__(self):
         """
         Defines all the StateFields present in the state registry
         """
         self.registry = {
-            StateField.EPS_BATTERY_VOLTAGE: 9,
+            StateField.EPS_BATTERY_VOLTAGE: 0,
+            StateField.SYS_TIME: 0.0,
+            StateField.APRS_BEACON_INTERVAL: 0,
+            StateField.IRIDIUM_BEACON_INTERVAL: 0,
         }
 
     def add(self, field: StateField, value):
@@ -26,7 +24,7 @@ class StateFieldRegistry:
         if field not in self.registry:
             return False
 
-        required_type = self.TYPE_CHECK[field]
+        required_type = StateFieldTypeCheck[field]
         if type(value) != required_type:
             return False
 

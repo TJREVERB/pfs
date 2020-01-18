@@ -2,6 +2,8 @@ from serial import Serial, SerialException
 from time import sleep
 from enum import Enum
 
+from MainControlLoop.lib.devices.device import Device
+
 
 class Commands(Enum):
     SIGNAL = 'AT+CSQ'
@@ -11,12 +13,13 @@ class Commands(Enum):
     TEST_IRIDIUM = 'AT'
 
 
-class Iridium:
+class Iridium(Device):
 
     def __init__(self):
         self.serial: Serial = None
         self.port = '/dev/ttyACM1'
         self.baudrate = 9600
+        Device.__init__(self, 'Iridium')
 
     def get_response(self, command):
         """
@@ -96,7 +99,7 @@ class Iridium:
 
         return False
 
-    def serial_safe(self):
+    def functional(self):
         """
         Checks the state of the serial port (initializing it if needed)
         :return: (bool) serial connection is working
@@ -119,7 +122,7 @@ class Iridium:
         :param message: (str) message to write
         :return: (str, bool) response, whether or not the write worked
         """
-        if not self.serial_safe():
+        if not self.functional():
             return '', False
 
         command = message  # FIXME: convert message into an Iridium command to send
@@ -132,7 +135,7 @@ class Iridium:
         Reads in a maximum of one byte if timeout permits.
         :return: (byte) byte read from Iridium
         """
-        if not self.serial_safe():
+        if not self.functional():
             return False
 
         return self.serial.read(size=1)

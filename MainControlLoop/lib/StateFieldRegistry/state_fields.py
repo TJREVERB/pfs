@@ -3,3 +3,14 @@ from enum import Enum
 
 class StateField(Enum):
     EPS_BATTERY_VOLTAGE = 'EPS_BATTERY_VOLTAGE'
+    SYS_TIME = 'SYS_TIME'
+    APRS_BEACON_INTERVAL = 'APRS_BEACON_INTERVAL'
+    IRIDIUM_BEACON_INTERVAL = 'IRIDIUM_BEACON_INTERVAL'
+
+
+StateFieldTypeCheck = {
+    StateField.EPS_BATTERY_VOLTAGE: float,
+    StateField.SYS_TIME: float,
+    StateField.APRS_BEACON_INTERVAL: int,
+    StateField.IRIDIUM_BEACON_INTERVAL: int,
+}

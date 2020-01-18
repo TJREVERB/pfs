@@ -6,7 +6,7 @@ class Device:
         self.name: str = name
         self.logger: logging.Logger = logging.getLogger(self.name)
 
-    def is_functional(self):
+    def functional(self):
         raise NotImplementedError
 
     def reset(self):
