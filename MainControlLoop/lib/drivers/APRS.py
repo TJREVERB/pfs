@@ -24,9 +24,16 @@ class APRS(Device):
             except SerialException:
                 # FIXME: for production any and every error should be caught here
                 return False
+
         if self.serial.is_open:
             return True
-        return False
+
+        try:
+            self.serial.open()
+            return True
+        except SerialException:
+            # FIXME: for production any and every error should be caught here
+            return False
 
     def write(self, message: str) -> bool:
         """
