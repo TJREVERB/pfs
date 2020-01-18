@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from .state_fields import StateField, StateFieldTypeCheck
 
 
@@ -39,7 +41,8 @@ class StateFieldRegistry:
         :return: (Any) The value found in the registry.
         """
         if field in self.registry:
-            return self.registry[field]
+            return deepcopy(self.registry[field])
+
         return None
 
 
