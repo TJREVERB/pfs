@@ -1,16 +1,18 @@
 from serial import Serial, SerialException
 from time import sleep
 
-from MainControlLoop.lib.devices import device
+from MainControlLoop.lib.devices import Device
 
-class APRS:
+
+class APRS(Device):
 
     def __init__(self):
+        super().__init__("aprs")
         self.serial: Serial = None
-        self.port = '/dev/ttyACM0'
-        self.baudrate = 9600
+        self.port: str = '/dev/ttyACM0'
+        self.baudrate: int = 9600
 
-    def serial_safe(self):
+    def serial_safe(self) -> bool:
         """
         Checks the state of the serial port (initializing it if needed)
         :return: (bool) serial connection is working
@@ -18,7 +20,6 @@ class APRS:
         if self.serial is None:
             try:
                 self.serial = Serial(port=self.port, baudrate=self.baudrate, timeout=1)
-                self.serial.flush()
                 return True
             except SerialException:
                 # FIXME: for production any and every error should be caught here
@@ -27,7 +28,7 @@ class APRS:
             return True
         return False
 
-    def write(self, message: str):
+    def write(self, message: str) -> bool:
         """
          Writes the message to the APRS radio through the serial port
         :param message: (str) message to write
@@ -40,7 +41,7 @@ class APRS:
         sleep(1)   # FIXME: test if this wait is necessary
         return True
 
-    def read(self):
+    def read(self) -> bool or bytes:
         """
         Reads in a maximum of one byte if timeout permits.
         :return: (byte) byte read from Iridium
@@ -49,3 +50,4 @@ class APRS:
             return False
 
         return self.serial.read(size=1)
+
