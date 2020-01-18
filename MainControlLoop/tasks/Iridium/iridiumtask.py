@@ -3,7 +3,7 @@ from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry
 from MainControlLoop.tasks.Iridium.iridium_read_task import Iridium_ReadTask
 
 
-class Iridium_Task:
+class IridiumTask:
 
     def __init__(self, state_field_registry: StateFieldRegistry):
         self.iridium: Iridium = Iridium()
