@@ -45,7 +45,7 @@ class APRS(Device):
             return False
 
         self.serial.write((message + "\n").encode("utf-8"))
-        sleep(1)   # FIXME: test if this wait is necessary
+        sleep(1)   # TODO: test if this wait is necessary
         return True
 
     def read(self) -> bool or bytes:

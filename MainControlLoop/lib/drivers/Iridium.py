@@ -131,7 +131,7 @@ class Iridium(Device):
         if not self.functional():
             return '', False
 
-        command = message  # FIXME: convert message into an Iridium command to send
+        command = message  # TODO: convert message into an Iridium command to send
         response, success = self.write_to_serial(command)
         sleep(1)  # TODO: test if this wait is necessary
         return response, success
