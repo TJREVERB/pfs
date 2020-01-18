@@ -1,6 +1,7 @@
 from serial import Serial, SerialException
 from time import sleep
 
+from MainControlLoop.lib.devices import device
 
 class APRS:
 
