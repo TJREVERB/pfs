@@ -17,6 +17,7 @@ class APRS_Driver:
         if self.serial is None:
             try:
                 self.serial = Serial(port=self.port, baudrate=self.baudrate, timeout=1)
+                self.serial.flush()
                 return True
             except SerialException:
                 # FIXME: for production any and every error should be caught here
@@ -31,6 +32,7 @@ class APRS_Driver:
 
         self.serial.write((message + "\n").encode("utf-8"))
         sleep(1)   # FIXME: test if this wait is necessary
+        return True
 
     def read(self):
         if not self.serial_safe():
