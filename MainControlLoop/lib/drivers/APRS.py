@@ -7,7 +7,7 @@ from MainControlLoop.lib.devices import Device
 class APRS(Device):
 
     def __init__(self):
-        Device.__init__(self, "aprs")
+        Device.__init__(self, "APRS")
         self.serial: Serial = None
         self.port: str = '/dev/ttyACM0'
         self.baudrate: int = 9600
