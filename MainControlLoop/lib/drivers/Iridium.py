@@ -16,10 +16,10 @@ class Commands(Enum):
 class Iridium(Device):
 
     def __init__(self):
+        Device.__init__(self, 'Iridium')
         self.serial: Serial = None
         self.port = '/dev/ttyACM1'
         self.baudrate = 9600
-        Device.__init__(self, 'Iridium')
 
     def get_response(self, command):
         """
