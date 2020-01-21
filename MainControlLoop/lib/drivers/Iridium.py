@@ -146,7 +146,20 @@ class Iridium(Device):
 
         return self.serial.read(size=1)
 
+    def reset(self):
+        # TODO: implement the power-cycle hard reset
+        raise NotImplementedError
+
+    def enable(self):
+        # TODO: figure out what precautions should be taken in enable
+        try:
+            self.serial.open()
+        except SerialException:
+            # FIXME: for production any and every error should be caught here
+            pass
+
     def disable(self):
+        # TODO: figure out what precautions should be taken in disable
         try:
             self.serial.close()
         except SerialException:
