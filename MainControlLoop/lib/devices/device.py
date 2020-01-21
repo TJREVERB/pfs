@@ -14,3 +14,6 @@ class Device:
 
     def disable(self):
         raise NotImplementedError
+
+    def enable(self):
+        raise NotImplementedError
