@@ -14,12 +14,12 @@ class Commands(Enum):
 
 
 class Iridium(Device):
+    PORT = '/dev/ttyACM1'
+    BAUDRATE = 9600
 
     def __init__(self):
-        Device.__init__(self, 'Iridium')
+        super().__init__('Iridium')
         self.serial: Serial = None
-        self.port = '/dev/ttyACM1'
-        self.baudrate = 9600
 
     def get_response(self, command):
         """
@@ -106,7 +106,7 @@ class Iridium(Device):
         """
         if self.serial is None:
             try:
-                self.serial = Serial(port=self.port, baudrate=self.baudrate, timeout=1)
+                self.serial = Serial(port=self.PORT, baudrate=self.BAUDRATE, timeout=1)
                 self.serial.flush()
                 return self.check(5)
             except SerialException:

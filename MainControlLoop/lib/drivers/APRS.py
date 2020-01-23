@@ -5,12 +5,12 @@ from MainControlLoop.lib.devices import Device
 
 
 class APRS(Device):
+    PORT = '/dev/ttyACM0'
+    BAUDRATE = 9600
 
     def __init__(self):
-        Device.__init__(self, "APRS")
+        super().__init__("APRS")
         self.serial: Serial = None
-        self.port: str = '/dev/ttyACM0'
-        self.baudrate: int = 9600
 
     def functional(self) -> bool:
         """
@@ -19,7 +19,7 @@ class APRS(Device):
         """
         if self.serial is None:
             try:
-                self.serial = Serial(port=self.port, baudrate=self.baudrate, timeout=1)
+                self.serial = Serial(port=self.PORT, baudrate=self.BAUDRATE, timeout=1)
                 return True
             except SerialException:
                 # FIXME: for production any and every error should be caught here
@@ -45,7 +45,7 @@ class APRS(Device):
             return False
 
         self.serial.write((message + "\n").encode("utf-8"))
-        sleep(1)   # TODO: test if this wait is necessary
+        sleep(1)  # TODO: test if this wait is necessary
         return True
 
     def read(self) -> bool or bytes:
