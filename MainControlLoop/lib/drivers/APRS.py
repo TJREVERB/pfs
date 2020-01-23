@@ -6,7 +6,7 @@ from MainControlLoop.lib.devices import Device
 
 class APRS(Device):
     PORT = '/dev/ttyACM0'
-    BAUDRATE = 9600
+    BAUDRATE = 19200
 
     def __init__(self):
         super().__init__("APRS")

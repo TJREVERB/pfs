@@ -15,7 +15,7 @@ class Commands(Enum):
 
 class Iridium(Device):
     PORT = '/dev/ttyACM1'
-    BAUDRATE = 9600
+    BAUDRATE = 19200
 
     def __init__(self):
         super().__init__('Iridium')
