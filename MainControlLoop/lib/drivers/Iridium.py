@@ -21,7 +21,7 @@ class Iridium(Device):
         super().__init__('Iridium')
         self.serial: Serial = None
 
-    def get_response(self, command):
+    def get_response(self, command) -> int:
         """
         Returns the response code in the command
         :param command: (str) command to look in
@@ -99,7 +99,7 @@ class Iridium(Device):
 
         return False
 
-    def functional(self):
+    def functional(self) -> bool:
         """
         Checks the state of the serial port (initializing it if needed)
         :return: (bool) serial connection is working
@@ -122,7 +122,7 @@ class Iridium(Device):
             # FIXME: for production any and every error should be caught here
             return False
 
-    def write(self, message: str):
+    def write(self, message: str) -> (str, bool):
         """
          Writes the message to the Iridium radio through the serial port
         :param message: (str) message to write
@@ -136,7 +136,7 @@ class Iridium(Device):
         sleep(1)  # TODO: test if this wait is necessary
         return response, success
 
-    def read(self):
+    def read(self) -> bool or bytes:
         """
         Reads in a maximum of one byte if timeout permits.
         :return: (byte) byte read from Iridium

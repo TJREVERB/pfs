@@ -18,24 +18,24 @@ class EPS(Device):
         super().__init__("EPS")
         self.bus = SMBus()
 
-    def is_open(self):
+    def is_open(self) -> bool:
         return self.bus.fd is not None
 
-    def write_i2c_block_response(self, register: EPSRegister, data):
+    def write_i2c_block_response(self, register: EPSRegister, data) -> bytes or None:
         if type(register) != EPSRegister:
             return
 
         self.write_i2c_block_data(register, data)
         return self.read_byte()
 
-    def write_byte_response(self, register: EPSRegister, value):
+    def write_byte_response(self, register: EPSRegister, value) -> bytes or None:
         if type(register) != EPSRegister:
             return
 
         self.write_byte_data(register, value)
         return self.read_byte()
 
-    def read_byte_data(self, register: EPSRegister):
+    def read_byte_data(self, register: EPSRegister) -> bytes or None:
         if type(register) != EPSRegister:
             return
 
@@ -44,7 +44,7 @@ class EPS(Device):
         self.bus.close()
         return next_byte
 
-    def read_byte(self):
+    def read_byte(self) -> bytes or None:
         self.bus.open(self.BUS_NAME)
         next_byte = self.bus.read_byte(self.ADDRESS)
         self.bus.close()
