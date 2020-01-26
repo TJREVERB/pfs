@@ -3,7 +3,7 @@ from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry
 from MainControlLoop.tasks.APRS.APRS_read_task import APRSReadTask
 
 
-class APRS_Task:
+class APRSTask:
 
     def __init__(self, state_field_registry: StateFieldRegistry):
         self.aprs: APRS = APRS()
