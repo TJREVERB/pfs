@@ -2,16 +2,23 @@ from MainControlLoop.lib.drivers.APRS import APRS
 from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry, StateField
 
 
-class APRS_ReadTask:
+class APRSReadTask:
+
+    CLEAR_BUFFER_TIMEOUT = 30
 
     def __init__(self, aprs: APRS, state_field_registry: StateFieldRegistry):
         self.aprs: APRS = aprs
         self.state_field_registry: StateFieldRegistry = state_field_registry
-        self.buffer = []
+        self.buffer: list = []
 
     def execute(self):
-        # TODO: Add a timeout to clear buffer
-        next_byte = self.aprs.read()
+
+        current_time: float = self.state_field_registry.get(StateField.SYS_TIME)
+        last_message_time: float = self.state_field_registry.get(StateField.APRS_LAST_MESSAGE_TIME)
+        if current_time - last_message_time > self.CLEAR_BUFFER_TIMEOUT:
+            self.buffer = []
+
+        next_byte: bytes = self.aprs.read()
 
         if next_byte is False:
             # APRS Hardware Fault
@@ -22,11 +29,13 @@ class APRS_ReadTask:
             return
 
         if next_byte == '\n'.encode('utf-8'):
-            message = ""
+            message: str = ""
             while len(self.buffer) > 0:
-                buffer_byte = self.buffer.pop(0)
+                buffer_byte: bytes = self.buffer.pop(0)
                 message += buffer_byte.decode('utf-8')
             # TODO: Figure out how to represent APRS messages in the SFR
+
+            self.state_field_registry.add(StateField.APRS_LAST_MESSAGE_TIME, current_time)
             return
 
         self.buffer.append(next_byte)
