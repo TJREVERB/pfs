@@ -7,6 +7,7 @@ class StateField(Enum):
     APRS_BEACON_INTERVAL = 'APRS_BEACON_INTERVAL'
     IRIDIUM_BEACON_INTERVAL = 'IRIDIUM_BEACON_INTERVAL'
     APRS_LAST_MESSAGE_TIME = 'APRS_LAST_MESSAGE_TIME'
+    IRIDIUM_LAST_MESSAGE_TIME = 'IRIDIUM_LAST_MESSAGE_TIME'
 
 
 StateFieldTypeCheck = {
@@ -15,6 +16,7 @@ StateFieldTypeCheck = {
     StateField.APRS_BEACON_INTERVAL: int,
     StateField.IRIDIUM_BEACON_INTERVAL: int,
     StateField.APRS_LAST_MESSAGE_TIME: float,
+    StateField.IRIDIUM_LAST_MESSAGE_TIME: float,
 }
 
 for state_field in StateField:

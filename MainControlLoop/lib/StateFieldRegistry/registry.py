@@ -15,6 +15,7 @@ class StateFieldRegistry:
             StateField.APRS_BEACON_INTERVAL: 0,
             StateField.IRIDIUM_BEACON_INTERVAL: 0,
             StateField.APRS_LAST_MESSAGE_TIME: 0,
+            StateField.IRIDIUM_LAST_MESSAGE_TIME: 0,
         }
 
     def add(self, field: StateField, value):
