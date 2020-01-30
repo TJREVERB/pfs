@@ -18,12 +18,12 @@ class StateFieldRegistry:
             StateField.IRIDIUM_LAST_MESSAGE_TIME: 0,
         }
 
-    def add(self, field: StateField, value):
+    def update(self, field: StateField, value):
         """
-        Add a StateField to the registry.
-        :param field: (StateField) StateField type to add in registry
-        :param value: (Any) Value to add to the registry,
-        :return: (bool) If the value was added to the registry
+        Update a StateField in the registry.
+        :param field: (StateField) StateField type to update in registry
+        :param value: (Any) Value to put in the registry,
+        :return: (bool) If the value was updated in the registry
         """
         if field not in self.registry:
             return False

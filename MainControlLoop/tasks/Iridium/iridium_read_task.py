@@ -37,7 +37,7 @@ class IridiumReadTask:
                 message += buffer_byte.decode('utf-8')
 
             self.last_message = message
-            self.state_field_registry.add(StateField.IRIDIUM_LAST_MESSAGE_TIME, current_time)
+            self.state_field_registry.update(StateField.IRIDIUM_LAST_MESSAGE_TIME, current_time)
             return
 
         self.buffer.append(next_byte)
