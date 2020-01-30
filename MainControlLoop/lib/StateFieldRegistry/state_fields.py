@@ -10,6 +10,13 @@ class StateField(Enum):
     IRIDIUM_LAST_MESSAGE_TIME = 'IRIDIUM_LAST_MESSAGE_TIME'
 
 
+class ErrorFlag(Enum):
+    ANTENNA_DEPLOYER_FAILURE = "ANTENNA_DEPLOYER_FAILURE"
+    APRS_FAILURE = "APRS_FAILURE"
+    EPS_FAILURE = "EPS_FAILURE"
+    IRIDIUM_FAILURE = "IRIDIUM_FAILURE"
+
+
 StateFieldTypeCheck = {
     StateField.EPS_BATTERY_VOLTAGE: float,
     StateField.SYS_TIME: float,
