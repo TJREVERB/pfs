@@ -17,11 +17,9 @@ class SerialStatus(Enum):
     SERIAL_UNAVAILABLE = 'SERIAL_UNAVAILABLE'
     RESPONSE_ERROR = 'RESPONSE_ERROR'
 
-class Response(Enum):
+class ResponseCode(Enum):
     OK = 0
     RING = 2
-
-
 
 class Iridium(Device):
     PORT = '/dev/ttyACM1'
@@ -83,7 +81,7 @@ class Iridium(Device):
         if not self.serial.is_open:
             return
         response = 0
-        while response == Response.OK:
+        while response == ResponseCode.OK:
             response = self.get_response(Commands.SIGNAL.value)
 
     def check(self, num_checks: int) -> bool:
@@ -100,7 +98,7 @@ class Iridium(Device):
         # Check if current registration status of the Iridium `response` is 2
         response = self.get_response(Commands.CHECK_REGISTRATION.value)
         while num_checks > 0:
-            if response == Response.RING:
+            if response == ResponseCode.RING:
                 self.write_to_serial(Commands.SBD_RING_ALERT_ON.value)
                 return True
 
