@@ -1,6 +1,6 @@
 from copy import deepcopy
 
-from .state_fields import StateField, StateFieldTypeCheck
+from .state_fields import StateField, ErrorFlag, StateFieldTypeCheck
 
 
 class StateFieldRegistry:
@@ -16,6 +16,13 @@ class StateFieldRegistry:
             StateField.IRIDIUM_BEACON_INTERVAL: 0,
             StateField.APRS_LAST_MESSAGE_TIME: 0,
             StateField.IRIDIUM_LAST_MESSAGE_TIME: 0,
+        }
+
+        self.hardware_faults = {
+            ErrorFlag.ANTENNA_DEPLOYER_FAILURE: False,
+            ErrorFlag.APRS_FAILURE: False,
+            ErrorFlag.EPS_FAILURE: False,
+            ErrorFlag.IRIDIUM_FAILURE: False
         }
 
     def update(self, field: StateField, value):
@@ -47,5 +54,12 @@ class StateFieldRegistry:
 
         return None
 
+    def raise_flag(self, flag: ErrorFlag):
+        if flag in self.hardware_faults:
+            self.hardware_faults[flag] = True
+
+    def drop_flag(self, flag: ErrorFlag):
+        if flag in self.hardware_faults:
+            self.hardware_faults[flag] = False
 
 
