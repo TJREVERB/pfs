@@ -12,6 +12,16 @@ class Commands(Enum):
     SBD_RING_ALERT_OFF = 'AT+SBDMTA=0'
     TEST_IRIDIUM = 'AT'
 
+class SerialStatus(Enum):
+    RESPONSE_OK = 'RESPONSE_OK'
+    SERIAL_UNAVAILABLE = 'SERIAL_UNAVAILABLE'
+    RESPONSE_ERROR = 'RESPONSE_ERROR'
+
+class Response(Enum):
+    OK = 0
+    RING = 2
+
+
 
 class Iridium(Device):
     PORT = '/dev/ttyACM1'
@@ -29,7 +39,7 @@ class Iridium(Device):
         """
         return int(self.write_to_serial(command)[0].split(":")[1])
 
-    def write_to_serial(self, command: str) -> (str, bool):
+    def write_to_serial(self, command: str) -> (str, SerialStatus):
         """
         Write a command to the serial port.
         :param command: (str) Command to write
@@ -37,7 +47,7 @@ class Iridium(Device):
         """
 
         if self.serial is None or not self.serial.is_open:
-            return "ERROR", False
+            return "ERROR", SerialStatus.SERIAL_UNAVAILABLE
 
         # Remove unnecessary newlines that cut off the full command
         command = command.replace("\r\n", "")
@@ -52,19 +62,19 @@ class Iridium(Device):
         # Wait to get the 'OK' or 'ERROR' from Iridium
         while "OK" or "ERROR" not in response:
             if not self.serial.is_open:
-                return "ERROR", False
+                return "ERROR", SerialStatus.SERIAL_UNAVAILABLE
 
             response += self.serial.read(size=1).decode("UTF-8")
 
         if "OK" in response:
             response = response.replace("OK", "").strip()
             self.serial.flush()  # Flush the serial
-            return response, True
+            return response, SerialStatus.RESPONSE_OK
 
         # ERROR
         response = response.replace("ERROR", "").strip()
         self.serial.flush()
-        return response, False
+        return response, SerialStatus.RESPONSE_ERROR
 
     def wait_for_signal(self):
         """
@@ -73,7 +83,7 @@ class Iridium(Device):
         if not self.serial.is_open:
             return
         response = 0
-        while response == 0:
+        while response == Response.OK:
             response = self.get_response(Commands.SIGNAL.value)
 
     def check(self, num_checks: int) -> bool:
@@ -90,7 +100,7 @@ class Iridium(Device):
         # Check if current registration status of the Iridium `response` is 2
         response = self.get_response(Commands.CHECK_REGISTRATION.value)
         while num_checks > 0:
-            if response == 2:
+            if response == Response.RING:
                 self.write_to_serial(Commands.SBD_RING_ALERT_ON.value)
                 return True
 
