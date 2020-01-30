@@ -12,3 +12,4 @@ class IridiumTask:
 
     def read(self):
         self.read_task.execute()
+        return self.read_task.last_message

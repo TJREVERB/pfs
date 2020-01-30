@@ -10,7 +10,7 @@ class IridiumReadTask:
         self.iridium: Iridium = iridium
         self.state_field_registry: StateFieldRegistry = state_field_registry
         self.buffer = []
-        self.last_message = None
+        self.last_message = ""
 
     def execute(self):
 
@@ -20,6 +20,7 @@ class IridiumReadTask:
             self.buffer = []
 
         next_byte: bytes = self.iridium.read()
+        self.last_message = ""
 
         if next_byte is False:
             # Iridium Hardware Fault

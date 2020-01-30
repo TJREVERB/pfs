@@ -14,5 +14,5 @@ class MainControlLoop:
 
     def execute(self):
         self.pi_monitor.read()
-        self.APRS_task.read()
-        self.iridium_task.read()
+        APRS_message = self.APRS_task.read()
+        iridium_message = self.iridium_task.read()
