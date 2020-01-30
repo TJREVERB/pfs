@@ -10,6 +10,7 @@ class IridiumReadTask:
         self.iridium: Iridium = iridium
         self.state_field_registry: StateFieldRegistry = state_field_registry
         self.buffer = []
+        self.last_message = None
 
     def execute(self):
 
@@ -33,8 +34,8 @@ class IridiumReadTask:
             while len(self.buffer) > 0:
                 buffer_byte: bytes = self.buffer.pop(0)
                 message += buffer_byte.decode('utf-8')
-            # TODO: Figure out how to represent Iridium messages in the SFR
 
+            self.last_message = message
             self.state_field_registry.add(StateField.IRIDIUM_LAST_MESSAGE_TIME, current_time)
             return
 
