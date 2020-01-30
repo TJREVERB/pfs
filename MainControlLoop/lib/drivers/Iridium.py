@@ -11,6 +11,7 @@ class Commands(Enum):
     SBD_RING_ALERT_ON = 'AT+SBDMTA=1'
     SBD_RING_ALERT_OFF = 'AT+SBDMTA=0'
     TEST_IRIDIUM = 'AT'
+    SOFT_RESET='ATZn'
 
 class SerialStatus(Enum):
     RESPONSE_OK = 'RESPONSE_OK'
@@ -156,7 +157,7 @@ class Iridium(Device):
 
     def reset(self):
         # TODO: implement the power-cycle hard reset
-        raise NotImplementedError
+        return get_response(SOFT_RESET)
 
     def enable(self):
         # TODO: figure out what precautions should be taken in enable
