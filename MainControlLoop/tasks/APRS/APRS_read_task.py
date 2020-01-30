@@ -1,5 +1,5 @@
 from MainControlLoop.lib.drivers.APRS import APRS
-from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry, StateField
+from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry, ErrorFlag, StateField
 
 
 class APRSReadTask:
@@ -22,8 +22,10 @@ class APRSReadTask:
 
         if next_byte is False:
             # APRS Hardware Fault
-            # TODO: Figure out how to represent hardware fault flags in the SFR
+            self.state_field_registry.raise_flag(ErrorFlag.APRS_FAILURE)
             return
+
+        self.state_field_registry.drop_flag(ErrorFlag.APRS_FAILURE)
 
         if len(next_byte) == 0:
             return
