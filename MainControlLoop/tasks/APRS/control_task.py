@@ -1,5 +1,6 @@
 from MainControlLoop.lib.drivers.APRS import APRS
-from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry, ErrorFlag, StateField
+from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry, StateField
+from MainControlLoop.lib.modes import Mode
 from MainControlLoop.tasks.APRS.beacon_actuate_task import APRSBeaconActuateTask
 from MainControlLoop.tasks.APRS.dump_actuate_task import APRSDumpActuateTask
 from MainControlLoop.tasks.APRS.crticial_message_actuate_task import APRSCriticalMessageActuateTask
@@ -12,17 +13,6 @@ class BeaconInterval(Enum):
     SLOW = "SLOW"
     CUSTOM = "CUSTOM"
     NEVER = "OFF"
-
-
-# TODO: decide if the Mode enum should be the same across all control tasks (benefit: simplicity, cons: less control over each module)
-
-class Mode(Enum):
-    NORMAL = "NORMAL"
-    LOW_POWER = "LOW_POWER"
-    SAFE = "SAFE"
-    COMMS = "COMMS"
-    BOOT = "BOOT"
-    STARTUP = "STARTUP"
 
 
 class APRSControlTask:
