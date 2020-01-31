@@ -16,6 +16,7 @@ class StateFieldRegistry:
             StateField.IRIDIUM_BEACON_INTERVAL: 0,
             StateField.APRS_LAST_MESSAGE_TIME: 0,
             StateField.IRIDIUM_LAST_MESSAGE_TIME: 0,
+            StateField.APRS_LAST_BEACON_TIME: 0,
         }
 
         self.hardware_faults = {

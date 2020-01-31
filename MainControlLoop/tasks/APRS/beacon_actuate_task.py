@@ -1,5 +1,5 @@
 from MainControlLoop.lib.drivers.APRS import APRS
-from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry
+from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry, StateField
 
 
 class APRSBeaconActuateTask:
@@ -27,5 +27,8 @@ class APRSBeaconActuateTask:
             return
 
         self.aprs.write(self.beacon)
+
+        current_time = self.state_field_registry.get(StateField.SYS_TIME)
+        self.state_field_registry.update(StateField.APRS_LAST_BEACON_TIME, current_time)
         self.beacon = ""
         self.run = False

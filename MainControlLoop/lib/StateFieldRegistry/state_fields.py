@@ -8,6 +8,7 @@ class StateField(Enum):
     IRIDIUM_BEACON_INTERVAL = 'IRIDIUM_BEACON_INTERVAL'
     APRS_LAST_MESSAGE_TIME = 'APRS_LAST_MESSAGE_TIME'
     IRIDIUM_LAST_MESSAGE_TIME = 'IRIDIUM_LAST_MESSAGE_TIME'
+    APRS_LAST_BEACON_TIME = 'APRS_LAST_BEACON_TIME'
 
 
 class ErrorFlag(Enum):
@@ -24,6 +25,7 @@ StateFieldTypeCheck = {
     StateField.IRIDIUM_BEACON_INTERVAL: int,
     StateField.APRS_LAST_MESSAGE_TIME: float,
     StateField.IRIDIUM_LAST_MESSAGE_TIME: float,
+    StateField.APRS_LAST_BEACON_TIME: float,
 }
 
 for state_field in StateField:

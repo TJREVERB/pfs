@@ -19,6 +19,7 @@ class MainControlLoop:
         iridium_message = self.iridium_task.read()
 
         # CONTROL BLOCK
+        self.APRS_task.control([APRS_message, iridium_message])
 
         # ACTUATE BLOCK
         self.APRS_task.actuate()
