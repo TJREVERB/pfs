@@ -17,7 +17,7 @@ class BeaconInterval(Enum):
 
 class APRSControlTask:
 
-    def __init__(self, aprs: APRS, state_field_registry: StateFieldRegistry, beacon_actuate_task: APRSBeaconActuateTask, dump_actuate_task: APRSDumpActuateTask, critical_message_actuate_task: APRSCriticalMessageActuateTask):
+    def __init__(self, aprs: APRS, state_field_registry: StateFieldRegistry, mode: Mode, beacon_actuate_task: APRSBeaconActuateTask, dump_actuate_task: APRSDumpActuateTask, critical_message_actuate_task: APRSCriticalMessageActuateTask):
         self.aprs: APRS = aprs
         self.state_field_registry: StateFieldRegistry = state_field_registry
 
@@ -28,7 +28,7 @@ class APRSControlTask:
             BeaconInterval.NEVER: -1,
         }
         self.beacon_interval: BeaconInterval = BeaconInterval.NEVER
-        self.mode: Mode = Mode.BOOT
+        self.mode: Mode = mode
 
         self.beacon_actuate_task: APRSBeaconActuateTask = beacon_actuate_task
         self.dump_actuate_task: APRSDumpActuateTask = dump_actuate_task

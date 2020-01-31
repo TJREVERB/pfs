@@ -63,4 +63,5 @@ class StateFieldRegistry:
         if flag in self.hardware_faults:
             self.hardware_faults[flag] = False
 
-
+    def critical_failure(self):
+        return self.hardware_faults[ErrorFlag.APRS_FAILURE] or self.hardware_faults[ErrorFlag.EPS_FAILURE] or self.hardware_faults[ErrorFlag.ANTENNA_DEPLOYER_FAILURE]
