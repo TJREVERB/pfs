@@ -5,6 +5,7 @@
 
 # Virtual environment directory
 venv/
+venv
 
 # Custom configuration file
 config/config_custom.yml
