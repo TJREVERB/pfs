@@ -13,6 +13,12 @@ class MainControlLoop:
         self.iridium_task = IridiumTask(self.state_field_registry)
 
     def execute(self):
+        # READ BLOCK
         self.pi_monitor.read()
         APRS_message = self.APRS_task.read()
         iridium_message = self.iridium_task.read()
+
+        # CONTROL BLOCK
+
+        # ACTUATE BLOCK
+        self.APRS_task.actuate()

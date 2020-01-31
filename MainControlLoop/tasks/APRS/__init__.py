@@ -1,1 +1,1 @@
-from MainControlLoop.tasks.APRS.APRS_task import APRSTask
+from MainControlLoop.tasks.APRS.task import APRSTask
