@@ -29,4 +29,4 @@ class StateFieldRegistryLocker:
       if len(self.locker) == 0:
          return None
 
-      return min(range(len(self.locker)), key=lambda i: abs(self.locker[i][0]-timestamp))
+      return self.locker[min(range(len(self.locker)), key=lambda i: abs(self.locker[i][0]-timestamp))]
