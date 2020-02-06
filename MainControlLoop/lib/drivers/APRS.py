@@ -1,5 +1,6 @@
 from serial import Serial, SerialException
 from time import sleep
+import os
 
 from MainControlLoop.lib.devices import Device
 
@@ -59,8 +60,10 @@ class APRS(Device):
         return self.serial.read(size=1)
 
     def reset(self):
-        # TODO: implement the power-cycle hard reset
-        raise NotImplementedError
+        os.system('echo 0 > /sys/devices/platform/soc/20980000.usb/buspower')
+        sleep(10)
+        os.system('echo 1 > /sys/devices/platform/soc/20980000.usb/buspower')
+        sleep(5)
 
     def enable(self):
         # TODO: figure out what precautions should be taken in enable
