@@ -11,7 +11,7 @@ class DownLinkProducer:
     @staticmethod
     def create_beacon(state_field_registry) -> str:
         """
-
+        Creates a beacon from the given state field registry
         :param state_field_registry:
         :return:
         """
