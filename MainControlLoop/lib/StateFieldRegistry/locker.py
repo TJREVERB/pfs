@@ -23,7 +23,7 @@ class StateFieldRegistryLocker:
 
    def find(self, timestamp):
       """
-      Finds the StateFieldRegistry stored in the locker with timestamp closest to 'timeReq'
+      Finds the StateFieldRegistry (Timestamp, dump) stored in the locker with timestamp closest to 'timeReq'
       :param timestamp: Timestamp requested
       """
       if len(self.locker) == 0:
