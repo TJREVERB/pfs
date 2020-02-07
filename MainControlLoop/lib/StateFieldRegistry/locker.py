@@ -16,15 +16,9 @@ class StateFieldRegistryLocker:
         if not isinstance(state_field_registry, StateFieldRegistry):
             return
 
-        # Creates a tuple with locker_item[0] = timestamp, locker_item[1] = dump of SFR
-        locker_item = (state_field_registry.get(StateField.SYS_TIME), DownLinkProducer.create_dump(
-            state_field_registry))
-        index = len(self.locker)
-        for i in range(len(self.locker)):
-            if self.locker[i][0] > locker_item[0]:
-                index = i
-                break
-        self.locker = self.locker.insert(index, locker_item)
+        # Creates a tuple with self.locker[i][0] = timestamp of safe field registry at index i, self.locker[i][1] = dump of safe field registry at index i
+        self.locker.append((state_field_registry.get(StateField.SYS_TIME), DownLinkProducer.create_dump(
+            state_field_registry)))
 
     def find(self, timestamp: float):
         """
