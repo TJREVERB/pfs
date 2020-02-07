@@ -17,7 +17,7 @@ class StateFieldRegistryLocker:
             return
 
         # Creates a tuple with locker_item[0] = timestamp, locker_item[1] = dump of SFR
-        locker_item = (state_field_registry.get(StateField.SYS_TIME), DownLinkProducer.create_dump(
+        locker_item = (state_field_registry.get(StateField.TIME), DownLinkProducer.create_dump(
             state_field_registry))
         index = len(self.locker)
         for i in range(len(self.locker)):

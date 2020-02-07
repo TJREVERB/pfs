@@ -28,7 +28,7 @@ class Core:
             self.dispatch_safe()
             return
 
-        if self.state_field_registry.get(StateField.EPS_BATTERY_VOLTAGE) < self.LOW_POWER_BATTERY_THRESHOLD:
+        if self.state_field_registry.get(StateField.VPCMBATV) < self.LOW_POWER_BATTERY_THRESHOLD:
             self.dispatch_low_power(command)
             return
 
@@ -42,7 +42,7 @@ class Core:
             self.dispatch_safe()
             return
 
-        if self.state_field_registry.get(StateField.EPS_BATTERY_VOLTAGE) > self.NORMAL_BATTERY_THRESHOLD:
+        if self.state_field_registry.get(StateField.VPCMBATV) > self.NORMAL_BATTERY_THRESHOLD:
             self.dispatch_normal(command)
             return
 
