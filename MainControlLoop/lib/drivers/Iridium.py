@@ -11,16 +11,21 @@ class Commands(Enum):
     SBD_RING_ALERT_ON = 'AT+SBDMTA=1'
     SBD_RING_ALERT_OFF = 'AT+SBDMTA=0'
     TEST_IRIDIUM = 'AT'
-    SOFT_RESET='ATZn'
+    BATTERY_CHECK = 'AT+CBC=?'
+    CALL_STATUS = 'AT+CLCC=?'
+    SOFT_RESET = 'ATZn'
+
 
 class SerialStatus(Enum):
     RESPONSE_OK = 'RESPONSE_OK'
     SERIAL_UNAVAILABLE = 'SERIAL_UNAVAILABLE'
     RESPONSE_ERROR = 'RESPONSE_ERROR'
 
+
 class ResponseCode(Enum):
     OK = 0
     RING = 2
+
 
 class Iridium(Device):
     PORT = '/dev/ttyACM1'
@@ -115,7 +120,8 @@ class Iridium(Device):
         """
         if self.serial is None:
             try:
-                self.serial = Serial(port=self.PORT, baudrate=self.BAUDRATE, timeout=1)
+                self.serial = Serial(
+                    port=self.PORT, baudrate=self.BAUDRATE, timeout=1)
                 self.serial.flush()
                 return self.check(5)
             except SerialException:
@@ -174,3 +180,35 @@ class Iridium(Device):
         except SerialException:
             # FIXME: for production any and every error should be caught here
             pass
+
+    def battery_health(self) -> bool or str:
+        resp, success = self.write(BATTERY_CHECK)
+        if not success:
+            return success
+        # FIXME: find apt size for receiving status code
+        code = self.serial.read(size=7)
+        return code
+        # CODES of <bcs> and <bcl>
+        # where <bcs>:
+        #  000 ISU is powered by the battery.
+        #  001 ISU has a battery connected, but is not powered by it.
+        #  002 ISU does not have a battery connected.
+        #  003 Recognized power fault, calls inhibited.
+        # and <bcl>:
+        #  000 Battery is exhausted, or ISU does not have a battery connected.
+        #  001...100 Battery has 1-100 percent of capacity remaining.
+
+    def connection_health(self) -> bool or str:
+        resp, success = self.write(CALL_STATUS)
+        if not success:
+            return success
+        # FIXME: find apt size for receiving status code
+        code = self.serial.read(size=3)
+        return code
+        # CODES:
+        # 000 Active
+        # 001 Call Held
+        # 002 Dialing (MO Call)
+        # 004 Incoming (MT Call)
+        # 005 Waiting (MT Call)
+        #  006 Idle
