@@ -12,7 +12,7 @@ class ISISAnts(Enum):
     DEPLOY_ANTENNA_1 = 0xA1
     DEPLOY_ANTENNA_2 = 0xA2
     DEPLOY_ANTENNA_3 = 0xA3
-    DEPLOY_ANTENNA_4 = 0xA4
+    DEPLOY_ANTENNA_4 = 0xA4  # TODO: documentation says deploy methods need a parameter, figure out if this is the register parameter for i2c call
 
 
 class AntennaDeployer(Device):
