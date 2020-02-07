@@ -10,13 +10,43 @@ class StateFieldRegistry:
         Defines all the StateFields present in the state registry
         """
         self.registry = {
-            StateField.EPS_BATTERY_VOLTAGE: 0,
-            StateField.SYS_TIME: 0.0,
-            StateField.APRS_BEACON_INTERVAL: 0,
-            StateField.IRIDIUM_BEACON_INTERVAL: 0,
-            StateField.APRS_LAST_MESSAGE_TIME: 0,
-            StateField.IRIDIUM_LAST_MESSAGE_TIME: 0,
-            StateField.APRS_LAST_BEACON_TIME: 0,
+            # DUMP / BEACON TELEMETRY
+            StateField.TIME: 0.0,
+            StateField.IIDIODE_OUT: 0.0,
+            StateField.VIDIODE_OUT: 0.0,
+            StateField.VPCM12V: 0.0,
+            StateField.VPCMBATV: 0.0,
+            StateField.VPCM5V: 0.0,
+            StateField.VPCM3V3: 0.0,
+            StateField.VBCR1: 0.0,
+            StateField.VBCR2: 0.0,
+            StateField.VBCR33: 0.0,
+            StateField.VSW3: 0.0,
+            StateField.ISW3: 0.0,
+            StateField.VSW4: 0.0,
+            StateField.ISW4: 0.0,
+            StateField.VSW6: 0.0,
+            StateField.ISW6: 0.0,
+            StateField.VSW7: 0.0,
+            StateField.ISW7: 0.0,
+            StateField.VSW8: 0.0,
+            StateField.ISW8: 0.0,
+            StateField.TLM_TBRD_DB: 0.0,
+            StateField.PDM_3_STAT: -1,
+            StateField.PDM_4_STAT: -1,
+            StateField.PDM_6_STAT: -1,
+            StateField.PDM_7_STAT: -1,
+            StateField.PDM_8_STAT: -1,
+
+            # INTERVALS
+            StateField.APRS_BEACON_INTERVAL: -1,
+            StateField.IRIDIUM_BEACON_INTERVAL: -1,
+
+            # TIME RECORDINGS
+            StateField.APRS_LAST_MESSAGE_TIME: 0.0,
+            StateField.IRIDIUM_LAST_MESSAGE_TIME: 0.0,
+            StateField.APRS_LAST_BEACON_TIME: 0.0,
+            StateField.LAST_ARCHIVE_TIME: 0.0,
         }
 
         self.hardware_faults = {

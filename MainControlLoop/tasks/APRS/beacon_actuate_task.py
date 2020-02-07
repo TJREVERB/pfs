@@ -28,7 +28,7 @@ class APRSBeaconActuateTask:
 
         self.aprs.write(self.beacon)
 
-        current_time = self.state_field_registry.get(StateField.SYS_TIME)
+        current_time = self.state_field_registry.get(StateField.TIME)
         self.state_field_registry.update(StateField.APRS_LAST_BEACON_TIME, current_time)
         self.beacon = ""
         self.run = False

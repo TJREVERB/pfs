@@ -10,4 +10,4 @@ class SystemTimeReadTask:
 
     def execute(self):
         current_time: float = sys_time()
-        self.state_field_registry.update(StateField.SYS_TIME, current_time)
+        self.state_field_registry.update(StateField.TIME, current_time)

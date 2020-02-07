@@ -14,7 +14,7 @@ class IridiumReadTask:
 
     def execute(self):
 
-        current_time: float = self.state_field_registry.get(StateField.SYS_TIME)
+        current_time: float = self.state_field_registry.get(StateField.TIME)
         last_message_time: float = self.state_field_registry.get(StateField.IRIDIUM_LAST_MESSAGE_TIME)
         if current_time - last_message_time > self.CLEAR_BUFFER_TIMEOUT:
             self.buffer = []

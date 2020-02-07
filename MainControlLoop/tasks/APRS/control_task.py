@@ -57,7 +57,7 @@ class APRSControlTask:
 
         # TODO: figure out if beacon interval should be stored in SFR or in Control Task
         last_beacon_time: float = self.state_field_registry.get(StateField.APRS_LAST_BEACON_TIME)
-        current_sys_time: float = self.state_field_registry.get(StateField.SYS_TIME)
+        current_sys_time: float = self.state_field_registry.get(StateField.TIME)
 
         if current_sys_time - last_beacon_time > self.beacon_interval_lookup[self.beacon_interval]:
             # TODO: down link producer needs to create a beacon to send down

@@ -20,9 +20,10 @@ if __name__ == '__main__':
                 attrs = (getattr(f, name) for name in dir(f))
                 methods = filter(inspect.ismethod, attrs)
                 for method in methods:
-                    if input(f"Run method {method} in {name_type} test for {name}? (Y/N): ").lower() == "y":
+
+                    if input(f"Run method '{method.__name__}' in {name_type} test for {name}? (Y/N): ").lower() == "y":
                         try:
-                            print(f"Running method {method}")
+                            print(f"Running method '{method.__name__}'")
                             method()
                         except TypeError:
                             pass

@@ -26,7 +26,7 @@ class StateFieldRegistryLocker:
         :param timestamp: Timestamp requested
         """
         if not isinstance(timestamp, float):
-           return
+            return
 
         if len(self.locker) == 0:
             return
