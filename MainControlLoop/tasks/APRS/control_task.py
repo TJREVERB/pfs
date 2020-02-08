@@ -13,6 +13,8 @@ class BeaconInterval(Enum):
     CUSTOM = -1
     NEVER = 1
 
+# TODO: implement all commands as an Enum
+
 
 class APRSControlTask:
 
@@ -49,11 +51,29 @@ class APRSControlTask:
         if self.mode == Mode.NORMAL:
             self.state_field_registry.update(StateField.APRS_BEACON_INTERVAL, BeaconInterval.FAST.value)
 
+        command = ''.join(commands)
+        if "TJ:C;APRS;SFR;;" in command:
+            dump = DownLinkProducer.create_dump(self.state_field_registry)
+            self.actuate_task.set_dump(dump)
+            self.actuate_task.enable_dump()
+
+        if "TJ:C;APRS;SFR_time;" in command:
+            # TODO: implement SFR Locker here
+            pass
+
+        if "TJ:C;APRS;SF;" in command:
+            # TODO: implement response message here
+            pass
+
+        if "TJ:C;APRS;reset;;" in command:
+            # TODO: implement APRS hard reset here
+            pass
+
         interval = self.state_field_registry.get(StateField.APRS_BEACON_INTERVAL)
         last_beacon_time: float = self.state_field_registry.get(StateField.APRS_LAST_BEACON_TIME)
         current_sys_time: float = self.state_field_registry.get(StateField.TIME)
 
-        if current_sys_time - last_beacon_time > interval:
+        if "TJ:C;APRS;beacon;;" in command or current_sys_time - last_beacon_time > interval:
             beacon = DownLinkProducer.create_beacon(self.state_field_registry)
             self.actuate_task.set_beacon(beacon)
             self.actuate_task.enable_beacon()
