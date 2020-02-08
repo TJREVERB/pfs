@@ -3,7 +3,7 @@ from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry
 
 from .beacon import APRSBeaconActuateTask
 from .dump import APRSDumpActuateTask
-from .critical_message import APRSCriticalMessageActuateTask
+from .critical_message import APRSCriticalMessageActuateTask, APRSCriticalMessage
 
 
 class APRSActuateTask:
@@ -18,6 +18,9 @@ class APRSActuateTask:
 
     def set_beacon(self, beacon):
         self.beacon_actuate_task.set_beacon(beacon)
+
+    def set_critical_message(self, critical_message: APRSCriticalMessage):
+        self.critical_message_actuate_task.set_message(critical_message)
 
     def enable_beacon(self):
         self.beacon_actuate_task.run = True

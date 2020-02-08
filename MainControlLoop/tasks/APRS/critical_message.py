@@ -1,31 +1,35 @@
 from MainControlLoop.lib.drivers.APRS import APRS
 from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry
 
+from enum import Enum
+
+
+class APRSCriticalMessage(Enum):
+    ANTS_DEPLOYED = "TJ:CRIT;ANTS_DEPLOYED;"
+    ENTERED_COMMS = "TJ:CRIT;ENTERED_COMMS;"
+
 
 class APRSCriticalMessageActuateTask:
-    MAX_CRITICAL_MESSAGE_LEN = 100  # FIXME: find actual maximum
-
     def __init__(self, aprs: APRS, state_field_registry: StateFieldRegistry):
         self.aprs: APRS = aprs
         self.state_field_registry: StateFieldRegistry = state_field_registry
         self.run: bool = False
-        self.critical_message: str = ""
+        self.message: str = ""
 
-    def set_beacon(self, critical_message: str):
-        if not isinstance(critical_message, str):
+    def set_message(self, critical_message: APRSCriticalMessage):
+        if not isinstance(critical_message, APRSCriticalMessage):
             return
-        if len(critical_message) > self.MAX_CRITICAL_MESSAGE_LEN:
-            return
-        self.critical_message = critical_message
+
+        self.message = critical_message.value
 
     def execute(self):
         if not self.run:
             return
 
-        if self.critical_message == "":
+        if self.message == "":
             self.run = False
             return
 
-        self.aprs.write(self.critical_message)
-        self.critical_message = ""
+        self.aprs.write(self.message)
+        self.message = ""
         self.run = False

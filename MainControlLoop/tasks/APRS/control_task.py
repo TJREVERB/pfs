@@ -1,7 +1,7 @@
 from MainControlLoop.lib.drivers.APRS import APRS
 from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry, StateField
 from MainControlLoop.lib.modes import Mode
-from MainControlLoop.tasks.APRS.actuate_task import APRSActuateTask
+from MainControlLoop.tasks.APRS.actuate_task import APRSActuateTask, APRSCriticalMessage
 from MainControlLoop.tasks.DownLinkProducer import DownLinkProducer
 
 from enum import Enum
@@ -31,6 +31,11 @@ class APRSControlTask:
             self.state_field_registry.update(StateField.APRS_BEACON_INTERVAL, BeaconInterval.NEVER.value)
             # TODO: decide safe mode logic
             return
+
+        if self.mode == Mode.STARTUP:
+            # TODO: figure out how modules should communicate
+            if len(commands) > 2 and commands[-1] == "pFS:AntennaDeployer;DEPLOYED;":
+                self.actuate_task.set_critical_message(APRSCriticalMessage.ANTS_DEPLOYED)
 
         if self.mode == Mode.LOW_POWER:
             self.state_field_registry.update(StateField.APRS_BEACON_INTERVAL, BeaconInterval.SLOW.value)
