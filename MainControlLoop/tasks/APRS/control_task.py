@@ -1,9 +1,7 @@
 from MainControlLoop.lib.drivers.APRS import APRS
 from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry, StateField
 from MainControlLoop.lib.modes import Mode
-from MainControlLoop.tasks.APRS.beacon_actuate_task import APRSBeaconActuateTask
-from MainControlLoop.tasks.APRS.dump_actuate_task import APRSDumpActuateTask
-from MainControlLoop.tasks.APRS.crticial_message_actuate_task import APRSCriticalMessageActuateTask
+from MainControlLoop.tasks.APRS.actuate_task import APRSActuateTask
 from MainControlLoop.tasks.DownLinkProducer import DownLinkProducer
 
 from enum import Enum
@@ -18,14 +16,12 @@ class BeaconInterval(Enum):
 
 class APRSControlTask:
 
-    def __init__(self, aprs: APRS, state_field_registry: StateFieldRegistry, mode: Mode, beacon_actuate_task: APRSBeaconActuateTask, dump_actuate_task: APRSDumpActuateTask, critical_message_actuate_task: APRSCriticalMessageActuateTask):
+    def __init__(self, aprs: APRS, state_field_registry: StateFieldRegistry, mode: Mode, actuate_task: APRSActuateTask):
         self.aprs: APRS = aprs
         self.state_field_registry: StateFieldRegistry = state_field_registry
         self.mode: Mode = mode
 
-        self.beacon_actuate_task: APRSBeaconActuateTask = beacon_actuate_task
-        self.dump_actuate_task: APRSDumpActuateTask = dump_actuate_task
-        self.critical_message_actuate_task: APRSCriticalMessageActuateTask = critical_message_actuate_task
+        self.actuate_task: APRSActuateTask = actuate_task
 
     def execute(self, commands):
         # TODO: control task logic HAS NOT been written for boot/startup
@@ -42,8 +38,8 @@ class APRSControlTask:
         if self.mode == Mode.COMMS:
             # TODO: use the SFR Locker
             self.state_field_registry.update(StateField.APRS_BEACON_INTERVAL, BeaconInterval.NEVER.value)
-            self.dump_actuate_task.set_dump(DownLinkProducer.create_dump(self.state_field_registry))
-            self.dump_actuate_task.run = True
+            self.actuate_task.set_dump(DownLinkProducer.create_dump(self.state_field_registry))
+            self.actuate_task.enable_dump()
 
         if self.mode == Mode.NORMAL:
             self.state_field_registry.update(StateField.APRS_BEACON_INTERVAL, BeaconInterval.FAST.value)
@@ -54,5 +50,5 @@ class APRSControlTask:
 
         if current_sys_time - last_beacon_time > interval:
             beacon = DownLinkProducer.create_beacon(self.state_field_registry)
-            self.beacon_actuate_task.set_beacon(beacon)
-            self.beacon_actuate_task.run = True
+            self.actuate_task.set_beacon(beacon)
+            self.actuate_task.enable_beacon()
