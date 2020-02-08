@@ -1,3 +1,4 @@
+from enum import Enum
 from serial import Serial, SerialException
 from time import sleep
 import os
@@ -40,24 +41,27 @@ class APRS(Device):
         """
          Writes the message to the APRS radio through the serial port
         :param message: (str) message to write
-        :return: (bool) response, whether or not the write worked
+        :return: (bool) whether or not the write worked
         """
         if not self.functional():
             return False
 
-        self.serial.write((message + "\n").encode("utf-8"))
-        sleep(1)  # TODO: test if this wait is necessary
+        try:
+            self.serial.write((message + "\n").encode("utf-8"))
+        except:
+            return False
+
         return True
 
     def read(self) -> bool or bytes:
         """
         Reads in a maximum of one byte if timeout permits.
-        :return: (byte) byte read from Iridium
+        :return: (byte) byte read from APRS, whether or not the write worked
         """
         if not self.functional():
-            return False
+            return None, False
 
-        return self.serial.read(size=1)
+        return self.serial.read(size=1), True
 
     def reset(self):
         os.system('echo 0 > /sys/devices/platform/soc/20980000.usb/buspower')

@@ -12,15 +12,16 @@ class APRSReadTask:
         self.last_message: str = ""
 
     def execute(self):
+        self.last_message = ""
+
         current_time: float = self.state_field_registry.get(StateField.TIME)
         last_message_time: float = self.state_field_registry.get(StateField.APRS_LAST_MESSAGE_TIME)
         if current_time - last_message_time > self.CLEAR_BUFFER_TIMEOUT:
             self.buffer = []
 
-        next_byte: bytes = self.aprs.read()
-        self.last_message = ""
+        next_byte, success = self.aprs.read()
 
-        if next_byte is False:
+        if success is False:
             # APRS Hardware Fault
             self.state_field_registry.raise_flag(ErrorFlag.APRS_FAILURE)
             return
