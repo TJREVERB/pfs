@@ -1,6 +1,7 @@
 from MainControlLoop.lib.drivers.APRS import APRS
 from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry
 from MainControlLoop.lib.modes import Mode
+
 from MainControlLoop.tasks.APRS.read_task import APRSReadTask
 from MainControlLoop.tasks.APRS.control_task import APRSControlTask
 from MainControlLoop.tasks.APRS.actuate_task import APRSActuateTask
@@ -20,6 +21,7 @@ class APRSTask:
     def set_mode(self, mode: Mode):
         if not isinstance(mode, Mode):
             return
+
         self.mode = mode
         self.control_task.mode = self.mode
 
