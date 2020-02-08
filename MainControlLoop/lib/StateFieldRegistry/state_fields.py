@@ -31,6 +31,11 @@ class StateField(Enum):
     PDM_7_STAT = "PDM_7_STAT"
     PDM_8_STAT = "PDM_8_STAT"
 
+    # HEALTH FIELDS
+    IRIDIUM_BCS = "IRIDIUM_BCS"
+    IRIDIUM_BCL = "IRIDIUM_BCL"
+    IRIDIUM_CALL_STATUS = "IRIDIUM_CALL_STATUS"
+
     # TIME INTERVALS
     APRS_BEACON_INTERVAL = 'APRS_BEACON_INTERVAL'
     IRIDIUM_BEACON_INTERVAL = 'IRIDIUM_BEACON_INTERVAL'
@@ -78,6 +83,11 @@ StateFieldTypeCheck = {
     StateField.PDM_7_STAT: int,
     StateField.PDM_8_STAT: int,
     
+    # HEALTH FIELDS
+    StateField.IRIDIUM_BCS: int,
+    StateField.IRIDIUM_BCL: int,
+    StateField.IRIDIUM_CALL_STATUS: int,
+
     # INTERVALS
     StateField.APRS_BEACON_INTERVAL: int,
     StateField.IRIDIUM_BEACON_INTERVAL: int,

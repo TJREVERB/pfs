@@ -38,6 +38,11 @@ class StateFieldRegistry:
             StateField.PDM_7_STAT: -1,
             StateField.PDM_8_STAT: -1,
 
+            # HEALTH CHECKS
+            StateField.IRIDIUM_BCS: 0,
+            StateField.IRIDIUM_BCL: 100,
+            StateField.IRIDIUM_CALL_STATUS: 6,
+
             # INTERVALS
             StateField.APRS_BEACON_INTERVAL: -1,
             StateField.IRIDIUM_BEACON_INTERVAL: -1,

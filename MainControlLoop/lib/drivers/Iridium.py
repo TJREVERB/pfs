@@ -180,35 +180,3 @@ class Iridium(Device):
         except SerialException:
             # FIXME: for production any and every error should be caught here
             pass
-
-    def battery_health(self) -> bool or str:
-        resp, success = self.write(BATTERY_CHECK)
-        if not success:
-            return success
-        # FIXME: find apt size for receiving status code
-        code = self.serial.read(size=7)
-        return code
-        # CODES of <bcs> and <bcl>
-        # where <bcs>:
-        #  000 ISU is powered by the battery.
-        #  001 ISU has a battery connected, but is not powered by it.
-        #  002 ISU does not have a battery connected.
-        #  003 Recognized power fault, calls inhibited.
-        # and <bcl>:
-        #  000 Battery is exhausted, or ISU does not have a battery connected.
-        #  001...100 Battery has 1-100 percent of capacity remaining.
-
-    def connection_health(self) -> bool or str:
-        resp, success = self.write(CALL_STATUS)
-        if not success:
-            return success
-        # FIXME: find apt size for receiving status code
-        code = self.serial.read(size=3)
-        return code
-        # CODES:
-        # 000 Active
-        # 001 Call Held
-        # 002 Dialing (MO Call)
-        # 004 Incoming (MT Call)
-        # 005 Waiting (MT Call)
-        #  006 Idle
