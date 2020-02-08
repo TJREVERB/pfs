@@ -22,12 +22,11 @@ class APRSDumpActuateTask:
         if not self.run:
             return
 
+        self.run = False
         if len(self.dump) == 0:
-            self.run = False
             return
 
         for portion in self.dump:
             self.aprs.write(portion)
 
         self.dump = []
-        self.run = False

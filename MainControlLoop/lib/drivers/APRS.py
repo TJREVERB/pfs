@@ -1,5 +1,4 @@
-from enum import Enum
-from serial import Serial, SerialException
+from serial import Serial
 from time import sleep
 import os
 

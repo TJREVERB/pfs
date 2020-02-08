@@ -26,10 +26,9 @@ class APRSCriticalMessageActuateTask:
         if not self.run:
             return
 
+        self.run = False
         if self.message == "":
-            self.run = False
             return
 
         self.aprs.write(self.message)
         self.message = ""
-        self.run = False

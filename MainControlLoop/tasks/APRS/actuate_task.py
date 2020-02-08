@@ -4,6 +4,7 @@ from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry
 from .beacon import APRSBeaconActuateTask
 from .dump import APRSDumpActuateTask
 from .critical_message import APRSCriticalMessageActuateTask, APRSCriticalMessage
+from .response import APRSResponseActuateTask
 
 
 class APRSActuateTask:
@@ -12,6 +13,7 @@ class APRSActuateTask:
         self.beacon_actuate_task = APRSBeaconActuateTask(aprs, state_field_registry)
         self.dump_actuate_task = APRSDumpActuateTask(aprs, state_field_registry)
         self.critical_message_actuate_task = APRSCriticalMessageActuateTask(aprs, state_field_registry)
+        self.response_actuate_task = APRSResponseActuateTask(aprs, state_field_registry)
 
     def set_dump(self, dump):
         self.dump_actuate_task.set_dump(dump)
@@ -22,6 +24,9 @@ class APRSActuateTask:
     def set_critical_message(self, critical_message: APRSCriticalMessage):
         self.critical_message_actuate_task.set_message(critical_message)
 
+    def set_response(self, response):
+        self.response_actuate_task.set_response(response)
+
     def enable_beacon(self):
         self.beacon_actuate_task.run = True
 
@@ -31,7 +36,11 @@ class APRSActuateTask:
     def enable_critical_message(self):
         self.critical_message_actuate_task.run = True
 
+    def enable_response(self):
+        self.response_actuate_task.run = True
+
     def execute(self):
         self.critical_message_actuate_task.execute()
         self.beacon_actuate_task.execute()
+        self.response_actuate_task.execute()
         self.dump_actuate_task.execute()

@@ -22,8 +22,8 @@ class APRSBeaconActuateTask:
         if not self.run:
             return
 
+        self.run = False
         if self.beacon == "":
-            self.run = False
             return
 
         self.aprs.write(self.beacon)
@@ -31,4 +31,3 @@ class APRSBeaconActuateTask:
         current_time = self.state_field_registry.get(StateField.TIME)
         self.state_field_registry.update(StateField.APRS_LAST_BEACON_TIME, current_time)
         self.beacon = ""
-        self.run = False
