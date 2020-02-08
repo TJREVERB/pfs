@@ -23,8 +23,7 @@ class APRS(Device):
             try:
                 self.serial = Serial(port=self.PORT, baudrate=self.BAUDRATE, timeout=1)
                 return True
-            except SerialException:
-                # FIXME: for production any and every error should be caught here
+            except:
                 return False
 
         if self.serial.is_open:
@@ -33,8 +32,7 @@ class APRS(Device):
         try:
             self.serial.open()
             return True
-        except SerialException:
-            # FIXME: for production any and every error should be caught here
+        except:
             return False
 
     def write(self, message: str) -> bool:
@@ -70,17 +68,7 @@ class APRS(Device):
         sleep(5)
 
     def enable(self):
-        # TODO: figure out what precautions should be taken in enable
-        try:
-            self.serial.open()
-        except SerialException:
-            # FIXME: for production any and every error should be caught here
-            pass
+        raise NotImplementedError
 
     def disable(self):
-        # TODO: figure out what precautions should be taken in disable
-        try:
-            self.serial.close()
-        except SerialException:
-            # FIXME: for production any and every error should be caught here
-            pass
+        raise NotImplementedError
