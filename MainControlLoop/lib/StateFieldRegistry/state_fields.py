@@ -48,6 +48,9 @@ class ErrorFlag(Enum):
     EPS_FAILURE = "EPS_FAILURE"
     IRIDIUM_FAILURE = "IRIDIUM_FAILURE"
 
+    # More specific error flags for EPS, the four above are critical failures and require reboots
+    EPS_WATCHDOG_FAILURE = "EPS_WATCHDOG_FAILURE"
+
 
 StateFieldTypeCheck = {
     # DUMP / BEACON TELEMETRY
