@@ -10,9 +10,4 @@ class AntennaDeployReadTask:
         self.state_field_registry: StateFieldRegistry = state_field_registry
 
     def execute(self):
-       if path.exists("/root/antenna_deployed"):
-          self.state_field_registry.ANTENNA_DEPLOY: bool = True
-       else:
-          self.state_field_registry.ANTENNA_DEPLOY: bool = False
-
-
+        self.state_field_registry.update(StateField.ANTENNA_DEPLOY, path.exists("/root/antenna_deployed"))

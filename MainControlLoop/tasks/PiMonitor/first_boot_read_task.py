@@ -10,9 +10,6 @@ class FirstBootReadTask:
         self.state_field_registry: StateFieldRegistry = state_field_registry
 
     def execute(self):
-       if path.exists("/root/first_boot"):
-          self.state_field_registry.FIRST_BOOT: bool = True
-       else:
-          self.state_field_registry.FIRST_BOOT: bool = False
+        self.state_field_registry.update(StateField.FIRST_BOOT, path.exists("/root/first_boot"))
 
 
