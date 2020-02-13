@@ -10,6 +10,10 @@ class FirstBootReadTask:
         self.state_field_registry: StateFieldRegistry = state_field_registry
 
     def execute(self):
-        self.state_field_registry.update(StateField.FIRST_BOOT, path.exists("/root/first_boot"))
+        """
+        Checks if current boot is first boot
+        :return: (None)
+        """
+        self.state_field_registry.update(StateField.NOT_FIRST_BOOT, path.exists("/root/first_boot"))
 
 

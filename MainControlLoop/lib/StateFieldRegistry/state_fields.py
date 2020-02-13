@@ -42,8 +42,8 @@ class StateField(Enum):
     LAST_ARCHIVE_TIME = 'LAST_ARCHIVE_TIME'
 
     # SYSTEM INFO
-    FIRST_BOOT = "FIRST_BOOT"
-    ANTENNA_DEPLOY = "ANTENNA_DEPLOY"
+    NOT_FIRST_BOOT = "FIRST_BOOT"
+    ANTENNA_DEPLOYED = "ANTENNA_DEPLOY"
 
 
 class ErrorFlag(Enum):
@@ -93,8 +93,8 @@ StateFieldTypeCheck = {
     StateField.LAST_ARCHIVE_TIME: float,
 
     # SYSTEM INFO
-    StateField.FIRST_BOOT: bool,
-    StateField.ANTENNA_DEPLOY: bool
+    StateField.NOT_FIRST_BOOT: bool,
+    StateField.ANTENNA_DEPLOYED: bool
 }
 
 for state_field in StateField:

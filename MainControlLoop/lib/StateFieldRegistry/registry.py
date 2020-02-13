@@ -49,8 +49,8 @@ class StateFieldRegistry:
             StateField.LAST_ARCHIVE_TIME: 0.0,
 
             # SYSTEM INFO
-            StateField.FIRST_BOOT: False,
-            StateField.ANTENNA_DEPLOY: False
+            StateField.NOT_FIRST_BOOT: False,
+            StateField.ANTENNA_DEPLOYED: False
         }
 
         self.hardware_faults = {

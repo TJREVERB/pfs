@@ -10,4 +10,8 @@ class AntennaDeployReadTask:
         self.state_field_registry: StateFieldRegistry = state_field_registry
 
     def execute(self):
-        self.state_field_registry.update(StateField.ANTENNA_DEPLOY, path.exists("/root/antenna_deployed"))
+        """
+        Checks if antenna has been deployed
+        :return: (None)
+        """
+        self.state_field_registry.update(StateField.ANTENNA_DEPLOYED, path.exists("/root/antenna_deployed"))
