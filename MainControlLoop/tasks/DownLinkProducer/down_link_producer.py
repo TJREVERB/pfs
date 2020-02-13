@@ -108,7 +108,7 @@ class DownLinkProducer:
 
         for element in elements:
             value = state_field_registry.get(element)
-            message += f"{element.value};"
+            message += f"{element.name};"
             message += f"{value};"
 
         return message
