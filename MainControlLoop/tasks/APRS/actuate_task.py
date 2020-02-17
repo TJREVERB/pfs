@@ -1,10 +1,11 @@
 from MainControlLoop.lib.drivers import APRS
 from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry
 
-from MainControlLoop.tasks.APRS.actuate.beacon import APRSBeaconActuateTask
-from MainControlLoop.tasks.APRS.actuate.dump import APRSDumpActuateTask
-from MainControlLoop.tasks.APRS.actuate.critical_message import APRSCriticalMessageActuateTask, APRSCriticalMessage
-from MainControlLoop.tasks.APRS.actuate.response import APRSResponseActuateTask
+from MainControlLoop.tasks.APRS.actuate import APRSBeaconActuateTask
+from MainControlLoop.tasks.APRS.actuate import APRSDumpActuateTask
+from MainControlLoop.tasks.APRS.actuate import APRSCriticalMessageActuateTask, APRSCriticalMessage
+from MainControlLoop.tasks.APRS.actuate import APRSResponseActuateTask
+from MainControlLoop.tasks.APRS.actuate import APRSResetActuateTask
 
 
 class APRSActuateTask:
@@ -14,6 +15,7 @@ class APRSActuateTask:
         self.dump_actuate_task = APRSDumpActuateTask(aprs, state_field_registry)
         self.critical_message_actuate_task = APRSCriticalMessageActuateTask(aprs, state_field_registry)
         self.response_actuate_task = APRSResponseActuateTask(aprs, state_field_registry)
+        self.reset_actuate_task = APRSResetActuateTask(aprs, state_field_registry)
 
     def set_dump(self, dump):
         self.dump_actuate_task.set_dump(dump)
@@ -39,7 +41,11 @@ class APRSActuateTask:
     def enable_response(self):
         self.response_actuate_task.run = True
 
+    def enable_reset(self):
+        self.reset_actuate_task.run = True
+
     def execute(self):
+        self.reset_actuate_task.execute()
         self.critical_message_actuate_task.execute()
         self.beacon_actuate_task.execute()
         self.response_actuate_task.execute()

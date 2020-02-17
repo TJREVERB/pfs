@@ -1,9 +1,9 @@
 from MainControlLoop.lib.drivers.APRS import APRS
-from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry, StateField
+from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry, ErrorFlag
 
 
 class APRSResponseActuateTask:
-    MAX_RESPONSE_LEN = 100  # FIXME: find actual maximum
+    MAX_RESPONSE_LEN = 256
 
     def __init__(self, aprs: APRS, state_field_registry: StateFieldRegistry):
         self.aprs: APRS = aprs
@@ -26,5 +26,11 @@ class APRSResponseActuateTask:
         if self.response == "":
             return
 
-        self.aprs.write(self.response)
+        success = self.aprs.write(self.response)
         self.response = ""
+
+        if not success:
+            self.state_field_registry.raise_flag(ErrorFlag.APRS_FAILURE)
+            return
+
+        self.state_field_registry.drop_flag(ErrorFlag.APRS_FAILURE)

@@ -1,5 +1,5 @@
 from MainControlLoop.lib.drivers.APRS import APRS
-from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry
+from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry, ErrorFlag
 
 from enum import Enum
 
@@ -30,5 +30,12 @@ class APRSCriticalMessageActuateTask:
         if self.message == "":
             return
 
-        self.aprs.write(self.message)
+        success = self.aprs.write(self.message)
         self.message = ""
+
+        if not success:
+            self.state_field_registry.raise_flag(ErrorFlag.APRS_FAILURE)
+            return
+
+        self.state_field_registry.drop_flag(ErrorFlag.APRS_FAILURE)
+
