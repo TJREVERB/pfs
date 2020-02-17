@@ -1,9 +1,10 @@
 from MainControlLoop.lib.drivers.APRS import APRS
-from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry, StateField
+from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry, StateField, StateFieldRegistryLocker
 from MainControlLoop.lib.modes import Mode
 from MainControlLoop.tasks.APRS.actuate_task import APRSActuateTask, APRSCriticalMessage
 from MainControlLoop.tasks.DownLinkProducer import DownLinkProducer
 
+import re
 from enum import Enum
 
 
@@ -13,67 +14,93 @@ class BeaconInterval(Enum):
     CUSTOM = -1
     NEVER = 1
 
-# TODO: implement all commands as an Enum
+
+class APRSCommands(Enum):
+    BEACON = r"TJ:C;APRS;beacon;;"
+    BEACON_INTERVAL = r"TJ:C;APRS;beacon_interval;\d+;"
+    SFR = r"TJ:C;APRS;SFR;;"
+    SFR_TIME = r"TJ:C;APRS;SFR_time;\d+;"
+    SF = r"TJ:C;APRS;SF;[\w\d_]+;"
+    RESET = r"TJ:C;APRS;reset;;"
+
+    ANTENNA_DEPLOYED = r"pFS:AntennaDeployer;DEPLOYED;"
 
 
 class APRSControlTask:
 
-    def __init__(self, aprs: APRS, state_field_registry: StateFieldRegistry, mode: Mode, actuate_task: APRSActuateTask):
+    def __init__(self, aprs: APRS, state_field_registry: StateFieldRegistry, locker: StateFieldRegistryLocker,
+                 mode: Mode, actuate_task: APRSActuateTask):
         self.aprs: APRS = aprs
         self.state_field_registry: StateFieldRegistry = state_field_registry
+        self.locker = locker
         self.mode: Mode = mode
 
         self.actuate_task: APRSActuateTask = actuate_task
 
     def execute(self, commands):
-        # TODO: control task logic HAS NOT been written for boot/startup
-        # TODO: control logic HAS NOT been written for parsing commands
+        # TODO: control task logic HAS NOT been decided for boot/startup/safe mode
+
+        current_sys_time: float = self.state_field_registry.get(StateField.TIME)
+        command_joined = ''.join(commands)
 
         if self.mode == Mode.SAFE:
             self.state_field_registry.update(StateField.APRS_BEACON_INTERVAL, BeaconInterval.NEVER.value)
-            # TODO: decide safe mode logic
             return
 
         if self.mode == Mode.STARTUP:
-            # TODO: figure out how modules should communicate
-            if len(commands) > 2 and commands[-1] == "pFS:AntennaDeployer;DEPLOYED;":
+            if re.search(APRSCommands.ANTENNA_DEPLOYED.value, command_joined) is not None:
                 self.actuate_task.set_critical_message(APRSCriticalMessage.ANTS_DEPLOYED)
+                self.actuate_task.enable_critical_message()
 
         if self.mode == Mode.LOW_POWER:
             self.state_field_registry.update(StateField.APRS_BEACON_INTERVAL, BeaconInterval.SLOW.value)
 
         if self.mode == Mode.COMMS:
-            # TODO: use the SFR Locker
             self.state_field_registry.update(StateField.APRS_BEACON_INTERVAL, BeaconInterval.NEVER.value)
-            self.actuate_task.set_dump(DownLinkProducer.create_dump(self.state_field_registry))
+
+            dump = self.locker.find(current_sys_time)
+            self.actuate_task.set_dump(dump)
             self.actuate_task.enable_dump()
 
         if self.mode == Mode.NORMAL:
             self.state_field_registry.update(StateField.APRS_BEACON_INTERVAL, BeaconInterval.FAST.value)
 
-        command = ''.join(commands)
-        if "TJ:C;APRS;SFR;;" in command:
+        if re.search(APRSCommands.SFR.value, command_joined) is not None:
             dump = DownLinkProducer.create_dump(self.state_field_registry)
             self.actuate_task.set_dump(dump)
             self.actuate_task.enable_dump()
 
-        if "TJ:C;APRS;SFR_time;" in command:
-            # TODO: implement SFR Locker here
-            pass
+        match = re.search(APRSCommands.SFR_TIME.value, command_joined)
+        if match is not None:
+            cmd = command_joined[match.start(): match.end()]
+            arg = cmd.split(";")[-2]
+            timestamp = float('0' + re.sub(r"[^\d.]", '', arg))
 
-        if "TJ:C;APRS;SF;" in command:
-            # TODO: implement response message here
-            pass
+            dump = self.locker.find(timestamp)
+            self.actuate_task.set_dump(dump)
+            self.actuate_task.enable_dump()
 
-        if "TJ:C;APRS;reset;;" in command:
-            # TODO: implement APRS hard reset here
-            pass
+        match = re.search(APRSCommands.SF.value, command_joined)
+        if match is not None:
+            cmd = command_joined[match.start(): match.end()]
+            arg = cmd.split(";")[-2]
+            try:
+                state_field = StateField(arg)
+                response = DownLinkProducer.create_respone(self.state_field_registry, state_field)
+                if response is not None:
+                    self.actuate_task.set_response(response)
+                    self.actuate_task.enable_response()
+            except:
+                pass
+
+        if re.search(APRSCommands.RESET.value, command_joined) is not None:
+            self.state_field_registry.update(StateField.APRS_BEACON_INTERVAL, BeaconInterval.NEVER)
+            self.actuate_task.enable_reset()
 
         interval = self.state_field_registry.get(StateField.APRS_BEACON_INTERVAL)
         last_beacon_time: float = self.state_field_registry.get(StateField.APRS_LAST_BEACON_TIME)
-        current_sys_time: float = self.state_field_registry.get(StateField.TIME)
 
-        if "TJ:C;APRS;beacon;;" in command or current_sys_time - last_beacon_time > interval:
+        if current_sys_time - last_beacon_time > interval or re.search(APRSCommands.BEACON.value, command_joined) is not None:
             beacon = DownLinkProducer.create_beacon(self.state_field_registry)
             self.actuate_task.set_beacon(beacon)
             self.actuate_task.enable_beacon()
