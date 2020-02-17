@@ -36,7 +36,7 @@ class APRS(Device):
 
     def write(self, message: str) -> bool:
         """
-         Writes the message to the APRS radio through the serial port
+        Writes the message to the APRS radio through the serial port
         :param message: (str) message to write
         :return: (bool) whether or not the write worked
         """
@@ -52,13 +52,23 @@ class APRS(Device):
 
     def read(self) -> bool or bytes:
         """
-        Reads in a maximum of one byte if timeout permits.
-        :return: (byte) byte read from APRS, whether or not the write worked
+        Reads in as many available bytes as it can if timeout permits (terminating at a \n).
+        :return: (byte) bytes read from APRS, whether or not the write worked
         """
         if not self.functional():
             return None, False
 
-        return self.serial.read(size=1), True
+        output = bytes()
+        for loop in range(100):
+            next_byte = self.serial.read(size=1)
+            if next_byte == bytes():
+                break
+
+            output += next_byte
+            if next_byte == '\n'.encode('utf-8'):
+                break
+
+        return output, True
 
     def reset(self):
         os.system('echo 0 > /sys/devices/platform/soc/20980000.usb/buspower')

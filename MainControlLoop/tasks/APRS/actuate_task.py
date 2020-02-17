@@ -1,10 +1,10 @@
 from MainControlLoop.lib.drivers import APRS
 from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry
 
-from .beacon import APRSBeaconActuateTask
-from .dump import APRSDumpActuateTask
-from .critical_message import APRSCriticalMessageActuateTask, APRSCriticalMessage
-from .response import APRSResponseActuateTask
+from MainControlLoop.tasks.APRS.actuate.beacon import APRSBeaconActuateTask
+from MainControlLoop.tasks.APRS.actuate.dump import APRSDumpActuateTask
+from MainControlLoop.tasks.APRS.actuate.critical_message import APRSCriticalMessageActuateTask, APRSCriticalMessage
+from MainControlLoop.tasks.APRS.actuate.response import APRSResponseActuateTask
 
 
 class APRSActuateTask:
