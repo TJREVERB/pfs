@@ -86,8 +86,8 @@ class APRSControlTask:
             arg = cmd.split(";")[-2]
             try:
                 state_field = StateField(arg)
-                response = DownLinkProducer.create_respone(self.state_field_registry, state_field)
-                if response is not None:
+                response = DownLinkProducer.create_response(self.state_field_registry, state_field)
+                if response != '':
                     self.actuate_task.set_response(response)
                     self.actuate_task.enable_response()
             except:
