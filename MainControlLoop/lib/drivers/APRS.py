@@ -59,8 +59,13 @@ class APRS(Device):
             return None, False
 
         output = bytes()
-        for loop in range(100):
-            next_byte = self.serial.read(size=1)
+        for loop in range(25):
+
+            try:
+                next_byte = self.serial.read(size=1)
+            except:
+                return None, False
+
             if next_byte == bytes():
                 break
 
