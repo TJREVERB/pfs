@@ -29,11 +29,11 @@ class APRSCommands(Enum):
 class APRSControlTask:
 
     def __init__(self, aprs: APRS, state_field_registry: StateFieldRegistry, locker: StateFieldRegistryLocker,
-                 mode: Mode, actuate_task: APRSActuateTask):
+                 actuate_task: APRSActuateTask):
         self.aprs: APRS = aprs
         self.state_field_registry: StateFieldRegistry = state_field_registry
         self.locker = locker
-        self.mode: Mode = mode
+        self.mode: Mode = Mode.BOOT
 
         self.actuate_task: APRSActuateTask = actuate_task
 
@@ -100,7 +100,8 @@ class APRSControlTask:
         interval = self.state_field_registry.get(StateField.APRS_BEACON_INTERVAL)
         last_beacon_time: float = self.state_field_registry.get(StateField.APRS_LAST_BEACON_TIME)
 
-        if current_sys_time - last_beacon_time > interval or re.search(APRSCommands.BEACON.value, command_joined) is not None:
+        if current_sys_time - last_beacon_time > interval or re.search(APRSCommands.BEACON.value,
+                                                                       command_joined) is not None:
             beacon = DownLinkProducer.create_beacon(self.state_field_registry)
             self.actuate_task.set_beacon(beacon)
             self.actuate_task.enable_beacon()
