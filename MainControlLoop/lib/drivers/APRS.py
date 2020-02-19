@@ -1,4 +1,4 @@
-from serial import Serial, SerialException
+from serial import Serial
 from time import sleep
 import os
 
@@ -22,8 +22,7 @@ class APRS(Device):
             try:
                 self.serial = Serial(port=self.PORT, baudrate=self.BAUDRATE, timeout=1)
                 return True
-            except SerialException:
-                # FIXME: for production any and every error should be caught here
+            except:
                 return False
 
         if self.serial.is_open:
@@ -32,32 +31,49 @@ class APRS(Device):
         try:
             self.serial.open()
             return True
-        except SerialException:
-            # FIXME: for production any and every error should be caught here
+        except:
             return False
 
     def write(self, message: str) -> bool:
         """
-         Writes the message to the APRS radio through the serial port
+        Writes the message to the APRS radio through the serial port
         :param message: (str) message to write
-        :return: (bool) response, whether or not the write worked
+        :return: (bool) whether or not the write worked
         """
         if not self.functional():
             return False
 
-        self.serial.write((message + "\n").encode("utf-8"))
-        sleep(1)  # TODO: test if this wait is necessary
+        try:
+            self.serial.write((message + "\n").encode("utf-8"))
+        except:
+            return False
+
         return True
 
     def read(self) -> bool or bytes:
         """
-        Reads in a maximum of one byte if timeout permits.
-        :return: (byte) byte read from Iridium
+        Reads in as many available bytes as it can if timeout permits (terminating at a \n).
+        :return: (byte) bytes read from APRS, whether or not the write worked
         """
         if not self.functional():
-            return False
+            return None, False
 
-        return self.serial.read(size=1)
+        output = bytes()
+        for loop in range(25):
+
+            try:
+                next_byte = self.serial.read(size=1)
+            except:
+                return None, False
+
+            if next_byte == bytes():
+                break
+
+            output += next_byte
+            if next_byte == '\n'.encode('utf-8'):
+                break
+
+        return output, True
 
     def reset(self):
         os.system('echo 0 > /sys/devices/platform/soc/20980000.usb/buspower')
@@ -66,17 +82,7 @@ class APRS(Device):
         sleep(5)
 
     def enable(self):
-        # TODO: figure out what precautions should be taken in enable
-        try:
-            self.serial.open()
-        except SerialException:
-            # FIXME: for production any and every error should be caught here
-            pass
+        raise NotImplementedError
 
     def disable(self):
-        # TODO: figure out what precautions should be taken in disable
-        try:
-            self.serial.close()
-        except SerialException:
-            # FIXME: for production any and every error should be caught here
-            pass
+        raise NotImplementedError
