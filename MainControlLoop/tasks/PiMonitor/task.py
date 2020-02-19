@@ -3,6 +3,7 @@ from MainControlLoop.tasks.PiMonitor.system_time_read_task import SystemTimeRead
 from MainControlLoop.tasks.PiMonitor.first_boot_read_task import FirstBootReadTask
 from MainControlLoop.tasks.PiMonitor.antenna_deploy_read_task import AntennaDeployReadTask
 
+
 class PiMonitorTask:
 
     def __init__(self, state_field_registry: StateFieldRegistry):
