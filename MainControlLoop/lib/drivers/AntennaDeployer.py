@@ -14,6 +14,8 @@ class ISISAnts(Enum):
     DEPLOY_ANTENNA_3 = 0xA3
     DEPLOY_ANTENNA_4 = 0xA4  # TODO: documentation says deploy methods need a parameter, figure out if this is the register parameter for i2c call
 
+class ADRegister:
+
 
 class AntennaDeployer(Device):
     BUS_NAME = '/dev/i2c-2'
@@ -22,6 +24,52 @@ class AntennaDeployer(Device):
     def __init__(self):
         super().__init__("antenna_deployer")
         self.bus = SMBus()
+
+    def write_i2c_block_response(self, register: ADRegister, data) -> bytes or None:
+        if type(register) != ADRegister:
+            return
+
+        self.write_i2c_block_data(register, data)
+        return self.read_byte()
+
+    def write_byte_response(self, register: ADRegister, value) -> bytes or None:
+        if type(register) != ADRegister:
+            return
+
+        self.write_byte_data(register, value)
+        return self.read_byte()
+
+    def read_byte_data(self, register: ADRegister) -> bytes or None:
+        if type(register) != ADRegister:
+            return
+
+        self.bus.open(self.BUS_NAME)
+        next_byte = self.bus.read_byte_data(self.ADDRESS, register.value)
+        self.bus.close()
+        return next_byte
+
+    def read_byte(self) -> bytes or None:
+        self.bus.open(self.BUS_NAME)
+        next_byte = self.bus.read_byte(self.ADDRESS)
+        self.bus.close()
+        return next_byte
+
+    def write_i2c_block_data(self, register: ADRegister, data):
+        if type(register) != ADRegister:
+            return
+
+        self.bus.open(self.BUS_NAME)
+        self.bus.write_i2c_block_data(self.ADDRESS, register.value, data)
+        self.bus.close()
+
+    def write_byte_data(self, register: ADRegister, value):
+        if type(register) != ADRegister:
+            return
+
+        self.bus.open(self.BUS_NAME)
+        self.bus.write_byte_data(self.ADDRESS, register.value, value)
+        self.bus.close()
+
 
     # def deploy(self):
     #     isisants.py_k_ants_init(b"/dev/i2c-1", 0x31, 0x32, 4, 10)
