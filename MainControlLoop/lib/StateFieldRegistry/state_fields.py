@@ -50,6 +50,8 @@ class ErrorFlag(Enum):
 
     # More specific error flags for EPS, the four above are critical failures and require reboots
     EPS_WATCHDOG_FAILURE = "EPS_WATCHDOG_FAILURE"
+    EPS_TYPE_FAILURE = "EPS_TYPE_FAILURE"
+    EPS_I2C_FAILURE = "EPS_I2C_FAILURE"
 
 
 StateFieldTypeCheck = {

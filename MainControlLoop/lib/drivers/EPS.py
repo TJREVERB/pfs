@@ -1,15 +1,10 @@
 from enum import Enum
 
 from MainControlLoop.lib.devices import Device
+from MainControlLoop.lib.StateFieldRegistry.state_fields import ErrorFlag
 
 from smbus2 import SMBus, SMBusWrapper
 
-# Test-pi:
-# ssh pi@172.20.10.14
-# passwd: raspberry
-# Flight-pi:
-# ssh pi@192.168.12.196
-# passwd: getmeout
 
 class EPSRegister(Enum):
     """
@@ -120,8 +115,11 @@ class EPS(Device):
     # TODO: Add write and read, where there is a built-in sleep, add default sleep argument
     # TODO: Try-catches in each wrapper
     # TODO: Writing a script to determine the direction of current flow
+    bus = SMBus(1)
     BUS_NAME = '/dev/i2c-1'
     ADDRESS = 0x2b
+    DEFAULT_READ_DELAY = 0.5
+    DEFAULT_RETURN_LENGTH = 2
     # Number of expected return bytes
     EXPECTED_RETURN_BYTES = {
         EPSRegister.BOARD_STATUS: 2,
@@ -187,16 +185,16 @@ class EPS(Device):
         EPSRegister.MANUAL_RESET: 0
 
     }
-    # First argument (data[0]) for
+    # First argument (data[0])
     DATA_ZERO = {
         EPSRegister.BOARD_STATUS: 0x00,
         EPSRegister.GET_LAST_ERROR: 0x00,
         EPSRegister.GET_VERSION: 0x00,
         EPSRegister.GET_CHECKSUM: 0x00,
         EPSRegister.GET_REVISION: 0x00,
-        EPSRegister.GET_TELEMETRY: 11-8,
+        # EPSRegister.GET_TELEMETRY: 11-8,
         EPSRegister.GET_COMMS_WATCHDOG_PERIOD: 0x00,
-        EPSRegister.SET_COMMS_WATCHDOG_PERIOD: Period,
+        # EPSRegister.SET_COMMS_WATCHDOG_PERIOD: Period,
         EPSRegister.RESET_COMMS_WATCHDOG: 0x00,
         EPSRegister.GET_BROWN_OUT_RESETS: 0x00,
         EPSRegister.GET_AUTO_SOFTWARE_RESETS: 0x00,
@@ -208,15 +206,15 @@ class EPS(Device):
         EPSRegister.GET_EXPECTED_STATE_ALL_PDMS: 0x00,
         EPSRegister.GET_INITIAL_STATE_ALL_PDMS: 0x00,
         EPSRegister.SET_ALL_PDMS_TO_INITIAL_STATE: 0x00,
-        EPSRegister.SWITCH_PDM_N_ON: N,
-        EPSRegister.SWITCH_PDM_N_OFF: N,
-        EPSRegister.SET_PDM_N_INITIAL_STATE_TO_ON: N,
-        EPSRegister.SET_PDM_N_INITIAL_STATE_TO_OFF: N,
-        EPSRegister.GET_PDM_N_ACTUAL_STATUS: N,
-        EPSRegister.SET_PDM_N_TIMER_LIMIT: Limit,
-        EPSRegister.GET_PDM_N_TIMER_LIMIT: N,
-        EPSRegister.GET_PDM_N_CURRENT_TIMER_VALUE: N,
-        EPSRegister.PCM_RESET: 11-14,
+        # EPSRegister.SWITCH_PDM_N_ON: N,
+        # EPSRegister.SWITCH_PDM_N_OFF: N,
+        # EPSRegister.SET_PDM_N_INITIAL_STATE_TO_ON: N,
+        # EPSRegister.SET_PDM_N_INITIAL_STATE_TO_OFF: N,
+        # EPSRegister.GET_PDM_N_ACTUAL_STATUS: N,
+        # EPSRegister.SET_PDM_N_TIMER_LIMIT: Limit,
+        # EPSRegister.GET_PDM_N_TIMER_LIMIT: N,
+        # EPSRegister.GET_PDM_N_CURRENT_TIMER_VALUE: N,
+        # EPSRegister.PCM_RESET: 11-14,
         EPSRegister.MANUAL_RESET: 0x00
     }
 
@@ -231,48 +229,49 @@ class EPS(Device):
     def __init__(self):
         super().__init__("EPS")
 
-    def read_data_with_response(self, register: EPSRegister, data: EPSAddress):
+    def get_formatted_bytes(self, command: int) -> bool or list:
+        # This method as been tested and confirmed working
+        if type(command) != int:
+            return False
+            # return ErrorFlag.EPS_TYPE_FAILURE
+        if command > 0xFF:
+            prefix = command >> 8
+            suffix = command & 0XFF
+            return [prefix, suffix]
+        else:
+            return [command]
+
+    def read_data_with_delay(self, register: EPSRegister, data: EPSAddress, delay: int = DEFAULT_READ_DELAY):
         # TODO: Write a command, wait for confirmation, then request for a read
         pass
 
     def write_i2c_block_data(self, register: EPSRegister, data: EPSAddress) -> bool:
         if type(register) != EPSRegister or type(data) != EPSAddress:
             return False
-        with SMBusWrapper(1) as bus:
-            try:
-                bus.write_i2c_block_data(self.ADDRESS, register, [data])
-                return True
-            except:
-                return False
+            # return ErrorFlag.EPS_TYPE_FAILURE
+        try:
+            command = self.get_formatted_bytes(data.value)
+            self.bus.write_i2c_block_data(self.ADDRESS, register.value, command)
+            return True
+        except:
+            return False
+            # return ErrorFlag.EPS_I2C_FAILURE
 
-    def read_i2c_block_data(self, register: EPSRegister, length: int) -> bool:
+    def read_i2c_block_data(self, register: EPSRegister, length: int = DEFAULT_RETURN_LENGTH) -> bool or list:
         if type(register) != EPSRegister or type(length) != int:
             return False
-        # Check case that length is value
-        with SMBusWrapper(1) as bus:
-            try:
-                data = bus.read_i2c_block_data(self.ADDRESS, register, length)
-                return True
-            except:
-                # TODO: Write specific error catching from registry.py and state_fields.py
-                # TODO: Base read_task off APRS/read_task in tasks
-                # TODO: For register bytes longer than 3 chars, e.g. 0xE114, need to split into [0xE1, 0X14]
-                return False
-    # from smbus2 import SMBusWrapper
-    # import time
-    #
-    # EPS_ADDRESS = 0x2b
-    # with SMBusWrapper(1) as bus:
-    #
-    #     while True:
-    #         bus.write_i2c_block_data(EPS_ADDRESS, 0x10, [0xE1, 0x18])
-    #         time.sleep(0.5)
-    #         data = bus.read_i2c_block_data(EPS_ADDRESS, 0x10, 2)
-    #         new_data = data[0]*256 + data[1]
-    #         new_data = (0.4963*new_data)-273.15
-    #         print("Temperature in C: {}".format(new_data))
-    #         time.sleep(0.5)
+            # return ErrorFlag.EPS_TYPE_FAILURE
+        if length != self.EXPECTED_RETURN_BYTES[register]:
+            return False
+        try:
+            data = self.bus.read_i2c_block_data(self.ADDRESS, register.value, length)
+            return data
+        except:
+            # TODO: Write specific error catching from registry.py and state_fields.py
+            # TODO: Base read_task off APRS/read_task in tasks
+            return False
     # TODO: The following methods are implemented wrappers for common commands.
+    # TODO: Call raise_error method if error in read_task
 
 
     def functional(self):
