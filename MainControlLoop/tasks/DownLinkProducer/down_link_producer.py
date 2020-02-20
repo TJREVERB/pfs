@@ -5,18 +5,18 @@ from MainControlLoop.lib.StateFieldRegistry import StateField
 class DownLinkProducer:
 
     @staticmethod
-    def create_dump(state_field_registry: StateFieldRegistry) -> str:
+    def create_dump(state_field_registry: StateFieldRegistry) -> [str]:
         """
         Creates a dump from the given state_field_registry.
         :param state_field_registry: A state field registry.
-        :return: A formatted dump.
+        :return: A list of messages to send, at most MAX_LENGTH long.
         """
-        dump = "TJ:D;"
+        dump_header = f"TJ:D;{state_field_registry.get(StateField.TIME)};"
+        max_length = 256
 
         # A list of elements to include in the dump
         # Will be included in the order specified
         elements = [
-            StateField.TIME,
             StateField.IIDIODE_OUT,
             StateField.VIDIODE_OUT,
             StateField.VPCM12V,
@@ -43,11 +43,16 @@ class DownLinkProducer:
             StateField.PDM_8_STAT
         ]
 
+        dumpList = [dump_header]
+
         for element in elements:
             value = state_field_registry.get(element)
-            dump += f"{value};"
+            dump_addition = f"{value};"
+            if len(dumpList[-1] + dump_addition) > max_length:
+                dumpList.append(dump_header + f"{len(dumpList) - 1};")  # Add the message number, len() - 1 because 0-index
+            dumpList[-1] += dump_addition
 
-        return dump
+        return dumpList
 
     @staticmethod
     def create_beacon(state_field_registry: StateFieldRegistry) -> str:
@@ -60,7 +65,7 @@ class DownLinkProducer:
 
         # A list of elements to include in the beacon
         # Will be included in the order specified
-        elements = [
+        elements = [ # FIXME remove elements not needed
             StateField.TIME,
             StateField.IIDIODE_OUT,
             StateField.VIDIODE_OUT,
