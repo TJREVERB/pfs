@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from MainControlLoop.tests.system_tests.APRS import APRSDriverTest
+from MainControlLoop.tests.system_tests.APRS import APRSDriverTest, APRSReadTest
 from MainControlLoop.tests.system_tests.Iridium import IridiumDriverTest
 
 import inspect
@@ -7,7 +7,7 @@ import inspect
 MODULES = {}
 
 # List of tuples: (name, class).
-hardware_modules_list = [("APRS", APRSDriverTest), ("Iridium", IridiumDriverTest)]
+hardware_modules_list = [("APRS-Driver", APRSDriverTest), ("APRS-ReadTask", APRSReadTest), ("Iridium", IridiumDriverTest)]
 software_modules_list = []
 
 # Test script runs all methods in class.

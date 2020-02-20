@@ -7,7 +7,7 @@ class APRSDriverTest:
 
     def test_read(self):
         """
-        Test APRS read task.
+        Test APRS read driver.
         When the message "0" is received, break.
         :return: None
         """
@@ -23,7 +23,7 @@ class APRSDriverTest:
 
     def test_write(self):
         """
-        Test case for the APRS Write task.
+        Test case for the APRS Write driver.
         Takes input from stdin.
         When the message "0" is received, break.
         :return: None
