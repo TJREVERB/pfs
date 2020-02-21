@@ -40,9 +40,10 @@ class StateField(Enum):
     IRIDIUM_LAST_MESSAGE_TIME = 'IRIDIUM_LAST_MESSAGE_TIME'
     APRS_LAST_BEACON_TIME = 'APRS_LAST_BEACON_TIME'
     LAST_ARCHIVE_TIME = 'LAST_ARCHIVE_TIME'
+    BOOT_TIME = 'BOOT_TIME'
 
     # SYSTEM INFO
-    NOT_FIRST_BOOT = "FIRST_BOOT"
+    BOOT_WAIT_COMPLETE = "FIRST_BOOT"
     ANTENNA_DEPLOYED = "ANTENNA_DEPLOY"
 
 
@@ -91,9 +92,10 @@ StateFieldTypeCheck = {
     StateField.IRIDIUM_LAST_MESSAGE_TIME: float,
     StateField.APRS_LAST_BEACON_TIME: float,
     StateField.LAST_ARCHIVE_TIME: float,
+    StateField.BOOT_TIME: float,
 
     # SYSTEM INFO
-    StateField.NOT_FIRST_BOOT: bool,
+    StateField.BOOT_WAIT_COMPLETE: bool,
     StateField.ANTENNA_DEPLOYED: bool
 }
 

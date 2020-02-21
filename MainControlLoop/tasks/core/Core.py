@@ -7,6 +7,7 @@ class Core:
 
     LOW_POWER_BATTERY_THRESHOLD = 8
     NORMAL_BATTERY_THRESHOLD = 9
+    BOOT_INTERVAL = 1800
 
     ENTER_SAFE_COMMAND = "TJ:C;CORE;safe;;"
     ENTER_COMMS_COMMAND = "TJ:C;CORE;comms;;"
@@ -55,7 +56,18 @@ class Core:
         return
 
     def dispatch_boot(self):
-        return
+        if self.state_field_registry.get(StateField.BOOT_WAIT_COMPLETE):
+            self.dispatch_startup()
+            return
+
+        current_time = self.state_field_registry.get(StateField.TIME)
+        boot_time = self.state_field_registry.get(StateField.BOOT_TIME)
+
+        if current_time - boot_time > 1800:
+            # create boot file
+            return
+
+        self.aprs_task.set_mode(Mode.BOOT)
 
     def dispatch_startup(self):
         return
