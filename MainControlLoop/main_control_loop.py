@@ -13,21 +13,23 @@ class MainControlLoop:
         self.locker: StateFieldRegistryLocker = StateFieldRegistryLocker()
         self.pi_monitor: PiMonitorTask = PiMonitorTask(self.state_field_registry)
         self.archiver: StateFieldRegistryArchiver = StateFieldRegistryArchiver(self.state_field_registry, self.locker)
-        self.aprs_task: APRSTask = APRSTask(self.state_field_registry, self.locker)
-        self.iridium_task: IridiumTask = IridiumTask(self.state_field_registry)
-        self.core: Core = Core(self.state_field_registry, self.aprs_task)
+        self.aprs: APRSTask = APRSTask(self.state_field_registry, self.locker)
+        self.iridium: IridiumTask = IridiumTask(self.state_field_registry)
+        self.core: Core = Core(self.state_field_registry, self.aprs)
 
     def execute(self):
         # READ BLOCK
         commands = []
         self.pi_monitor.read()
-        commands.append(self.aprs_task.read())
-        commands.append(self.iridium_task.read())
+        commands.append(self.aprs.read())
+        commands.append(self.iridium.read())
 
         # CONTROL BLOCK
         self.core.control(commands)
         self.archiver.control()
-        self.aprs_task.control(commands)
+        self.pi_monitor.control()
+        self.aprs.control(commands)
 
         # ACTUATE BLOCK
-        self.aprs_task.actuate()
+        self.pi_monitor.actuate()
+        self.aprs.actuate()

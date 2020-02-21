@@ -49,7 +49,8 @@ class DownLinkProducer:
             value = state_field_registry.get(element)
             dump_addition = f"{value};"
             if len(dumpList[-1] + dump_addition) > max_length:
-                dumpList.append(dump_header + f"{len(dumpList) - 1};")  # Add the message number, len() - 1 because 0-index
+                # Add the message number, len() - 1 because indexing by 0
+                dumpList.append(dump_header + f"{len(dumpList) - 1};")
             dumpList[-1] += dump_addition
 
         return dumpList

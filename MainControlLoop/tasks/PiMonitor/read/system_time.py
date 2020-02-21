@@ -11,3 +11,5 @@ class SystemTimeReadTask:
     def execute(self):
         current_time: float = sys_time()
         self.state_field_registry.update(StateField.TIME, current_time)
+        if self.state_field_registry.get(StateField.BOOT_TIME) == -1:
+            self.state_field_registry.update(StateField.BOOT_TIME, current_time)
