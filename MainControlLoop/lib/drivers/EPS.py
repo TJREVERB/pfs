@@ -1,4 +1,5 @@
 from enum import Enum
+import time
 
 from MainControlLoop.lib.devices import Device
 from MainControlLoop.lib.StateFieldRegistry.state_fields import ErrorFlag
@@ -241,9 +242,20 @@ class EPS(Device):
         else:
             return [command]
 
-    def read_data_with_delay(self, register: EPSRegister, data: EPSAddress, delay: int = DEFAULT_READ_DELAY):
+    def read_data_with_delay(self, register: EPSRegister, data: EPSAddress, delay: int = DEFAULT_READ_DELAY) -> bool or list:
         # TODO: Write a command, wait for confirmation, then request for a read
-        pass
+        if type(register) != EPSRegister or type(data) != EPSAddress or type(delay) != int:
+            return False
+        try:
+            if not self.write_i2c_block_data(register, data):
+                return False
+            time.sleep(delay)  # Potentially dangerous
+            data_returned = self.read_i2c_block_data(register, self.EXPECTED_RETURN_BYTES[register])
+            if type(data_returned) == bool and data_returned is False:
+                return False
+            return data_returned
+        except:
+            return False
 
     def write_i2c_block_data(self, register: EPSRegister, data: EPSAddress) -> bool:
         if type(register) != EPSRegister or type(data) != EPSAddress:
@@ -272,7 +284,20 @@ class EPS(Device):
             return False
     # TODO: The following methods are implemented wrappers for common commands.
     # TODO: Call raise_error method if error in read_task
+    # The following methods are implemented wrappers for common commands:
 
+    def pin_on(self, pin: EPSPin) -> bool:
+        if type(pin) != EPSPin:
+            return False
+        try:
+            if not self.write_i2c_block_data(EPSRegister.SWITCH_PDM_N_ON, pin.value):  # Is pin.value the right type?
+                return False
+            data_returned = self.read_data_with_delay(EPSRegister.GET_PDM_N_ACTUAL_STATUS, pin.value, self.WR_DELAY[EPSRegister.GET_PDM_N_ACTUAL_STATUS])
+            if type(data_returned) == bool and data_returned is False:
+                return False
+            return True
+        except:
+            return False
 
     def functional(self):
         raise NotImplementedError
