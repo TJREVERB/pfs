@@ -1,10 +1,11 @@
-from time import time as sys_time
 from os import path
 
 from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry, StateField
 
 
-class FirstBootReadTask:
+class BootWaitCompleteReadTask:
+
+    FILE_PATH = "/root/first_boot"
 
     def __init__(self, state_field_registry: StateFieldRegistry):
         self.state_field_registry: StateFieldRegistry = state_field_registry
@@ -14,6 +15,6 @@ class FirstBootReadTask:
         Checks if current boot is first boot
         :return: (None)
         """
-        self.state_field_registry.update(StateField.NOT_FIRST_BOOT, path.exists("/root/first_boot"))
+        self.state_field_registry.update(StateField.BOOT_WAIT_COMPLETE, path.exists(self.FILE_PATH))
 
 
