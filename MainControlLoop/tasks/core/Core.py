@@ -55,6 +55,10 @@ class Core:
         return
 
     def dispatch_boot(self):
+        if self.state_field_registry.critical_failure():
+            self.dispatch_safe()
+            return
+
         if self.state_field_registry.get(StateField.BOOT_WAIT_COMPLETE):
             self.dispatch_startup()
             return
