@@ -12,7 +12,6 @@ class APRSDriverTest:
         :return: None
         """
         aprs = APRS()
-        aprs.functional()
         while True:
             message = aprs.read()
             print("Got message:", message)
@@ -29,9 +28,16 @@ class APRSDriverTest:
         :return: None
         """
         aprs = APRS()
-        aprs.functional()
         while True:
             message = input("Input message to write: ")
             if message == "0":
                 break
             aprs.write(message)
+
+    def test_functional(self):
+        aprs = APRS()
+        while True:
+            input("Disable the APRS, and click enter ")
+            print(f"APRS function == {aprs.functional()}")
+            input("Enable the APRS, and click enter ")
+            print(f"APRS function == {aprs.functional()}")
