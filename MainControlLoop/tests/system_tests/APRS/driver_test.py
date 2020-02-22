@@ -24,20 +24,24 @@ class APRSDriverTest:
         """
         Test case for the APRS Write driver.
         Takes input from stdin.
-        When the message "0" is received, break.
+        When the message "-1" is received, break.
         :return: None
         """
         aprs = APRS()
         while True:
-            message = input("Input message to write: ")
-            if message == "0":
+            message = input("Input message to write (-1 to stop): ")
+            if message == "-1":
                 break
+
             aprs.write(message)
 
     def test_functional(self):
         aprs = APRS()
         while True:
-            input("Disable the APRS, and click enter ")
+            stop = ''
+            stop += input("Disable the APRS, and click enter ")
             print(f"APRS function == {aprs.functional()}")
-            input("Enable the APRS, and click enter ")
+            stop += input("Enable the APRS, and click enter ")
             print(f"APRS function == {aprs.functional()}")
+            if '-1' in stop:
+                break
