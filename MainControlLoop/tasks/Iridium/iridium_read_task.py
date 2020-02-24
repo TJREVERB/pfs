@@ -1,9 +1,8 @@
-from MainControlLoop.lib.drivers.Iridium import Iridium
-from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry, StateField
-
+from MainControlLoop.lib.drivers.Iridium import Iridium, Commands
+from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry, StateField, ErrorFlag
+from time import sleep
 
 class IridiumReadTask:
-
     CLEAR_BUFFER_TIMEOUT = 30
 
     def __init__(self, iridium: Iridium, state_field_registry: StateFieldRegistry):
@@ -13,31 +12,31 @@ class IridiumReadTask:
         self.last_message = ""
 
     def execute(self):
-
         current_time: float = self.state_field_registry.get(StateField.TIME)
         last_message_time: float = self.state_field_registry.get(StateField.IRIDIUM_LAST_MESSAGE_TIME)
-        if current_time - last_message_time > self.CLEAR_BUFFER_TIMEOUT:
-            self.buffer = []
+        self.buffer = []
+        self.iridium.flush()
 
-        next_byte: bytes = self.iridium.read()
+        # TODO: Find which command should the read task should execute
+        command = Commands.CHECK_NETWORK.value
+        if not self.iridium.write(command):
+            self.state_field_registry.raise_flag(ErrorFlag.APRS_FAILURE)
+            return
+
+        sleep(.1)
         self.last_message = ""
+        line =  self.iridium.readLine()
+        while line:
+            self.buffer.extend(line)
+            line = self.iridium.readLine()
+            if 'OK' in line:
+                break
 
-        if next_byte is False:
+        if not buffer:
             # Iridium Hardware Fault
-            # TODO: Figure out how to represent hardware fault flags in the SFR
+            self.state_field_registry.raise_flag(ErrorFlag.IRIDIUM_FAILURE)
             return
-
-        if len(next_byte) == 0:
-            return
-
-        if next_byte == '\n'.encode('utf-8'):
-            message: str = ""
-            while len(self.buffer) > 0:
-                buffer_byte: bytes = self.buffer.pop(0)
-                message += buffer_byte.decode('utf-8')
-
-            self.last_message = message
-            self.state_field_registry.update(StateField.IRIDIUM_LAST_MESSAGE_TIME, current_time)
-            return
-
-        self.buffer.append(next_byte)
+        
+        message = ''.join(chr(b) for b in buffer)
+        self.last_message = message
+        self.state_field_registry.update(StateField.IRIDIUM_LAST_MESSAGE_TIME, current_time)
