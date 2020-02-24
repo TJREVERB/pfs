@@ -13,7 +13,6 @@ class IridiumReadTask:
 
     def execute(self):
         current_time: float = self.state_field_registry.get(StateField.TIME)
-        last_message_time: float = self.state_field_registry.get(StateField.IRIDIUM_LAST_MESSAGE_TIME)
         self.buffer = []
         self.iridium.flush()
 
@@ -32,11 +31,11 @@ class IridiumReadTask:
             if 'OK' in line:
                 break
 
-        if not buffer:
+        if not self.buffer:
             # Iridium Hardware Fault
             self.state_field_registry.raise_flag(ErrorFlag.IRIDIUM_FAILURE)
             return
         
-        message = ''.join(chr(b) for b in buffer)
+        message = ''.join(chr(b) for b in self.buffer)
         self.last_message = message
         self.state_field_registry.update(StateField.IRIDIUM_LAST_MESSAGE_TIME, current_time)
