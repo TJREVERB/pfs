@@ -1,8 +1,8 @@
 from enum import Enum
 import time
 
-from MainControlLoop.lib.devices import Device
-from MainControlLoop.lib.StateFieldRegistry.state_fields import ErrorFlag
+# from MainControlLoop.lib.devices import Device
+# from MainControlLoop.lib.StateFieldRegistry.state_fields import ErrorFlag
 
 from smbus2 import SMBus, SMBusWrapper
 
@@ -23,10 +23,10 @@ class EPSRegister(Enum):
     GET_COMMS_WATCHDOG_PERIOD = 0x20
     SET_COMMS_WATCHDOG_PERIOD = 0x21
     RESET_COMMS_WATCHDOG = 0x22
-    GET_BROWN_OUT_RESET_COUNT = 0x31
-    GET_AUTO_SOFTWARE_RESET_COUNT = 0x32
-    GET_MANUAL_RESET_COUNT = 0x33
-    GET_COMMS_WATCHDOG_RESET_COUNT = 0x34
+    GET_BROWN_OUT_RESETS = 0x31
+    GET_AUTO_SOFTWARE_RESETS = 0x32
+    GET_MANUAL_RESETS = 0x33
+    GET_COMMS_WATCHDOG_RESETS = 0x34
     SWITCH_ON_ALL_PDMS = 0x40
     SWITCH_OFF_ALL_PDMS = 0x41
     GET_ACTUAL_STATE_ALL_PDMS = 0x42
@@ -34,7 +34,9 @@ class EPSRegister(Enum):
     GET_INITIAL_STATE_ALL_PDMS = 0X44
     SET_ALL_PDMS_TO_INITIAL_STATE = 0X45
     SWITCH_PDM_N_ON = 0X50
-    SWITCH_PDM_N_OFF = 0X53
+    SWITCH_PDM_N_OFF = 0X51
+    SET_PDM_N_INITIAL_STATE_TO_ON = 0x52
+    SET_PDM_N_INITIAL_STATE_TO_OFF = 0x53
     GET_PDM_N_ACTUAL_STATUS = 0X54
     SET_PDM_N_TIMER_LIMIT = 0X60
     GET_PDM_N_TIMER_LIMIT = 0X61
@@ -112,7 +114,7 @@ class EPSPin(Enum):
     PDM9 = 0x09
     PDM10 = 0x10
 
-class EPS(Device):
+class EPS():
     # TODO: Add write and read, where there is a built-in sleep, add default sleep argument
     # TODO: Try-catches in each wrapper
     # TODO: Writing a script to determine the direction of current flow
@@ -193,9 +195,13 @@ class EPS(Device):
         EPSRegister.GET_VERSION: 0x00,
         EPSRegister.GET_CHECKSUM: 0x00,
         EPSRegister.GET_REVISION: 0x00,
-        # EPSRegister.GET_TELEMETRY: 11-8,
+        ######################
+        EPSRegister.GET_TELEMETRY: 11-8,
+        ######################
         EPSRegister.GET_COMMS_WATCHDOG_PERIOD: 0x00,
-        # EPSRegister.SET_COMMS_WATCHDOG_PERIOD: Period,
+        #####################
+        EPSRegister.SET_COMMS_WATCHDOG_PERIOD: 10,
+        ######################
         EPSRegister.RESET_COMMS_WATCHDOG: 0x00,
         EPSRegister.GET_BROWN_OUT_RESETS: 0x00,
         EPSRegister.GET_AUTO_SOFTWARE_RESETS: 0x00,
@@ -207,15 +213,17 @@ class EPS(Device):
         EPSRegister.GET_EXPECTED_STATE_ALL_PDMS: 0x00,
         EPSRegister.GET_INITIAL_STATE_ALL_PDMS: 0x00,
         EPSRegister.SET_ALL_PDMS_TO_INITIAL_STATE: 0x00,
-        # EPSRegister.SWITCH_PDM_N_ON: N,
-        # EPSRegister.SWITCH_PDM_N_OFF: N,
-        # EPSRegister.SET_PDM_N_INITIAL_STATE_TO_ON: N,
-        # EPSRegister.SET_PDM_N_INITIAL_STATE_TO_OFF: N,
-        # EPSRegister.GET_PDM_N_ACTUAL_STATUS: N,
-        # EPSRegister.SET_PDM_N_TIMER_LIMIT: Limit,
-        # EPSRegister.GET_PDM_N_TIMER_LIMIT: N,
-        # EPSRegister.GET_PDM_N_CURRENT_TIMER_VALUE: N,
-        # EPSRegister.PCM_RESET: 11-14,
+        ######################
+        EPSRegister.SWITCH_PDM_N_ON: 10,
+        EPSRegister.SWITCH_PDM_N_OFF: 10,
+        EPSRegister.SET_PDM_N_INITIAL_STATE_TO_ON: 10,
+        EPSRegister.SET_PDM_N_INITIAL_STATE_TO_OFF: 10,
+        EPSRegister.GET_PDM_N_ACTUAL_STATUS: 10,
+        EPSRegister.SET_PDM_N_TIMER_LIMIT: 10,
+        EPSRegister.GET_PDM_N_TIMER_LIMIT: 10,
+        EPSRegister.GET_PDM_N_CURRENT_TIMER_VALUE: 10,
+        EPSRegister.PCM_RESET: 11-14,
+        #######################
         EPSRegister.MANUAL_RESET: 0x00
     }
 
@@ -227,8 +235,8 @@ class EPS(Device):
         "MAX3232": EPSPin.PDM6
     }
 
-    def __init__(self):
-        super().__init__("EPS")
+    # def __init__(self):
+    #     super().__init__("EPS")
 
     def get_formatted_bytes(self, command: int) -> bool or list:
         # This method as been tested and confirmed working
@@ -242,12 +250,14 @@ class EPS(Device):
         else:
             return [command]
 
-    def read_data_with_delay(self, register: EPSRegister, data: EPSAddress, delay: int = DEFAULT_READ_DELAY) -> bool or list:
+    def read_data_with_delay(self, register: EPSRegister, data: EPSAddress or EPSPin, delay: int = DEFAULT_READ_DELAY) -> bool or list:
         # TODO: Write a command, wait for confirmation, then request for a read
-        if type(register) != EPSRegister or type(data) != EPSAddress or type(delay) != int:
+        if type(register) != EPSRegister or (type(data) != EPSAddress and type(data) != EPSPin) or type(delay) != int:
+            print("readdelaytypecheck")
             return False
         try:
             if not self.write_i2c_block_data(register, data):
+                print("readdelaywriteerror")
                 return False
             time.sleep(delay)  # Potentially dangerous
             data_returned = self.read_i2c_block_data(register, self.EXPECTED_RETURN_BYTES[register])
@@ -257,8 +267,9 @@ class EPS(Device):
         except:
             return False
 
-    def write_i2c_block_data(self, register: EPSRegister, data: EPSAddress) -> bool:
-        if type(register) != EPSRegister or type(data) != EPSAddress:
+    def write_i2c_block_data(self, register: EPSRegister, data: EPSAddress or EPSPin) -> bool:
+        if type(register) != EPSRegister or (type(data) != EPSPin and type(data) != EPSAddress):
+            print("writetypecheck")
             return False
             # return ErrorFlag.EPS_TYPE_FAILURE
         try:
@@ -266,6 +277,7 @@ class EPS(Device):
             self.bus.write_i2c_block_data(self.ADDRESS, register.value, command)
             return True
         except:
+            print("writeerror")
             return False
             # return ErrorFlag.EPS_I2C_FAILURE
 
@@ -290,10 +302,11 @@ class EPS(Device):
         if type(pin) != EPSPin:
             return False
         try:
-            if not self.write_i2c_block_data(EPSRegister.SWITCH_PDM_N_ON, pin.value):  # Is pin.value the right type?
+            if not self.write_i2c_block_data(EPSRegister.SWITCH_PDM_N_ON, pin):
+                print("overallwriteerror")
                 return False
             time.sleep(self.WR_DELAY[EPSRegister.SWITCH_PDM_N_ON])
-            data_returned = self.read_data_with_delay(EPSRegister.GET_PDM_N_ACTUAL_STATUS, pin.value, self.WR_DELAY[EPSRegister.GET_PDM_N_ACTUAL_STATUS])
+            data_returned = self.read_data_with_delay(EPSRegister.GET_PDM_N_ACTUAL_STATUS, pin, self.WR_DELAY[EPSRegister.GET_PDM_N_ACTUAL_STATUS])
             if type(data_returned) == bool and data_returned is False:
                 return False
             print(data_returned)
