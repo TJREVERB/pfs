@@ -1,13 +1,17 @@
 from time import time as sys_time
+from os import path
 
 from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry, StateField
 
 
-class SystemTimeReadTask:
+class AntennaDeployReadTask:
 
     def __init__(self, state_field_registry: StateFieldRegistry):
         self.state_field_registry: StateFieldRegistry = state_field_registry
 
     def execute(self):
-        current_time: float = sys_time()
-        self.state_field_registry.update(StateField.TIME, current_time)
+        """
+        Checks if antenna has been deployed
+        :return: (None)
+        """
+        self.state_field_registry.update(StateField.ANTENNA_DEPLOYED, path.exists("/root/antenna_deployed"))

@@ -47,6 +47,11 @@ class StateFieldRegistry:
             StateField.IRIDIUM_LAST_MESSAGE_TIME: 0.0,
             StateField.APRS_LAST_BEACON_TIME: 0.0,
             StateField.LAST_ARCHIVE_TIME: 0.0,
+            StateField.BOOT_TIME: -1,
+
+            # SYSTEM INFO
+            StateField.BOOT_WAIT_COMPLETE: False,
+            StateField.ANTENNA_DEPLOYED: False
         }
 
         self.hardware_faults = {
