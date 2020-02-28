@@ -40,7 +40,7 @@ class AntennaDeployer(Device):
         self.bus = SMBus(1)
         self.primary_address = 0x31
         self.secondary_address = 0x32
-        self.timeout = 10
+
 
     def write_i2c_word_data(self, command: AntennaDeployerCommand, data: int) -> bool:
         if type(command) != AntennaDeployerCommand:
@@ -48,6 +48,7 @@ class AntennaDeployer(Device):
 
         self.bus.write_i2c_word_data(self.primary_address, command.value, data)
         return True
+
 
     def read_i2c_word_data(self, command: AntennaDeployerCommand) -> bytes or None:
         if type(command) != AntennaDeployerCommand:
@@ -65,11 +66,13 @@ class AntennaDeployer(Device):
         self.write_i2c_word_data(AntennaDeployerCommand.DEPLOY_3)
         self.write_i2c_word_data(AntennaDeployerCommand.DEPLOY_4)
 
+
     def functional(self):
         """
         :return: (bool) i2c file opened by SMBus
         """
         return self.bus.fd is not None
+
 
     def reset(self):
         """
@@ -82,6 +85,7 @@ class AntennaDeployer(Device):
             return False
         self.write_i2c_word_data(AntennaDeployerCommand.SYSTEM_RESET)
 
+
     def disable(self):
         """
         Disarms the ISIS Antenna Deployer
@@ -91,6 +95,7 @@ class AntennaDeployer(Device):
         except:
             return False
         self.write_i2c_word_data(AntennaDeployerCommand.DISARM_ANTS)
+
 
     def enable(self):
         """
