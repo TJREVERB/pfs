@@ -1,9 +1,9 @@
 from MainControlLoop.lib.drivers.APRS import APRS
-from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry, StateField
+from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry, StateField, ErrorFlag
 
 
 class APRSBeaconActuateTask:
-    MAX_BEACON_LEN = 100  # FIXME: find actual maximum
+    MAX_BEACON_LEN = 256
 
     def __init__(self, aprs: APRS, state_field_registry: StateFieldRegistry):
         self.aprs: APRS = aprs
@@ -22,13 +22,17 @@ class APRSBeaconActuateTask:
         if not self.run:
             return
 
+        self.run = False
         if self.beacon == "":
-            self.run = False
             return
 
-        self.aprs.write(self.beacon)
+        success = self.aprs.write(self.beacon)
+        self.beacon = ""
 
+        if not success:
+            self.state_field_registry.raise_flag(ErrorFlag.APRS_FAILURE)
+            return
+
+        self.state_field_registry.drop_flag(ErrorFlag.APRS_FAILURE)
         current_time = self.state_field_registry.get(StateField.TIME)
         self.state_field_registry.update(StateField.APRS_LAST_BEACON_TIME, current_time)
-        self.beacon = ""
-        self.run = False
