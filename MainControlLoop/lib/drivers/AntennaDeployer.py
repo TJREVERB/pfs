@@ -1,12 +1,13 @@
 import time
 from enum import Enum
 from smbus2 import SMBus
+from smbus2 import i2c_msg
 from MainControlLoop.lib.devices import Device
 
 
 class AntennaDeployerCommand(Enum):
-    SYSTEM_RESET = 0xAA
-    WATCHDOG_RESET= 0xCC
+    SYSTEM_RESET=0xAA
+    WATCHDOG_RESET=0xCC
     ARM_ANTS=0xAD
     DISARM_ANTS= 0xAC
     DEPLOY_1=0xA1
@@ -32,6 +33,35 @@ class AntennaDeployerCommand(Enum):
     GET_UPTIME_3=0xB6
     GET_UPTIME_4=0xB7
 
+class AntennaDeployerReturnBytes(Enum):
+    AntennaDeployerCommand.SYSTEM_RESET = 0
+    AntennaDeployerCommand.WATCHDOG_RESET = 0
+    AntennaDeployerCommand.ARM_ANTS = 0
+    AntennaDeployerCommand.DISARM_ANTS = 0
+    AntennaDeployerCommand.DEPLOY_1 = 0
+    AntennaDeployerCommand.DEPLOY_2 = 0
+    AntennaDeployerCommand.DEPLOY_3 = 0
+    AntennaDeployerCommand.DEPLOY_4 = 0
+    AntennaDeployerCommand.AUTO_DEPLOY = 0
+    AntennaDeployerCommand.DEPLOY_1_OVERRIDE = 0
+    AntennaDeployerCommand.DEPLOY_2_OVERRIDE = 0
+    AntennaDeployerCommand.DEPLOY_3_OVERRIDE = 0
+    AntennaDeployerCommand.DEPLOY_4_OVERRIDE = 0
+    AntennaDeployerCommand.CANCEL_DEPLOY = 0
+    AntennaDeployerCommand.GET_TEMP = 2
+    AntennaDeployerCommand.GET_STATUS = 2
+#    AntennaDeployerCommand.GET_UPTIME_SYS = None
+#    AntennaDeployerCommand.GET_TELEMETRY = None
+    AntennaDeployerCommand.GET_COUNT_1 = 1
+    AntennaDeployerCommand.GET_COUNT_2 = 1
+    AntennaDeployerCommand.GET_COUNT_3 = 1
+    AntennaDeployerCommand.GET_COUNT_4 = 1
+    AntennaDeployerCommand.GET_UPTIME_1 = 2
+    AntennaDeployerCommand.GET_UPTIME_2 = 2
+    AntennaDeployerCommand.GET_UPTIME_3 = 2
+    AntennaDeployerCommand.GET_UPTIME_4 = 2
+
+#TODO: Create a similar enum, but instead of return bytes, it should be params (length of arguments passed when writing)
 
 class AntennaDeployer(Device):
 
@@ -50,13 +80,17 @@ class AntennaDeployer(Device):
         return True
 
 
-    def read_i2c_word_data(self, command: AntennaDeployerCommand) -> bytes or None:
+    def read_i2c_data(self, command: AntennaDeployerCommand) -> bytes or None:
         if type(command) != AntennaDeployerCommand:
             return None
 
         bus.write_word_data(self.primary_address, command.value, 0x00)
         time.sleep(0.5)
-        return bus.read_byte(self.primary_address)
+        num_bytes = AntennaDeployerReturnBytes.command.value
+
+        # This code allows us to read more than just one byte from the antenna deployer
+        i2c_obj = i2c_msg.read(self.primary_address, num_bytes)        
+        return self.bus.i2c_rdwr(i2c_obj)
 
 
     def deploy(self, register: AntennaDeployerRegister):
