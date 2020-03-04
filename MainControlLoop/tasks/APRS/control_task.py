@@ -23,7 +23,7 @@ class APRSCommands(Enum):
     SF = r"TJ:C;APRS;SF;[\w\d_]+;"
     RESET = r"TJ:C;APRS;reset;;"
 
-    ANTENNA_DEPLOYED = r"pFS:AntennaDeployer;DEPLOYED;"
+    ANTENNA_DEPLOY_INITIATED = r"pFS:AntennaDeployer;DEPLOYED;"
 
 
 class APRSControlTask:
@@ -48,7 +48,7 @@ class APRSControlTask:
             return
 
         if self.mode == Mode.STARTUP:
-            if re.search(APRSCommands.ANTENNA_DEPLOYED.value, command_joined) is not None:
+            if re.search(APRSCommands.ANTENNA_DEPLOY_INITIATED.value, command_joined) is not None:
                 self.actuate_task.set_critical_message(APRSCriticalMessage.ANTS_DEPLOYED)
                 self.actuate_task.enable_critical_message()
 

@@ -1,39 +1,126 @@
-from smbus2 import SMBus
-
+import time
+from enum import Enum
+from smbus2 import SMBus, i2c_msg
 from MainControlLoop.lib.devices import Device
 
-from enum import Enum
 
+class AntennaDeployerCommand(Enum):
+    SYSTEM_RESET = 0xAA
+    WATCHDOG_RESET = 0xCC
 
-class ISISAnts(Enum):
-    RESET = 0xAA
-    ARM = 0xAD
-    DISARM = 0xAC
-    DEPLOY_ANTENNA_1 = 0xA1
-    DEPLOY_ANTENNA_2 = 0xA2
-    DEPLOY_ANTENNA_3 = 0xA3
-    DEPLOY_ANTENNA_4 = 0xA4  # TODO: documentation says deploy methods need a parameter, figure out if this is the register parameter for i2c call
+    ARM_ANTS = 0xAD
+    DISARM_ANTS = 0xAC
+
+    DEPLOY_1 = 0xA1
+    DEPLOY_2 = 0xA2
+    DEPLOY_3 = 0xA3
+    DEPLOY_4 = 0xA4
+
+    AUTO_DEPLOY = 0xA5
+    CANCEL_DEPLOY = 0xA9
+
+    DEPLOY_1_OVERRIDE = 0xBA
+    DEPLOY_2_OVERRIDE = 0xBB
+    DEPLOY_3_OVERRIDE = 0xBC
+    DEPLOY_4_OVERRIDE = 0xBD
+
+    GET_TEMP = 0xC0
+    GET_STATUS = 0xC3
+
+    GET_COUNT_1 = 0xB0
+    GET_COUNT_2 = 0xB1
+    GET_COUNT_3 = 0xB2
+    GET_COUNT_4 = 0xB3
+
+    GET_UPTIME_1 = 0xB4
+    GET_UPTIME_2 = 0xB5
+    GET_UPTIME_3 = 0xB6
+    GET_UPTIME_4 = 0xB7
 
 
 class AntennaDeployer(Device):
-    BUS_NAME = '/dev/i2c-2'
-    ADDRESS = 0x58
+    BUS_NUMBER = 1
+    PRIMARY_ADDRESS = 0x31
+    SECONDARY_ADDRESS = 0x32
+    EXPECTED_BYTES = {
+        AntennaDeployerCommand.SYSTEM_RESET: 0,
+        AntennaDeployerCommand.WATCHDOG_RESET: 0,
+
+        AntennaDeployerCommand.ARM_ANTS: 0,
+        AntennaDeployerCommand.DISARM_ANTS: 0,
+
+        AntennaDeployerCommand.DEPLOY_1: 0,
+        AntennaDeployerCommand.DEPLOY_2: 0,
+        AntennaDeployerCommand.DEPLOY_3: 0,
+        AntennaDeployerCommand.DEPLOY_4: 0,
+
+        AntennaDeployerCommand.AUTO_DEPLOY: 0,
+        AntennaDeployerCommand.CANCEL_DEPLOY: 0,
+
+        AntennaDeployerCommand.DEPLOY_1_OVERRIDE: 0,
+        AntennaDeployerCommand.DEPLOY_2_OVERRIDE: 0,
+        AntennaDeployerCommand.DEPLOY_3_OVERRIDE: 0,
+        AntennaDeployerCommand.DEPLOY_4_OVERRIDE: 0,
+
+        AntennaDeployerCommand.GET_TEMP: 2,
+        AntennaDeployerCommand.GET_STATUS: 2,
+
+        AntennaDeployerCommand.GET_COUNT_1: 1,
+        AntennaDeployerCommand.GET_COUNT_2: 1,
+        AntennaDeployerCommand.GET_COUNT_3: 1,
+        AntennaDeployerCommand.GET_COUNT_4: 1,
+
+        AntennaDeployerCommand.GET_UPTIME_1: 2,
+        AntennaDeployerCommand.GET_UPTIME_2: 2,
+        AntennaDeployerCommand.GET_UPTIME_3: 2,
+        AntennaDeployerCommand.GET_UPTIME_4: 2,
+    }
 
     def __init__(self):
-        super().__init__("antenna_deployer")
+        super().__init__("AntennaDeployer")
         self.bus = SMBus()
 
-    # def deploy(self):
-    #     isisants.py_k_ants_init(b"/dev/i2c-1", 0x31, 0x32, 4, 10)
-    #
-    #     # Arms device
-    #     isisants.py_k_ants_arm()
-    #
-    #     # Deploy
-    #     isisants.py_k_ants_deploy(0, False, 5)
-    #     isisants.py_k_ants_deploy(1, False, 5)
-    #     isisants.py_k_ants_deploy(2, False, 5)
-    #     isisants.py_k_ants_deploy(3, False, 5)
+    def write(self, command: AntennaDeployerCommand, parameter: int) -> bool or None:
+        """
+        Wrapper for SMBus write word data
+        :param command: (AntennaDeployerCommand) The antenna deployer command to run
+        :param parameter: (int) The parameter to pass in to the command (usually 0x00)
+        :return: (bool or None) success
+        """
+        if type(command) != AntennaDeployerCommand:
+            return
+
+        try:
+            self.bus.open(self.BUS_NUMBER)
+            self.bus.write_word_data(self.PRIMARY_ADDRESS, command.value, parameter)
+            self.bus.close()
+        except:
+            return False
+
+        return True
+
+    def read(self, command: AntennaDeployerCommand) -> bytes or None:
+        """
+        Wrapper for SMBus to read from AntennaDeployer
+        :param command: (AntennaDeployerCommand) The antenna deployer command to run
+        :return: (ctypes.LP_c_char, bool) buffer, success
+        """
+        if type(command) != AntennaDeployerCommand:
+            return
+
+        success = self.write(command, 0x00)
+        if not success:
+            return None, False
+
+        time.sleep(0.5)
+        try:
+            i2c_obj = i2c_msg.read(self.PRIMARY_ADDRESS, self.EXPECTED_BYTES[command])
+            self.bus.open(self.BUS_NUMBER)
+            self.bus.i2c_rdwr(i2c_obj)
+            self.bus.close()
+            return i2c_obj.buf, True
+        except:
+            return None, False
 
     def functional(self):
         """
@@ -47,27 +134,33 @@ class AntennaDeployer(Device):
         :return: (bool) no error
         """
         try:
-            self.bus.open(self.BUS_NAME)
+            self.bus.open(self.BUS_NUMBER)
+            self.write(AntennaDeployerCommand.SYSTEM_RESET, 0x00)
+            self.bus.close()
+            return True
         except:
             return False
-        self.bus.write_byte(self.ADDRESS, ISISAnts.RESET.value)
 
     def disable(self):
         """
         Disarms the ISIS Antenna Deployer
         """
         try:
-            self.bus.open(self.BUS_NAME)
+            self.bus.open(self.BUS_NUMBER)
+            self.write(AntennaDeployerCommand.DISARM_ANTS, 0x00)
+            self.bus.close()
+            return True
         except:
             return False
-        self.bus.write_byte(self.ADDRESS, ISISAnts.DISARM.value)
 
     def enable(self):
         """
         Arms the ISIS Antenna Deployer
         """
         try:
-            self.bus.open(self.BUS_NAME)
+            self.bus.open(self.BUS_NUMBER)
+            self.write(AntennaDeployerCommand.ARM_ANTS, 0x00)
+            self.bus.close()
+            return True
         except:
             return False
-        self.bus.write_byte(self.ADDRESS, ISISAnts.ARM.value)

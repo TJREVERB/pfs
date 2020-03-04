@@ -15,8 +15,8 @@ class PiMonitorTask:
     def read(self):
         self.read_task.execute()
 
-    def control(self):
-        self.control_task.execute()
+    def control(self, commands):
+        self.control_task.execute(commands)
 
     def actuate(self):
         self.actuate_task.execute()
