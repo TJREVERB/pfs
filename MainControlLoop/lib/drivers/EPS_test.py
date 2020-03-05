@@ -4,8 +4,13 @@ import time
 # from MainControlLoop.lib.devices import Device
 # from MainControlLoop.lib.StateFieldRegistry.state_fields import ErrorFlag
 
-from smbus2 import SMBus, SMBusWrapper
+from smbus2 import SMBus
 
+# TODO: If repeated failures found (refer to registry.py and state_fields.py), raise ErrorFlag to invoke a device reset
+# TODO: Write read_task based off APRS/read_task in tasks, call raise_error method if error in read_task
+# TODO: Add None checking for DATA_ZERO values
+# TODO: Ensure manual reset works, especially since it can't pass type checking at the moment
+# NOTE: Currently getting ACTUAL_PIN_STATUS doesn't work, probably a similar problem to reading data from solar panels
 
 class EPSRegister(Enum):
     """
@@ -46,6 +51,11 @@ class EPSRegister(Enum):
     PDM_STATUS = 0x0E
 
 class EPSAddress(Enum):
+    """
+    These addresses refer to the last argument (normally referred to as the "data" argument), usually when data is
+    requested via the get telemetry command (a register value of 0x10). Note that self.get_formatted_bytes() should
+    almost always be called with an EPSAddress as the argument when using smbus2 reading or writing calls.
+    """
     IIDIODE_OUT = 0xE284
     VIDIODE_OUT = 0xE280
     I3V3_DRW = 0xE205
@@ -103,6 +113,9 @@ class EPSAddress(Enum):
     SDBCR3B = 0xE13D
 
 class EPSPin(Enum):
+    """
+    The hex addresses of PDM pins on the EPS are pretty simple and direct, i.e. PDM1 = 0x01, PDM2 = 0x02, etc.
+    """
     PDM1 = 0x01
     PDM2 = 0x02
     PDM3 = 0x03
@@ -115,15 +128,12 @@ class EPSPin(Enum):
     PDM10 = 0x10
 
 class EPS():
-    # TODO: Add write and read, where there is a built-in sleep, add default sleep argument
-    # TODO: Try-catches in each wrapper
-    # TODO: Writing a script to determine the direction of current flow
     bus = SMBus(1)
     BUS_NAME = '/dev/i2c-1'
     ADDRESS = 0x2b
-    DEFAULT_READ_DELAY = 0.5
+    DEFAULT_READ_DELAY = 500
     DEFAULT_RETURN_LENGTH = 2
-    # Number of expected return bytes
+    # Number of expected return bytes.
     EXPECTED_RETURN_BYTES = {
         EPSRegister.BOARD_STATUS: 2,
         EPSRegister.GET_LAST_ERROR: 2,
@@ -155,7 +165,7 @@ class EPS():
         EPSRegister.PCM_RESET: 0,
         EPSRegister.MANUAL_RESET: 0
     }
-    # Expected read/write delay
+    # Expected read/write delay of commands. Those without a WR_DELAY in documentation have been assigned to zero.
     WR_DELAY = {
         EPSRegister.BOARD_STATUS: 1,
         EPSRegister.GET_LAST_ERROR: 1,
@@ -188,20 +198,17 @@ class EPS():
         EPSRegister.MANUAL_RESET: 0
 
     }
-    # First argument (data[0])
+    # Commonly the "data" (last) argument in smbus2 methods (the Data[0] column in ClydeSpace documentation), returns
+    # a None for modifying methods or methods that require a specific Pin number (e.g. PDM_N methods and GET_TELEMETRY)
     DATA_ZERO = {
         EPSRegister.BOARD_STATUS: 0x00,
         EPSRegister.GET_LAST_ERROR: 0x00,
         EPSRegister.GET_VERSION: 0x00,
         EPSRegister.GET_CHECKSUM: 0x00,
         EPSRegister.GET_REVISION: 0x00,
-        ######################
-        EPSRegister.GET_TELEMETRY: 11-8,
-        ######################
+        EPSRegister.GET_TELEMETRY: None,
         EPSRegister.GET_COMMS_WATCHDOG_PERIOD: 0x00,
-        #####################
-        EPSRegister.SET_COMMS_WATCHDOG_PERIOD: 10,
-        ######################
+        EPSRegister.SET_COMMS_WATCHDOG_PERIOD: None,
         EPSRegister.RESET_COMMS_WATCHDOG: 0x00,
         EPSRegister.GET_BROWN_OUT_RESETS: 0x00,
         EPSRegister.GET_AUTO_SOFTWARE_RESETS: 0x00,
@@ -213,20 +220,18 @@ class EPS():
         EPSRegister.GET_EXPECTED_STATE_ALL_PDMS: 0x00,
         EPSRegister.GET_INITIAL_STATE_ALL_PDMS: 0x00,
         EPSRegister.SET_ALL_PDMS_TO_INITIAL_STATE: 0x00,
-        ######################
-        EPSRegister.SWITCH_PDM_N_ON: 10,
-        EPSRegister.SWITCH_PDM_N_OFF: 10,
-        EPSRegister.SET_PDM_N_INITIAL_STATE_TO_ON: 10,
-        EPSRegister.SET_PDM_N_INITIAL_STATE_TO_OFF: 10,
-        EPSRegister.GET_PDM_N_ACTUAL_STATUS: 10,
-        EPSRegister.SET_PDM_N_TIMER_LIMIT: 10,
-        EPSRegister.GET_PDM_N_TIMER_LIMIT: 10,
-        EPSRegister.GET_PDM_N_CURRENT_TIMER_VALUE: 10,
-        EPSRegister.PCM_RESET: 11-14,
-        #######################
+        EPSRegister.SWITCH_PDM_N_ON: None,
+        EPSRegister.SWITCH_PDM_N_OFF: None,
+        EPSRegister.SET_PDM_N_INITIAL_STATE_TO_ON: None,
+        EPSRegister.SET_PDM_N_INITIAL_STATE_TO_OFF: None,
+        EPSRegister.GET_PDM_N_ACTUAL_STATUS: None,
+        EPSRegister.SET_PDM_N_TIMER_LIMIT: None,
+        EPSRegister.GET_PDM_N_TIMER_LIMIT: None,
+        EPSRegister.GET_PDM_N_CURRENT_TIMER_VALUE: None,
+        EPSRegister.PCM_RESET: None,
         EPSRegister.MANUAL_RESET: 0x00
     }
-
+    # Mapping main Cubesat devices and components to their assigned PDM pin values.
     COMPONENT_TO_PIN = {
         "IRIDIUM": EPSPin.PDM3,
         "SATT4": EPSPin.PDM4,
@@ -239,10 +244,9 @@ class EPS():
     #     super().__init__("EPS")
 
     def get_formatted_bytes(self, command: int) -> bool or list:
-        # This method as been tested and confirmed working
+        # TESTED AND CONFIRMED WORKING
         if type(command) != int:
             return False
-            # return ErrorFlag.EPS_TYPE_FAILURE
         if command > 0xFF:
             prefix = command >> 8
             suffix = command & 0XFF
@@ -250,16 +254,21 @@ class EPS():
         else:
             return [command]
 
-    def read_data_with_delay(self, register: EPSRegister, data: EPSAddress or EPSPin, delay: int = DEFAULT_READ_DELAY) -> bool or list:
-        # TODO: Write a command, wait for confirmation, then request for a read
-        if type(register) != EPSRegister or (type(data) != EPSAddress and type(data) != EPSPin) or type(delay) != int:
-            print("readdelaytypecheck")
+    # For reference: data arguments can be an EPSAddress (for telemetry), EPSPin (for modifying specific pins), or
+    # EPSRegister (for referencing DATA_ZERO, e.g. MANUAL_RESET or other system-wide setters).
+    def read_write_with_delay(self, register: EPSRegister, data: EPSAddress or EPSPin or EPSRegister, delay: int = DEFAULT_READ_DELAY) -> bool or list:
+        # TESTED AND CONFIRMED WORKING IN PREVIOUS VERSION
+        if type(register) != EPSRegister or (type(data) != EPSAddress and type(data) != EPSPin and type(data) != EPSRegister) or type(delay) != int:
             return False
         try:
             if not self.write_i2c_block_data(register, data):
-                print("readdelaywriteerror")
                 return False
-            time.sleep(delay)  # Potentially dangerous
+            delay = delay / 1000  # Since in milliseconds, need to convert to seconds for time.sleep()
+            try:
+                assert delay < 1.0  # No WR_DELAY is longer than one second
+            except AssertionError:
+                return False
+            time.sleep(delay)  # Potentially dangerous as it may freeze up MCL?
             data_returned = self.read_i2c_block_data(register, self.EXPECTED_RETURN_BYTES[register])
             if type(data_returned) == bool and data_returned is False:
                 return False
@@ -267,46 +276,39 @@ class EPS():
         except:
             return False
 
-    def write_i2c_block_data(self, register: EPSRegister, data: EPSAddress or EPSPin) -> bool:
-        if type(register) != EPSRegister or (type(data) != EPSPin and type(data) != EPSAddress):
-            print("writetypecheck")
+    def write_i2c_block_data(self, register: EPSRegister, data: EPSAddress or EPSPin or EPSRegister) -> bool:
+        # Not unit tested, although has been implicitly checked through read_data_with_delay
+        if type(register) != EPSRegister or (type(data) != EPSPin and type(data) != EPSAddress and type(data) != EPSRegister):
             return False
-            # return ErrorFlag.EPS_TYPE_FAILURE
         try:
             command = self.get_formatted_bytes(data.value)
             self.bus.write_i2c_block_data(self.ADDRESS, register.value, command)
             return True
         except:
-            print("writeerror")
             return False
-            # return ErrorFlag.EPS_I2C_FAILURE
 
     def read_i2c_block_data(self, register: EPSRegister, length: int = DEFAULT_RETURN_LENGTH) -> bool or list:
+        # Not unit tested, although has been implicitly checked through read_data_with_delay
         if type(register) != EPSRegister or type(length) != int:
             return False
-            # return ErrorFlag.EPS_TYPE_FAILURE
         if length != self.EXPECTED_RETURN_BYTES[register]:
             return False
         try:
             data = self.bus.read_i2c_block_data(self.ADDRESS, register.value, length)
             return data
         except:
-            # TODO: Write specific error catching from registry.py and state_fields.py
-            # TODO: Base read_task off APRS/read_task in tasks
             return False
-    # TODO: The following methods are implemented wrappers for common commands.
-    # TODO: Call raise_error method if error in read_task
-    # The following methods are implemented wrappers for common commands:
 
+    # The following methods are implemented wrappers for common commands:
     def pin_on(self, pin: EPSPin) -> bool:
+        # TESTED AND CONFIRMED WORKING
         if type(pin) != EPSPin:
             return False
         try:
             if not self.write_i2c_block_data(EPSRegister.SWITCH_PDM_N_ON, pin):
-                print("overallwriteerror")
                 return False
             time.sleep(self.WR_DELAY[EPSRegister.SWITCH_PDM_N_ON])
-            data_returned = self.read_data_with_delay(EPSRegister.GET_PDM_N_ACTUAL_STATUS, pin, self.WR_DELAY[EPSRegister.GET_PDM_N_ACTUAL_STATUS])
+            data_returned = self.read_write_with_delay(EPSRegister.GET_PDM_N_ACTUAL_STATUS, pin, self.WR_DELAY[EPSRegister.GET_PDM_N_ACTUAL_STATUS])
             if type(data_returned) == bool and data_returned is False:
                 return False
             print(data_returned)
@@ -314,14 +316,50 @@ class EPS():
         except:
             return False
 
-    def functional(self):
+    # The following methods have not been tested at all:
+    def pin_off(self, pin: EPSPin) -> bool:
+        if type(pin) != EPSPin:
+            return False
+        try:
+            if not self.write_i2c_block_data(EPSRegister.SWITCH_PDM_N_OFF, pin):
+                return False
+            time.sleep(self.WR_DELAY[EPSRegister.SWITCH_PDM_N_OFF])
+            data_returned = self.read_write_with_delay(EPSRegister.GET_PDM_N_ACTUAL_STATUS, pin, self.WR_DELAY[EPSRegister.GET_PDM_N_ACTUAL_STATUS])
+            if type(data_returned) == bool and data_returned is False:
+                return False
+            print(data_returned)
+            return True
+        except:
+            return False
+
+    def set_all_PDMS_to_inital_state(self) -> bool:
+        data_returned = self.read_write_with_delay(EPSRegister.SET_ALL_PDMS_TO_INITIAL_STATE, self.DATA_ZERO[EPSRegister.SET_ALL_PDMS_TO_INITIAL_STATE], self.WR_DELAY[EPSRegister.SET_ALL_PDMS_TO_INITIAL_STATE])
+        if type(data_returned) == bool and data_returned is False:
+            return False
+        return True
+
+    def reset_comms_watchdog(self) -> bool:
+        data_returned = self.read_write_with_delay(EPSRegister.RESET_COMMS_WATCHDOG, self.DATA_ZERO[EPSRegister.RESET_COMMS_WATCHDOG], self.WR_DELAY[EPSRegister.RESET_COMMS_WATCHDOG])
+        if type(data_returned) == bool and data_returned is False:
+            return False
+        return True
+
+    def functional(self) -> bool:
+        data_returned = self.read_write_with_delay(EPSRegister.BOARD_STATUS, self.DATA_ZERO[EPSRegister.BOARD_STATUS], self.WR_DELAY[EPSRegister.BOARD_STATUS])
+        if type(data_returned) == bool and data_returned is False:
+            return False
+        # Ambiguity: both an error and an inoperable board return False, although practically these mean the same thing
+        if data_returned[0] == 1:  # Need to research what the BOARD_STATUS command actually returns
+            return True
+        return False
+
+    def reset(self) -> bool:
+        if not self.write_i2c_block_data(EPSRegister.MANUAL_RESET, EPSRegister.MANUAL_RESET):
+            return False
+        return True
+
+    def disable(self) -> bool:  # Are these inherited methods from Device? We should probably never disable the EPS
         raise NotImplementedError
 
-    def reset(self):
-        raise NotImplementedError
-
-    def disable(self):
-        raise NotImplementedError
-
-    def enable(self):
+    def enable(self) -> bool:
         raise NotImplementedError
