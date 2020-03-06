@@ -1,8 +1,8 @@
 from enum import Enum
 import time
 
-from MainControlLoop.lib.devices import Device
-from MainControlLoop.lib.StateFieldRegistry.state_fields import ErrorFlag
+# from MainControlLoop.lib.devices import Device
+# from MainControlLoop.lib.StateFieldRegistry.state_fields import ErrorFlag
 
 from smbus2 import SMBus
 
@@ -240,8 +240,8 @@ class EPS():
         "MAX3232": EPSPin.PDM6
     }
 
-    def __init__(self):
-        super().__init__("EPS")
+    # def __init__(self):
+    #     super().__init__("EPS")
 
     def get_formatted_bytes(self, command: int) -> bool or list:
         # TESTED AND CONFIRMED WORKING
@@ -311,6 +311,7 @@ class EPS():
             data_returned = self.read_write_with_delay(EPSRegister.GET_PDM_N_ACTUAL_STATUS, pin, self.WR_DELAY[EPSRegister.GET_PDM_N_ACTUAL_STATUS])
             if type(data_returned) == bool and data_returned is False:
                 return False
+            print(data_returned)
             return True
         except:
             return False
@@ -326,6 +327,7 @@ class EPS():
             data_returned = self.read_write_with_delay(EPSRegister.GET_PDM_N_ACTUAL_STATUS, pin, self.WR_DELAY[EPSRegister.GET_PDM_N_ACTUAL_STATUS])
             if type(data_returned) == bool and data_returned is False:
                 return False
+            print(data_returned)
             return True
         except:
             return False
