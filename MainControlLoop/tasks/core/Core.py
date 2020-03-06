@@ -4,7 +4,6 @@ from MainControlLoop.tasks.APRS import APRSTask
 
 
 class Core:
-
     LOW_POWER_BATTERY_THRESHOLD = 8
     NORMAL_BATTERY_THRESHOLD = 9
 
@@ -20,8 +19,23 @@ class Core:
     def control(self, commands):
         command = "".join(commands)
 
+        if self.mode == Mode.BOOT:
+            self.dispatch_boot()
+
+        if self.mode == Mode.STARTUP:
+            self.dispatch_startup()
+
         if self.mode == Mode.NORMAL:
             self.dispatch_normal(command)
+
+        if self.mode == Mode.LOW_POWER:
+            self.dispatch_low_power(command)
+
+        if self.mode == Mode.COMMS:
+            self.dispatch_comms()
+
+        if self.mode == Mode.SAFE:
+            self.dispatch_safe()
 
     def dispatch_normal(self, command):
         if self.state_field_registry.critical_failure() or self.ENTER_SAFE_COMMAND in command:
@@ -55,7 +69,23 @@ class Core:
         return
 
     def dispatch_boot(self):
-        return
+        if self.state_field_registry.critical_failure():
+            self.dispatch_safe()
+            return
+
+        if self.state_field_registry.get(StateField.BOOT_WAIT_COMPLETE):
+            self.dispatch_startup()
+            return
+
+        self.aprs_task.set_mode(Mode.BOOT)
 
     def dispatch_startup(self):
-        return
+        if self.state_field_registry.critical_failure():
+            self.dispatch_safe()
+            return
+
+        if self.state_field_registry.get(StateField.ANTENNA_DEPLOYED):
+            self.dispatch_normal('')
+            return
+
+        self.aprs_task.set_mode(Mode.STARTUP)
