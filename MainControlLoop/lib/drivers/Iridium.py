@@ -15,6 +15,10 @@ class Commands(Enum):
     PHONE_IMEI = 'AT+CSGN'
     CHECK_NETWORK = 'AT-MSSTM'
     SHUT_DOWN = 'AT*F'
+    SIGNAL_QUAL = 'AT+CSQ'
+
+    
+    SEND_SMS = 'AT+CMGS=' # FIXME: cannot be tested until patch antenna is working
 
     # Old commands which returned errors during testing
     # SIGNAL = 'AT+CSQ'
@@ -25,11 +29,11 @@ class Commands(Enum):
     # SOFT_RESET = 'ATZn'
 
 class ResponseCode(Enum):
-    OK = 0
-    RING = 2
+    OK = [b'O', b'K']
+    ERROR = [c.encode('utf-8') for c in 'ERROR']
 
 class Iridium(Device):
-    PORT = '/dev/ttyACM1'
+    PORT = '/dev/serial0'
     BAUDRATE = 19200
 
     def __init__(self):
@@ -89,14 +93,6 @@ class Iridium(Device):
             return False
 
         return self.serial.read(1)
-
-    def enable(self):
-        # TODO: figure out what precautions should be taken in enable
-        try:
-            self.serial.open()
-        except SerialException:
-            # FIXME: for production any and every error should be caught here
-            pass
 
     def disable(self):
         # TODO: figure out what precautions should be taken in disable
