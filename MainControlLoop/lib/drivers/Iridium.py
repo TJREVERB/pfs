@@ -1,5 +1,4 @@
-from serial import Serial, SerialException
-from time import sleep
+from serial import Serial
 from enum import Enum
 
 from MainControlLoop.lib.devices.device import Device
@@ -17,20 +16,22 @@ class Commands(Enum):
     SHUT_DOWN = 'AT*F'
     SIGNAL_QUAL = 'AT+CSQ'
 
-    
-    SEND_SMS = 'AT+CMGS=' # FIXME: cannot be tested until patch antenna is working
+    # FIXME: cannot be tested until patch antenna is working
+    # following commands probably need to be retested once patch antenna is fixed
 
-    # Old commands which returned errors during testing
-    # SIGNAL = 'AT+CSQ'
-    # SBD_RING_ALERT_ON = 'AT+SBDMTA=1'
-    # SBD_RING_ALERT_OFF = 'AT+SBDMTA=0'    
-    # BATTERY_CHECK = 'AT+CBC=?'
-    # CALL_STATUS = 'AT+CLCC=?'
-    # SOFT_RESET = 'ATZn'
+    SEND_SMS = 'AT+CMGS='
+    SIGNAL = 'AT+CSQ'
+    SBD_RING_ALERT_ON = 'AT+SBDMTA=1'
+    SBD_RING_ALERT_OFF = 'AT+SBDMTA=0'
+    BATTERY_CHECK = 'AT+CBC=?'
+    CALL_STATUS = 'AT+CLCC=?'
+    SOFT_RESET = 'ATZn'
+
 
 class ResponseCode(Enum):
     OK = [b'O', b'K']
     ERROR = [c.encode('utf-8') for c in 'ERROR']
+
 
 class Iridium(Device):
     PORT = '/dev/serial0'
@@ -53,7 +54,7 @@ class Iridium(Device):
 
         # Encode the message with utf-8, write to serial
         try:
-            self.serial.write(command.encode("UTF-8"))   
+            self.serial.write(command.encode("UTF-8"))
         except SerialException:
             return False
 
@@ -66,38 +67,39 @@ class Iridium(Device):
             try:
                 self.serial = Serial(port=self.PORT, baudrate=self.BAUDRATE, timeout=1)
                 return True
-            except SerialException:
-                # FIXME: for production any and every error should be caught here
+            except:
                 return False
-                
+
         if self.serial.is_open:
             return True
 
         try:
             self.serial.open()
             return True
-        except SerialException:
-            # FIXME: for production any and every error should be caught here
+        except:
             return False
+
     def flush(self):
-        # Clear serial I/O
+        """
+        Clears the serial buffer
+        :return: (None)
+        """
         self.serial.flushInput()
         self.serial.flushOutput()
 
-    def read(self) -> bytes:
+    def read(self) -> (bytes, bool):
         """
         Reads in a maximum of one byte if timeout permits.
-        :return: (byte) byte read from Iridium
+        :return: (bytes, bool) bytes read from Iridium, success
         """
         if not self.functional():
-            return False
+            return None, False
 
-        return self.serial.read(1)
+        return self.serial.read(1), True
 
-    def disable(self):
-        # TODO: figure out what precautions should be taken in disable
-        try:
-            self.serial.close()
-        except SerialException:
-            # FIXME: for production any and every error should be caught here
-            pass
+    def reset(self):
+        """
+        Resets the serial powers
+        :return: (None)
+        """
+        raise NotImplementedError
