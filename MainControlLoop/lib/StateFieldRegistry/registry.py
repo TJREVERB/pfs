@@ -51,7 +51,8 @@ class StateFieldRegistry:
 
             # SYSTEM INFO
             StateField.BOOT_WAIT_COMPLETE: False,
-            StateField.ANTENNA_DEPLOYED: False
+            StateField.ANTENNA_DEPLOYED: False,
+            StateField.ANTENNA_DEPLOY_ATTEMPTED: False
         }
 
         self.hardware_faults = {

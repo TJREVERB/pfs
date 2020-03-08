@@ -45,6 +45,7 @@ class StateField(Enum):
     # SYSTEM INFO
     BOOT_WAIT_COMPLETE = "FIRST_BOOT"
     ANTENNA_DEPLOYED = "ANTENNA_DEPLOY"
+    ANTENNA_DEPLOY_ATTEMPTED = "ANTENNA_DEPLOY_ATTEMPTED"
 
 
 class ErrorFlag(Enum):
@@ -96,7 +97,8 @@ StateFieldTypeCheck = {
 
     # SYSTEM INFO
     StateField.BOOT_WAIT_COMPLETE: bool,
-    StateField.ANTENNA_DEPLOYED: bool
+    StateField.ANTENNA_DEPLOYED: bool,
+    StateField.ANTENNA_DEPLOY_ATTEMPTED: bool
 }
 
 for state_field in StateField:
