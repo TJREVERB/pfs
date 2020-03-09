@@ -1,3 +1,4 @@
+Cython
 astropy==3.2.3
 autopep8==1.4.4
 certifi==2019.9.11
