@@ -6,6 +6,7 @@ from MainControlLoop.lib.devices import Device
 
 class APRS(Device):
     PORT = '/dev/ttyACM0'
+    DEVICE_PATH = '/sys/devices/platform/soc/20980000.usb/buspower'
     BAUDRATE = 19200
 
     def __init__(self):
@@ -85,11 +86,11 @@ class APRS(Device):
         return output, True
 
     def reset(self):
-        with open('/sys/devices/platform/soc/20980000.usb/buspower', 'w') as bus_power:
+        with open(self.DEVICE_PATH, 'w') as bus_power:
             bus_power.write('0')
             bus_power.close()
         sleep(10)
-        with open('/sys/devices/platform/soc/20980000.usb/buspower', 'w') as bus_power:
+        with open(self.DEVICE_PATH, 'w') as bus_power:
             bus_power.write('0')
             bus_power.close()
         sleep(5)
