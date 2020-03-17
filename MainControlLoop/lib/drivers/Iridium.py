@@ -1,5 +1,6 @@
-from serial import Serial
 from enum import Enum
+from time import sleep
+from serial import Serial
 
 from MainControlLoop.lib.devices.device import Device
 
@@ -30,7 +31,7 @@ class Commands(Enum):
 
 class ResponseCode(Enum):
     OK = [b'O', b'K']
-    ERROR = [c.encode('utf-8') for c in 'ERROR']
+    ERROR = [b'E', b'R', b'R', b'O', b'R']
 
 
 class Iridium(Device):
@@ -41,22 +42,13 @@ class Iridium(Device):
         super().__init__('Iridium')
         self.serial: Serial = None
 
-    def write(self, command: str) -> bool:
+    def flush(self):
         """
-        Write a command to the serial port.
-        :param command: (str) Command to write
-        :return: (bool) if the serial write worked
+        Clears the serial buffer
+        :return: (None)
         """
-        if not self.functional():
-            return False
-        # Add the newline character to the end of the command
-        command = command + "\r\n"
-
-        # Encode the message with utf-8, write to serial
-        try:
-            self.serial.write(command.encode("UTF-8"))
-        except SerialException:
-            return False
+        self.serial.flushInput()
+        self.serial.flushOutput()
 
     def functional(self) -> bool:
         """
@@ -66,6 +58,7 @@ class Iridium(Device):
         if self.serial is None:
             try:
                 self.serial = Serial(port=self.PORT, baudrate=self.BAUDRATE, timeout=1)
+                self.serial.flush()
                 return True
             except:
                 return False
@@ -75,31 +68,53 @@ class Iridium(Device):
 
         try:
             self.serial.open()
+            self.serial.flush()
             return True
         except:
             return False
 
-    def flush(self):
+    def write(self, command: str) -> bool:
         """
-        Clears the serial buffer
-        :return: (None)
+        Write a command to the serial port.
+        :param command: (str) Command to write
+        :return: (bool) if the serial write worked
         """
-        self.serial.flushInput()
-        self.serial.flushOutput()
+        if not self.functional():
+            return False
+
+        try:
+            command = command + "\r\n"
+            self.serial.write(command.encode("UTF-8"))
+        except:
+            return False
+
+        return True
 
     def read(self) -> (bytes, bool):
         """
-        Reads in a maximum of one byte if timeout permits.
-        :return: (bytes, bool) bytes read from Iridium, success
+        Reads in as many available bytes as it can if timeout permits.
+        :return: (byte) bytes read from Iridium, whether or not the write worked
         """
-        if not self.functional():
-            return None, False
+        output = bytes()
+        for loop in range(50):
 
-        return self.serial.read(1), True
+            try:
+                next_byte = self.serial.read(size=1)
+            except:
+                return None, False
+
+            if next_byte == bytes():
+                break
+
+            output += next_byte
+
+        return output, True
 
     def reset(self):
-        """
-        Resets the serial powers
-        :return: (None)
-        """
+        raise NotImplementedError
+
+    def enable(self):
+        raise NotImplementedError
+
+    def disable(self):
         raise NotImplementedError

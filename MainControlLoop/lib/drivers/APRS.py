@@ -1,6 +1,5 @@
-from serial import Serial
 from time import sleep
-import os
+from serial import Serial
 
 from MainControlLoop.lib.devices import Device
 
@@ -13,6 +12,14 @@ class APRS(Device):
         super().__init__("APRS")
         self.serial: Serial = None
 
+    def flush(self):
+        """
+        Clears the serial buffer
+        :return: (None)
+        """
+        self.serial.flushInput()
+        self.serial.flushOutput()
+
     def functional(self) -> bool:
         """
         Checks the state of the serial port (initializing it if needed)
@@ -21,6 +28,7 @@ class APRS(Device):
         if self.serial is None:
             try:
                 self.serial = Serial(port=self.PORT, baudrate=self.BAUDRATE, timeout=1)
+                self.serial.flush()
                 return True
             except:
                 return False
@@ -30,6 +38,7 @@ class APRS(Device):
 
         try:
             self.serial.open()
+            self.serial.flush()
             return True
         except:
             return False
@@ -50,7 +59,7 @@ class APRS(Device):
 
         return True
 
-    def read(self) -> bool or bytes:
+    def read(self) -> (bytes, bool):
         """
         Reads in as many available bytes as it can if timeout permits (terminating at a \n).
         :return: (byte) bytes read from APRS, whether or not the write worked
@@ -59,7 +68,7 @@ class APRS(Device):
             return None, False
 
         output = bytes()
-        for loop in range(25):
+        for loop in range(50):
 
             try:
                 next_byte = self.serial.read(size=1)
@@ -76,9 +85,13 @@ class APRS(Device):
         return output, True
 
     def reset(self):
-        os.system('echo 0 > /sys/devices/platform/soc/20980000.usb/buspower')
+        with open('/sys/devices/platform/soc/20980000.usb/buspower', 'w') as bus_power:
+            bus_power.write('0')
+            bus_power.close()
         sleep(10)
-        os.system('echo 1 > /sys/devices/platform/soc/20980000.usb/buspower')
+        with open('/sys/devices/platform/soc/20980000.usb/buspower', 'w') as bus_power:
+            bus_power.write('0')
+            bus_power.close()
         sleep(5)
 
     def enable(self):
