@@ -1,6 +1,6 @@
 from MainControlLoop.lib.drivers.Iridium import Iridium
 from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry
-from MainControlLoop.tasks.Iridium.iridium_read_task import IridiumReadTask
+from MainControlLoop.tasks.Iridium.read_task import IridiumReadTask
 
 
 class IridiumTask:
