@@ -81,9 +81,9 @@ class Iridium(Device):
         """
         if not self.functional():
             return False
-
+     
+		command = command + "\r\n"
         try:
-            command = command + "\r\n"
             self.serial.write(command.encode("UTF-8"))
         except:
             return False
