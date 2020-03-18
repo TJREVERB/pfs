@@ -1,1 +1,1 @@
-from MainControlLoop.tasks.Iridium.iridiumtask import IridiumTask
+from MainControlLoop.tasks.Iridium.task import IridiumTask

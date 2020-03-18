@@ -1,112 +1,54 @@
-from serial import Serial, SerialException
-from time import sleep
 from enum import Enum
+from time import sleep
+from serial import Serial
 
 from MainControlLoop.lib.devices.device import Device
 
 
 class Commands(Enum):
-    SIGNAL = 'AT+CSQ'
+    TEST_IRIDIUM = 'AT'
+    GEOLOCATION = 'AT-MSGEO'
+    ACTIVE_CONFIG = 'AT+V'
     CHECK_REGISTRATION = 'AT+SBDREG?'
+    PHONE_MODEL = 'AT+CGMM'
+    PHONE_REVISION = 'AT+CGMR'
+    PHONE_IMEI = 'AT+CSGN'
+    CHECK_NETWORK = 'AT-MSSTM'
+    SHUT_DOWN = 'AT*F'
+    SIGNAL_QUAL = 'AT+CSQ'
+
+    # FIXME: cannot be tested until patch antenna is working
+    # following commands probably need to be retested once patch antenna is fixed
+
+    SEND_SMS = 'AT+CMGS='
+    SIGNAL = 'AT+CSQ'
     SBD_RING_ALERT_ON = 'AT+SBDMTA=1'
     SBD_RING_ALERT_OFF = 'AT+SBDMTA=0'
-    TEST_IRIDIUM = 'AT'
-    SOFT_RESET='ATZn'
+    BATTERY_CHECK = 'AT+CBC=?'
+    CALL_STATUS = 'AT+CLCC=?'
+    SOFT_RESET = 'ATZn'
 
-class SerialStatus(Enum):
-    RESPONSE_OK = 'RESPONSE_OK'
-    SERIAL_UNAVAILABLE = 'SERIAL_UNAVAILABLE'
-    RESPONSE_ERROR = 'RESPONSE_ERROR'
 
 class ResponseCode(Enum):
-    OK = 0
-    RING = 2
+    OK = [b'O', b'K']
+    ERROR = [b'E', b'R', b'R', b'O', b'R']
+
 
 class Iridium(Device):
-    PORT = '/dev/ttyACM1'
+    PORT = '/dev/serial0'
     BAUDRATE = 19200
 
     def __init__(self):
         super().__init__('Iridium')
         self.serial: Serial = None
 
-    def get_response(self, command) -> int:
+    def flush(self):
         """
-        Returns the response code in the command
-        :param command: (str) command to look in
-        :return: (int) response code
+        Clears the serial buffer
+        :return: (None)
         """
-        return int(self.write_to_serial(command)[0].split(":")[1])
-
-    def write_to_serial(self, command: str) -> (str, SerialStatus):
-        """
-        Write a command to the serial port.
-        :param command: (str) Command to write
-        :return: (str, boolean) response text, boolean if error or not
-        """
-
-        if self.serial is None or not self.serial.is_open:
-            return "ERROR", SerialStatus.SERIAL_UNAVAILABLE
-
-        # Remove unnecessary newlines that cut off the full command
-        command = command.replace("\r\n", "")
-        # Add the newline character to the end of the command
-        command = command + "\r\n"
-
-        # Encode the message with utf-8, write to serial
-        self.serial.write(command.encode("UTF-8"))
-
-        response = ""
-
-        # Wait to get the 'OK' or 'ERROR' from Iridium
-        while "OK" or "ERROR" not in response:
-            if not self.serial.is_open:
-                return "ERROR", SerialStatus.SERIAL_UNAVAILABLE
-
-            response += self.serial.read(size=1).decode("UTF-8")
-
-        if "OK" in response:
-            response = response.replace("OK", "").strip()
-            self.serial.flush()  # Flush the serial
-            return response, SerialStatus.RESPONSE_OK
-
-        # ERROR
-        response = response.replace("ERROR", "").strip()
-        self.serial.flush()
-        return response, SerialStatus.RESPONSE_ERROR
-
-    def wait_for_signal(self):
-        """
-        Wait for the Iridium to establish a connection with the constellation.
-        """
-        if not self.serial.is_open:
-            return
-        response = 0
-        while response == ResponseCode.OK:
-            response = self.get_response(Commands.SIGNAL.value)
-
-    def check(self, num_checks: int) -> bool:
-        """
-        Check that the Iridium works and is registered.
-        :param num_checks: (int) Number of times to check if the Iridium is registered (before it returns)
-        :return: (bool) Check is successful
-        """
-
-        self.write_to_serial(Commands.TEST_IRIDIUM.value)
-
-        self.wait_for_signal()
-
-        # Check if current registration status of the Iridium `response` is 2
-        response = self.get_response(Commands.CHECK_REGISTRATION.value)
-        while num_checks > 0:
-            if response == ResponseCode.RING:
-                self.write_to_serial(Commands.SBD_RING_ALERT_ON.value)
-                return True
-
-            response = self.get_response(Commands.CHECK_REGISTRATION.value)
-            num_checks -= 1
-
-        return False
+        self.serial.flushInput()
+        self.serial.flushOutput()
 
     def functional(self) -> bool:
         """
@@ -117,60 +59,62 @@ class Iridium(Device):
             try:
                 self.serial = Serial(port=self.PORT, baudrate=self.BAUDRATE, timeout=1)
                 self.serial.flush()
-                return self.check(5)
-            except SerialException:
-                # FIXME: for production any and every error should be caught here
+                return True
+            except:
                 return False
+
         if self.serial.is_open:
             return True
 
         try:
             self.serial.open()
+            self.serial.flush()
             return True
-        except SerialException:
-            # FIXME: for production any and every error should be caught here
+        except:
             return False
 
-    def write(self, message: str) -> (str, bool):
+    def write(self, command: str) -> bool:
         """
-         Writes the message to the Iridium radio through the serial port
-        :param message: (str) message to write
-        :return: (str, bool) response, whether or not the write worked
-        """
-        if not self.functional():
-            return '', False
-
-        command = message  # TODO: convert message into an Iridium command to send
-        response, success = self.write_to_serial(command)
-        sleep(1)  # TODO: test if this wait is necessary
-        return response, success
-
-    def read(self) -> bool or bytes:
-        """
-        Reads in a maximum of one byte if timeout permits.
-        :return: (byte) byte read from Iridium
+        Write a command to the serial port.
+        :param command: (str) Command to write
+        :return: (bool) if the serial write worked
         """
         if not self.functional():
             return False
+     
+		command = command + "\r\n"
+        try:
+            self.serial.write(command.encode("UTF-8"))
+        except:
+            return False
 
-        return self.serial.read(size=1)
+        return True
+
+    def read(self) -> (bytes, bool):
+        """
+        Reads in as many available bytes as it can if timeout permits.
+        :return: (byte) bytes read from Iridium, whether or not the write worked
+        """
+        output = bytes()
+        for loop in range(50):
+
+            try:
+                next_byte = self.serial.read(size=1)
+            except:
+                return None, False
+
+            if next_byte == bytes():
+                break
+
+            output += next_byte
+
+        return output, True
 
     def reset(self):
-        # TODO: implement the power-cycle hard reset
-        return get_response(SOFT_RESET)
+        raise NotImplementedError
 
     def enable(self):
-        # TODO: figure out what precautions should be taken in enable
-        try:
-            self.serial.open()
-        except SerialException:
-            # FIXME: for production any and every error should be caught here
-            pass
+        raise NotImplementedError
 
     def disable(self):
-        # TODO: figure out what precautions should be taken in disable
-        try:
-            self.serial.close()
-        except SerialException:
-            # FIXME: for production any and every error should be caught here
-            pass
+        raise NotImplementedError
