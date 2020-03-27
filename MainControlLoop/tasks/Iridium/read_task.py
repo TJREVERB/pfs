@@ -69,4 +69,4 @@ class IridiumReadTask:
                 self.state_field_registry.update(StateField.IRIDIUM_SIGNAL, signal_strength)
                 continue
 
-            # TODO: design message structure for commands sent via Iridium from ground station
+            self.last_message = item.replace('OK', '')
