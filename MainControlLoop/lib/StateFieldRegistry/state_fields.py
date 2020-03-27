@@ -3,7 +3,9 @@ from enum import Enum
 
 class StateField(Enum):
 
-    # DUMP / BEACON TELEMETRY
+    # region DUMP / BEACON TELEMETRY
+
+    # EPS DATA
     TIME = 'TIME'
     IIDIODE_OUT = 'IIDIODE_OUT'
     VIDIODE_OUT = 'VIDIODE_OUT'
@@ -31,6 +33,12 @@ class StateField(Enum):
     PDM_7_STAT = "PDM_7_STAT"
     PDM_8_STAT = "PDM_8_STAT"
 
+    # IRIDIUM DATA
+    GEOLOCATION = "GEOLOCATION"
+    IRIDIUM_SIGNAL = "IRIDIUM_SIGNAL"
+
+    # end region
+
     # TIME INTERVALS
     APRS_BEACON_INTERVAL = 'APRS_BEACON_INTERVAL'
     IRIDIUM_BEACON_INTERVAL = 'IRIDIUM_BEACON_INTERVAL'
@@ -56,7 +64,9 @@ class ErrorFlag(Enum):
 
 
 StateFieldTypeCheck = {
-    # DUMP / BEACON TELEMETRY
+    # region DUMP / BEACON TELEMETRY
+
+    # EPS DATA
     StateField.TIME: float,
     StateField.IIDIODE_OUT: float,
     StateField.VIDIODE_OUT: float,
@@ -83,6 +93,12 @@ StateFieldTypeCheck = {
     StateField.PDM_6_STAT: int,
     StateField.PDM_7_STAT: int,
     StateField.PDM_8_STAT: int,
+
+    # IRIDIUM DATA
+    StateField.GEOLOCATION: str,
+    StateField.IRIDIUM_SIGNAL: str,
+
+    # endregion
     
     # INTERVALS
     StateField.APRS_BEACON_INTERVAL: int,
@@ -100,6 +116,8 @@ StateFieldTypeCheck = {
     StateField.ANTENNA_DEPLOYED: bool,
     StateField.ANTENNA_DEPLOY_ATTEMPTED: bool
 }
+
+# FIXME: the following should be removed before production
 
 for state_field in StateField:
     if state_field not in StateFieldTypeCheck:

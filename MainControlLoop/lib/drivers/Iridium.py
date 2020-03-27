@@ -12,9 +12,8 @@ class IridiumCommand(Enum):
     PHONE_MODEL = 'AT+CGMM'
     PHONE_REVISION = 'AT+CGMR'
     PHONE_IMEI = 'AT+CSGN'
-    CHECK_NETWORK = 'AT-MSSTM'
+    CHECK_NETWORK = 'AT-MSSTM'  # FIXME: Iridium documentation says this is for system time?
     SHUT_DOWN = 'AT*F'
-    SIGNAL_QUAL = 'AT+CSQ'
 
     # FIXME: cannot be tested until patch antenna is working
     # following commands probably need to be retested once patch antenna is fixed

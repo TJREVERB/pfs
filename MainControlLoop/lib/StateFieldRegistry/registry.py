@@ -10,7 +10,9 @@ class StateFieldRegistry:
         Defines all the StateFields present in the state registry
         """
         self.registry = {
-            # DUMP / BEACON TELEMETRY
+            # region DUMP / BEACON TELEMETRY
+
+            # EPS DATA
             StateField.TIME: 0.0,
             StateField.IIDIODE_OUT: 0.0,
             StateField.VIDIODE_OUT: 0.0,
@@ -37,6 +39,12 @@ class StateFieldRegistry:
             StateField.PDM_6_STAT: -1,
             StateField.PDM_7_STAT: -1,
             StateField.PDM_8_STAT: -1,
+
+            # IRIDIUM DATA
+            StateField.GEOLOCATION: '',
+            StateField.IRIDIUM_SIGNAL: '',
+
+            # endregion
 
             # INTERVALS
             StateField.APRS_BEACON_INTERVAL: -1,
