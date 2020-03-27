@@ -5,8 +5,16 @@ from MainControlLoop.lib.devices.device import Device
 
 
 class IridiumCommand(Enum):
-    TEST_IRIDIUM = 'AT'
+    # Used Commands
+    # FIXME: test these commands once patch antenna is working
     GEOLOCATION = 'AT-MSGEO'
+    SOFT_RESET = 'ATZn'
+    SIGNAL = 'AT+CSQ'
+
+    # FIXME: delete the following region before production
+    # region unused commands
+
+    TEST_IRIDIUM = 'AT'
     ACTIVE_CONFIG = 'AT+V'
     CHECK_REGISTRATION = 'AT+SBDREG?'
     PHONE_MODEL = 'AT+CGMM'
@@ -15,16 +23,14 @@ class IridiumCommand(Enum):
     CHECK_NETWORK = 'AT-MSSTM'  # FIXME: Iridium documentation says this is for system time?
     SHUT_DOWN = 'AT*F'
 
-    # FIXME: cannot be tested until patch antenna is working
     # following commands probably need to be retested once patch antenna is fixed
-
     SEND_SMS = 'AT+CMGS='
-    SIGNAL = 'AT+CSQ'
     SBD_RING_ALERT_ON = 'AT+SBDMTA=1'
     SBD_RING_ALERT_OFF = 'AT+SBDMTA=0'
     BATTERY_CHECK = 'AT+CBC=?'
     CALL_STATUS = 'AT+CLCC=?'
-    SOFT_RESET = 'ATZn'
+
+    # endregion
 
 
 class Iridium(Device):
