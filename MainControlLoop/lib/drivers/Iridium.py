@@ -1,11 +1,10 @@
 from enum import Enum
-from time import sleep
 from serial import Serial
 
 from MainControlLoop.lib.devices.device import Device
 
 
-class Commands(Enum):
+class IridiumCommand(Enum):
     TEST_IRIDIUM = 'AT'
     GEOLOCATION = 'AT-MSGEO'
     ACTIVE_CONFIG = 'AT+V'
@@ -27,11 +26,6 @@ class Commands(Enum):
     BATTERY_CHECK = 'AT+CBC=?'
     CALL_STATUS = 'AT+CLCC=?'
     SOFT_RESET = 'ATZn'
-
-
-class ResponseCode(Enum):
-    OK = [b'O', b'K']
-    ERROR = [b'E', b'R', b'R', b'O', b'R']
 
 
 class Iridium(Device):
@@ -73,18 +67,40 @@ class Iridium(Device):
         except:
             return False
 
-    def write(self, command: str) -> bool:
+    def write(self, message: str) -> bool:
         """
-        Write a command to the serial port.
-        :param command: (str) Command to write
+        Write a message to the serial port.
+        :param message: (str) Message to write
         :return: (bool) if the serial write worked
         """
+
         if not self.functional():
             return False
      
-		command = command + "\r\n"
+        message = message + "\r\n"
         try:
-            self.serial.write(command.encode("UTF-8"))
+            self.serial.write(message.encode("UTF-8"))
+        except:
+            return False
+
+        return True
+
+    def write_command(self, command: IridiumCommand) -> bool:
+        """
+        Writes one of the Iridium commands to the serial port
+        :param command: (IridiumCommand) Command to write
+        :return: (bool) if the serial write worked
+        """
+
+        if type(command) != IridiumCommand:
+            return False
+
+        if not self.functional():
+            return False
+
+        command_str = command.value + "\r\n"
+        try:
+            self.serial.write(command_str.encode("UTF-8"))
         except:
             return False
 
