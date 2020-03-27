@@ -43,17 +43,17 @@ class DownLinkProducer:
             StateField.PDM_8_STAT
         ]
 
-        dumpList = [dump_header]
+        dump_list = [dump_header]
 
         for element in elements:
             value = state_field_registry.get(element)
             dump_addition = f"{value};"
-            if len(dumpList[-1] + dump_addition) > max_length:
+            if len(dump_list[-1] + dump_addition) > max_length:
                 # Add the message number, len() - 1 because indexing by 0
-                dumpList.append(dump_header + f"{len(dumpList) - 1};")
-            dumpList[-1] += dump_addition
+                dump_list.append(dump_header + f"{len(dump_list) - 1};")
+            dump_list[-1] += dump_addition
 
-        return dumpList
+        return dump_list
 
     @staticmethod
     def create_beacon(state_field_registry: StateFieldRegistry) -> str:

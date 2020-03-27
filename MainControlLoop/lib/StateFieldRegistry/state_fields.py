@@ -3,7 +3,9 @@ from enum import Enum
 
 class StateField(Enum):
 
-    # DUMP / BEACON TELEMETRY
+    # region DUMP / BEACON TELEMETRY
+
+    # EPS DATA
     TIME = 'TIME'
     IIDIODE_OUT = 'IIDIODE_OUT'
     VIDIODE_OUT = 'VIDIODE_OUT'
@@ -31,14 +33,21 @@ class StateField(Enum):
     PDM_7_STAT = "PDM_7_STAT"
     PDM_8_STAT = "PDM_8_STAT"
 
+    # IRIDIUM DATA
+    GEOLOCATION = "GEOLOCATION"
+    IRIDIUM_SIGNAL = "IRIDIUM_SIGNAL"
+
+    # end region
+
     # TIME INTERVALS
     APRS_BEACON_INTERVAL = 'APRS_BEACON_INTERVAL'
-    IRIDIUM_BEACON_INTERVAL = 'IRIDIUM_BEACON_INTERVAL'
+    IRIDIUM_DUMP_INTERVAL = 'IRIDIUM_BEACON_INTERVAL'
 
     # TIME RECORDINGS
     APRS_LAST_MESSAGE_TIME = 'APRS_LAST_MESSAGE_TIME'
     IRIDIUM_LAST_MESSAGE_TIME = 'IRIDIUM_LAST_MESSAGE_TIME'
     APRS_LAST_BEACON_TIME = 'APRS_LAST_BEACON_TIME'
+    IRIDIUM_LAST_DUMP_TIME = "IRIDIUM_LAST_DUMP_TIME"
     LAST_ARCHIVE_TIME = 'LAST_ARCHIVE_TIME'
     BOOT_TIME = 'BOOT_TIME'
 
@@ -56,7 +65,9 @@ class ErrorFlag(Enum):
 
 
 StateFieldTypeCheck = {
-    # DUMP / BEACON TELEMETRY
+    # region DUMP / BEACON TELEMETRY
+
+    # EPS DATA
     StateField.TIME: float,
     StateField.IIDIODE_OUT: float,
     StateField.VIDIODE_OUT: float,
@@ -83,15 +94,22 @@ StateFieldTypeCheck = {
     StateField.PDM_6_STAT: int,
     StateField.PDM_7_STAT: int,
     StateField.PDM_8_STAT: int,
+
+    # IRIDIUM DATA
+    StateField.GEOLOCATION: str,
+    StateField.IRIDIUM_SIGNAL: int,
+
+    # endregion
     
     # INTERVALS
     StateField.APRS_BEACON_INTERVAL: int,
-    StateField.IRIDIUM_BEACON_INTERVAL: int,
+    StateField.IRIDIUM_DUMP_INTERVAL: int,
 
     # TIME RECORDINGS
     StateField.APRS_LAST_MESSAGE_TIME: float,
     StateField.IRIDIUM_LAST_MESSAGE_TIME: float,
     StateField.APRS_LAST_BEACON_TIME: float,
+    StateField.IRIDIUM_LAST_DUMP_TIME: float,
     StateField.LAST_ARCHIVE_TIME: float,
     StateField.BOOT_TIME: float,
 
@@ -100,6 +118,8 @@ StateFieldTypeCheck = {
     StateField.ANTENNA_DEPLOYED: bool,
     StateField.ANTENNA_DEPLOY_ATTEMPTED: bool
 }
+
+# FIXME: the following should be removed before production
 
 for state_field in StateField:
     if state_field not in StateFieldTypeCheck:

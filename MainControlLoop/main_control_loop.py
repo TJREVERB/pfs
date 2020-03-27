@@ -19,7 +19,7 @@ class MainControlLoop:
 
     def execute(self):
         # READ BLOCK
-        commands = ['', '', '']  # APRS, Iridium, System
+        commands = ['', '']  # APRS, Iridium
         self.pi_monitor.read()
         commands[0] = self.aprs.read()
         commands[1] = self.iridium.read()
@@ -29,7 +29,9 @@ class MainControlLoop:
         self.archiver.control()
         self.pi_monitor.control(commands)
         self.aprs.control(commands)
+        self.iridium.control()
 
         # ACTUATE BLOCK
         self.pi_monitor.actuate()
         self.aprs.actuate()
+        self.iridium.actuate()

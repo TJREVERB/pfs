@@ -1,37 +1,36 @@
 from enum import Enum
-from time import sleep
 from serial import Serial
 
 from MainControlLoop.lib.devices.device import Device
 
 
-class Commands(Enum):
-    TEST_IRIDIUM = 'AT'
+class IridiumCommand(Enum):
+    # Used Commands
+    # FIXME: test these commands once patch antenna is working
     GEOLOCATION = 'AT-MSGEO'
+    SOFT_RESET = 'ATZn'
+    SIGNAL = 'AT+CSQ'
+
+    # FIXME: delete the following region before production
+    # region unused commands
+
+    TEST_IRIDIUM = 'AT'
     ACTIVE_CONFIG = 'AT+V'
     CHECK_REGISTRATION = 'AT+SBDREG?'
     PHONE_MODEL = 'AT+CGMM'
     PHONE_REVISION = 'AT+CGMR'
     PHONE_IMEI = 'AT+CSGN'
-    CHECK_NETWORK = 'AT-MSSTM'
+    CHECK_NETWORK = 'AT-MSSTM'  # FIXME: Iridium documentation says this is for system time?
     SHUT_DOWN = 'AT*F'
-    SIGNAL_QUAL = 'AT+CSQ'
 
-    # FIXME: cannot be tested until patch antenna is working
     # following commands probably need to be retested once patch antenna is fixed
-
     SEND_SMS = 'AT+CMGS='
-    SIGNAL = 'AT+CSQ'
     SBD_RING_ALERT_ON = 'AT+SBDMTA=1'
     SBD_RING_ALERT_OFF = 'AT+SBDMTA=0'
     BATTERY_CHECK = 'AT+CBC=?'
     CALL_STATUS = 'AT+CLCC=?'
-    SOFT_RESET = 'ATZn'
 
-
-class ResponseCode(Enum):
-    OK = [b'O', b'K']
-    ERROR = [b'E', b'R', b'R', b'O', b'R']
+    # endregion
 
 
 class Iridium(Device):
@@ -73,18 +72,40 @@ class Iridium(Device):
         except:
             return False
 
-    def write(self, command: str) -> bool:
+    def write(self, message: str) -> bool:
         """
-        Write a command to the serial port.
-        :param command: (str) Command to write
+        Write a message to the serial port.
+        :param message: (str) Message to write
         :return: (bool) if the serial write worked
         """
+
         if not self.functional():
             return False
      
-		command = command + "\r\n"
+        message = message + "\r\n"
         try:
-            self.serial.write(command.encode("UTF-8"))
+            self.serial.write(message.encode("UTF-8"))
+        except:
+            return False
+
+        return True
+
+    def write_command(self, command: IridiumCommand) -> bool:
+        """
+        Writes one of the Iridium commands to the serial port
+        :param command: (IridiumCommand) Command to write
+        :return: (bool) if the serial write worked
+        """
+
+        if type(command) != IridiumCommand:
+            return False
+
+        if not self.functional():
+            return False
+
+        command_str = command.value + "\r\n"
+        try:
+            self.serial.write(command_str.encode("UTF-8"))
         except:
             return False
 
