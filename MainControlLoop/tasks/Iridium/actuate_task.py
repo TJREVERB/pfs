@@ -7,7 +7,7 @@ from MainControlLoop.tasks.Iridium.actuate import IridiumResetActuateTask
 from MainControlLoop.tasks.Iridium.actuate import IridiumSignalStrengthActuateTask
 
 
-class APRSActuateTask:
+class IridiumActuateTask:
 
     def __init__(self, iridium: Iridium, state_field_registry: StateFieldRegistry):
         self.dump_actuate_task = IridiumDumpActuateTask(iridium, state_field_registry)

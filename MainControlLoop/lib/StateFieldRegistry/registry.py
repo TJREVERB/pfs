@@ -48,12 +48,13 @@ class StateFieldRegistry:
 
             # INTERVALS
             StateField.APRS_BEACON_INTERVAL: -1,
-            StateField.IRIDIUM_BEACON_INTERVAL: -1,
+            StateField.IRIDIUM_DUMP_INTERVAL: -1,
 
             # TIME RECORDINGS
             StateField.APRS_LAST_MESSAGE_TIME: 0.0,
             StateField.IRIDIUM_LAST_MESSAGE_TIME: 0.0,
             StateField.APRS_LAST_BEACON_TIME: 0.0,
+            StateField.IRIDIUM_LAST_DUMP_TIME: 0.0,
             StateField.LAST_ARCHIVE_TIME: 0.0,
             StateField.BOOT_TIME: -1,
 
