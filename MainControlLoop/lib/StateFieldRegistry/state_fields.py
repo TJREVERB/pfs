@@ -96,7 +96,7 @@ StateFieldTypeCheck = {
 
     # IRIDIUM DATA
     StateField.GEOLOCATION: str,
-    StateField.IRIDIUM_SIGNAL: str,
+    StateField.IRIDIUM_SIGNAL: int,
 
     # endregion
     
