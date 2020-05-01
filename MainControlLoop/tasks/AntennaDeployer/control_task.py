@@ -10,4 +10,4 @@ class AntennaDeployerControlTask:
 
 
     def execute(self):
-        print("Antenna deployer control task")
+        print(self.state_field_registry.get(StateField.AD_TEMP))

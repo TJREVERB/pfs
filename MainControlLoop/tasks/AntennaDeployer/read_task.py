@@ -1,5 +1,5 @@
-from MainControlLoop.lib.pseudo_drivers.AntennaDeployer import AntennaDeployer
-from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry
+from MainControlLoop.lib.pseudo_drivers.AntennaDeployer import AntennaDeployer, AntennaDeployerReadCommand
+from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry, StateField
 
 
 class AntennaDeployerReadTask:
@@ -213,4 +213,18 @@ class AntennaDeployerReadTask:
 
 
     def execute(self):
-        print("Antenna deployer readtask")
+        count_commands = [AntennaDeployerReadCommand.GET_COUNT_1, AntennaDeployerReadCommand.GET_COUNT_2, AntennaDeployerReadCommand.GET_COUNT_3, AntennaDeployerReadCommand.GET_COUNT_4]
+        uptime_commands = [AntennaDeployerReadCommand.GET_UPTIME_1, AntennaDeployerReadCommand.GET_UPTIME_2, AntennaDeployerReadCommand.GET_UPTIME_3, AntennaDeployerReadCommand.GET_UPTIME_4]
+        temp = self.antenna_deployer.read(AntennaDeployerReadCommand.GET_TEMP)
+        status = self.antenna_deployer.read(AntennaDeployerReadCommand.GET_STATUS)
+        counts, uptimes = [], []
+        for cmd in count_commands:
+            counts.append(self.antenna_deployer.read(cmd))
+        for cmd in uptime_commands:
+            uptimes.append(self.antenna_deployer.read(cmd))
+
+        self.state_field_registry.update(StateField.AD_TEMP, temp)
+        self.state_field_registry.update(StateField.AD_STATUS, status)
+        self.state_field_registry.update(StateField.AD_COUNTS, counts)
+        self.state_field_registry.update(StateField.AD_UPTIMES, uptimes)
+

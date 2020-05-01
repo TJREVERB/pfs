@@ -31,6 +31,12 @@ class StateField(Enum):
     PDM_7_STAT = "PDM_7_STAT"
     PDM_8_STAT = "PDM_8_STAT"
 
+    # ANTENNA DEPLOYER STATEFIELDS
+    AD_TEMP = "AD_TEMP"
+    AD_STATUS = "AD_STATUS"
+    AD_COUNTS = "AD_COUNTS"
+    AD_UPTIMES = "AD_UPTIMES"
+
     # TIME INTERVALS
     APRS_BEACON_INTERVAL = 'APRS_BEACON_INTERVAL'
     IRIDIUM_BEACON_INTERVAL = 'IRIDIUM_BEACON_INTERVAL'
@@ -84,6 +90,12 @@ StateFieldTypeCheck = {
     StateField.PDM_7_STAT: int,
     StateField.PDM_8_STAT: int,
     
+    # ANTENNA DEPLOYER FIELDS
+    StateField.AD_TEMP: float,
+    StateField.AD_STATUS: bool,
+    StateField.AD_COUNTS: list,
+    StateField.AD_UPTIMES: list,
+
     # INTERVALS
     StateField.APRS_BEACON_INTERVAL: int,
     StateField.IRIDIUM_BEACON_INTERVAL: int,

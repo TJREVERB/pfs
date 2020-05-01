@@ -1,4 +1,5 @@
 import time
+import random
 from enum import Enum
 
 class AntennaDeployerReadCommand(Enum):
@@ -42,7 +43,6 @@ class AntennaDeployer:
     def __init__(self):
         self.counts = [0, 0, 0, 0]
         self.start_times = [-1, -1, -1, -1]
-        self.status = False
         self.status = True
         self.data = {
             AntennaDeployerReadCommand.GET_COUNT_1: lambda : self.counts[0],
@@ -53,7 +53,7 @@ class AntennaDeployer:
             AntennaDeployerReadCommand.GET_UPTIME_2: lambda : self.get_uptime(1),
             AntennaDeployerReadCommand.GET_UPTIME_3: lambda : self.get_uptime(2),
             AntennaDeployerReadCommand.GET_UPTIME_4: lambda : self.get_uptime(3),
-            AntennaDeployerReadCommand.GET_TEMP: lambda : self.temp,
+            AntennaDeployerReadCommand.GET_TEMP: lambda : self.get_temp(),
             AntennaDeployerReadCommand.GET_STATUS: lambda : self.status
         }
 
@@ -62,6 +62,10 @@ class AntennaDeployer:
                         AntennaDeployerWriteCommand.DEPLOY_3,
                         AntennaDeployerWriteCommand.DEPLOY_4]
         self.armed = False
+
+
+    def get_temp(self):
+        return random.random()
 
 
     def get_uptime(self, idx):

@@ -38,6 +38,12 @@ class StateFieldRegistry:
             StateField.PDM_7_STAT: -1,
             StateField.PDM_8_STAT: -1,
 
+            # ANTENNA DEPLOYER FIELDS
+            StateField.AD_TEMP: 0.0,
+            StateField.AD_STATUS: False,
+            StateField.AD_COUNTS: [0, 0, 0, 0],
+            StateField.AD_UPTIMES: [0, 0, 0, 0],
+
             # INTERVALS
             StateField.APRS_BEACON_INTERVAL: -1,
             StateField.IRIDIUM_BEACON_INTERVAL: -1,
@@ -62,6 +68,7 @@ class StateFieldRegistry:
             ErrorFlag.IRIDIUM_FAILURE: False
         }
 
+
     def update(self, field: StateField, value):
         """
         Update a StateField in the registry.
@@ -80,6 +87,7 @@ class StateFieldRegistry:
 
         return True
 
+
     def get(self, field: StateField):
         """
         Returns a StateField from the registry
@@ -91,13 +99,16 @@ class StateFieldRegistry:
 
         return None
 
+
     def raise_flag(self, flag: ErrorFlag):
         if flag in self.hardware_faults:
             self.hardware_faults[flag] = True
 
+
     def drop_flag(self, flag: ErrorFlag):
         if flag in self.hardware_faults:
             self.hardware_faults[flag] = False
+
 
     def critical_failure(self):
         return self.hardware_faults[ErrorFlag.APRS_FAILURE] or self.hardware_faults[ErrorFlag.EPS_FAILURE] or self.hardware_faults[ErrorFlag.ANTENNA_DEPLOYER_FAILURE]
