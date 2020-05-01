@@ -43,6 +43,7 @@ class StateFieldRegistry:
             StateField.AD_STATUS: False,
             StateField.AD_COUNTS: [0, 0, 0, 0],
             StateField.AD_UPTIMES: [0, 0, 0, 0],
+            StateField.DEPLOY_ANTENNA: False,
 
             # INTERVALS
             StateField.APRS_BEACON_INTERVAL: -1,
@@ -69,6 +70,7 @@ class StateFieldRegistry:
         }
 
 
+    #TODO: Remove Exceptions when uploading final version
     def update(self, field: StateField, value):
         """
         Update a StateField in the registry.
@@ -77,10 +79,12 @@ class StateFieldRegistry:
         :return: (bool) If the value was updated in the registry
         """
         if field not in self.registry:
+            raise Exception("Field not in registry")
             return False
 
         required_type = StateFieldTypeCheck[field]
         if type(value) != required_type:
+            raise Exception("Field not of required type")
             return False
 
         self.registry[field] = value
@@ -88,6 +92,7 @@ class StateFieldRegistry:
         return True
 
 
+    #TODO: Remove Exceptions when uploading final version
     def get(self, field: StateField):
         """
         Returns a StateField from the registry
@@ -97,17 +102,24 @@ class StateFieldRegistry:
         if field in self.registry:
             return deepcopy(self.registry[field])
 
+        raise Exception("Field not found")
         return None
 
 
+    #TODO: Remove Exceptions when uploading final version
     def raise_flag(self, flag: ErrorFlag):
         if flag in self.hardware_faults:
             self.hardware_faults[flag] = True
+            return
+        raise Exception("Flag not found")
 
 
+    #TODO: Remove Exceptions when uploading final version
     def drop_flag(self, flag: ErrorFlag):
         if flag in self.hardware_faults:
             self.hardware_faults[flag] = False
+            return
+        raise Exception("Flag not found")
 
 
     def critical_failure(self):

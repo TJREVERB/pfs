@@ -70,7 +70,7 @@ class AntennaDeployer:
 
     def get_uptime(self, idx):
         if self.start_times[idx] == -1:
-            return 0
+            return -1
         return time.time() - self.start_times[idx]
 
 

@@ -14,7 +14,6 @@ class MainControlLoop:
 
     def execute(self):
         # READ BLOCK
-        commands = ['', '', '']  # APRS, Iridium, System
         self.antenna_deployer.read()
 
         # CONTROL BLOCK

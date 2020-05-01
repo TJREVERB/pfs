@@ -227,4 +227,11 @@ class AntennaDeployerReadTask:
         self.state_field_registry.update(StateField.AD_STATUS, status)
         self.state_field_registry.update(StateField.AD_COUNTS, counts)
         self.state_field_registry.update(StateField.AD_UPTIMES, uptimes)
+        deployed = True
+        for uptime in uptimes:
+            if uptime == -1:
+                deployed = False
+                break
+        self.state_field_registry.update(StateField.ANTENNA_DEPLOYED, deployed)
+        
 

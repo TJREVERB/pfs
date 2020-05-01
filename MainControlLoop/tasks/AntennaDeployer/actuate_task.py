@@ -1,4 +1,4 @@
-from MainControlLoop.lib.pseudo_drivers import AntennaDeployer
+from MainControlLoop.lib.pseudo_drivers.AntennaDeployer import AntennaDeployer, AntennaDeployerWriteCommand
 from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry, StateField, ErrorFlag
 
 
@@ -10,7 +10,7 @@ class AntennaDeployerActuateTask:
 
 
     def disarm(self):
-        success = self.antenna_deployer.disable()
+        success = self.antenna_deployer.write(AntennaDeployerWriteCommand.DISARM_ANTS)
         if not success:
             self.state_field_registry.raise_flag(ErrorFlag.ANTENNA_DEPLOYER_FAILURE)
             return
@@ -19,16 +19,17 @@ class AntennaDeployerActuateTask:
 
 
     def deploy(self):
-        success = self.antenna_deployer.enable()
+        success = self.antenna_deployer.write(AntennaDeployerWriteCommand.ARM_ANTS)
         if not success:
             self.state_field_registry.raise_flag(ErrorFlag.ANTENNA_DEPLOYER_FAILURE)
             return
 
-        success = self.antenna_deployer.write(AntennaDeployer.AntennaDeployerCommand.DEPLOY_1, 0x0A)
-        success &= self.antenna_deployer.write(AntennaDeployer.AntennaDeployerCommand.DEPLOY_2, 0x0A)
-        success &= self.antenna_deployer.write(AntennaDeployer.AntennaDeployerCommand.DEPLOY_3, 0x0A)
-        success &= self.antenna_deployer.write(AntennaDeployer.AntennaDeployerCommand.DEPLOY_4, 0x0A)
+        success = self.antenna_deployer.write(AntennaDeployerWriteCommand.DEPLOY_1)
+        success &= self.antenna_deployer.write(AntennaDeployerWriteCommand.DEPLOY_2)
+        success &= self.antenna_deployer.write(AntennaDeployerWriteCommand.DEPLOY_3)
+        success &= self.antenna_deployer.write(AntennaDeployerWriteCommand.DEPLOY_4)
 
+        self.state_field_registry.update(StateField.ANTENNA_DEPLOY_ATTEMPTED, True)
         if not success:
             self.state_field_registry.raise_flag(ErrorFlag.ANTENNA_DEPLOYER_FAILURE)
             return
@@ -38,4 +39,7 @@ class AntennaDeployerActuateTask:
 
 
     def execute(self):
-        print("Antenna deployer actuatetask")
+        need_to_deploy = self.state_field_registry.get(StateField.DEPLOY_ANTENNA)
+        if need_to_deploy:
+            self.deploy()
+            self.state_field_registry.update(StateField.DEPLOY_ANTENNA, False)

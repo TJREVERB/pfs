@@ -36,6 +36,7 @@ class StateField(Enum):
     AD_STATUS = "AD_STATUS"
     AD_COUNTS = "AD_COUNTS"
     AD_UPTIMES = "AD_UPTIMES"
+    DEPLOY_ANTENNA = "DEPLOY_ANTENNA"
 
     # TIME INTERVALS
     APRS_BEACON_INTERVAL = 'APRS_BEACON_INTERVAL'
@@ -95,6 +96,7 @@ StateFieldTypeCheck = {
     StateField.AD_STATUS: bool,
     StateField.AD_COUNTS: list,
     StateField.AD_UPTIMES: list,
+    StateField.DEPLOY_ANTENNA: bool,
 
     # INTERVALS
     StateField.APRS_BEACON_INTERVAL: int,
