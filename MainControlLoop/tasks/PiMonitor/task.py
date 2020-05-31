@@ -8,7 +8,7 @@ class PiMonitorTask:
 
     def __init__(self, state_field_registry: StateFieldRegistry):
         self.state_field_registry: StateFieldRegistry = state_field_registry
-        self.read_task: PiMonitorReadTask = PiMonitorReadTask()
+        self.read_task: PiMonitorReadTask = PiMonitorReadTask(state_field_registry)
         self.actuate_task: PiMonitorActuateTask = PiMonitorActuateTask()
         self.control_task: PiMonitorControlTask = PiMonitorControlTask(state_field_registry, self.actuate_task)
 
