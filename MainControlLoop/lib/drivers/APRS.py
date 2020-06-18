@@ -29,7 +29,7 @@ class APRS(Device):
         if self.serial is None:
             try:
                 self.serial = Serial(port=self.PORT, baudrate=self.BAUDRATE, timeout=1)
-                self.serial.flush()
+                self.flush()
                 return True
             except:
                 return False
@@ -39,7 +39,7 @@ class APRS(Device):
 
         try:
             self.serial.open()
-            self.serial.flush()
+            self.flush()
             return True
         except:
             return False
@@ -70,7 +70,6 @@ class APRS(Device):
 
         output = bytes()
         for loop in range(50):
-
             try:
                 next_byte = self.serial.read(size=1)
             except:

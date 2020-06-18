@@ -17,7 +17,7 @@ class StateFieldRegistryLocker:
             return
 
         # Creates a tuple with self.locker[i][0] = timestamp of safe field registry at index i, self.locker[i][1] = dump of safe field registry at index i
-        self.locker.append((state_field_registry.get(StateField.SYS_TIME), DownLinkProducer.create_dump(
+        self.locker.append((state_field_registry.get(StateField.TIME), DownLinkProducer.create_dump(
             state_field_registry)))
 
     def find(self, timestamp: float):

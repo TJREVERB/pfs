@@ -49,6 +49,7 @@ class Core:
         if self.ENTER_COMMS_COMMAND in command:
             self.dispatch_comms()
 
+        self.mode = Mode.NORMAL
         self.aprs_task.set_mode(Mode.NORMAL)
 
     def dispatch_low_power(self, command):
@@ -60,9 +61,11 @@ class Core:
             self.dispatch_normal(command)
             return
 
+        self.mode = Mode.LOW_POWER
         self.aprs_task.set_mode(Mode.LOW_POWER)
 
     def dispatch_safe(self):
+        print("OMGGG EVERYONE DIED")
         return
 
     def dispatch_comms(self):
@@ -77,6 +80,7 @@ class Core:
             self.dispatch_startup()
             return
 
+        self.mode = Mode.BOOT
         self.aprs_task.set_mode(Mode.BOOT)
 
     def dispatch_startup(self):
@@ -88,4 +92,5 @@ class Core:
             self.dispatch_normal('')
             return
 
+        self.mode = Mode.STARTUP
         self.aprs_task.set_mode(Mode.STARTUP)

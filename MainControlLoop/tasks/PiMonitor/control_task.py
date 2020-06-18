@@ -14,7 +14,7 @@ class PiMonitorControlTask:
         current_time = self.state_field_registry.get(StateField.TIME)
         boot_time = self.state_field_registry.get(StateField.BOOT_TIME)
 
-        if current_time - boot_time > self.BOOT_INTERVAL:
+        if current_time - boot_time > self.BOOT_INTERVAL and not self.state_field_registry.get(StateField.BOOT_WAIT_COMPLETE):
             self.actuate_task.enable_boot_complete()
 
         if len(commands[0]) > 0:

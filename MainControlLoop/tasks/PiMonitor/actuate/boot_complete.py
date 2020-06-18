@@ -1,5 +1,9 @@
+import os
+
+
 class BootCompleteActuateTask:
-    FILE_PATH = "/root/first_boot"
+
+    FILE_PATH = os.path.join(os.environ["HOME"], 'first_boot')
 
     def __init__(self):
         self.run = False

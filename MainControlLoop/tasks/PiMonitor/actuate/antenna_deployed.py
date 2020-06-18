@@ -1,5 +1,8 @@
+import os
+
+
 class AntennaDeployedActuateTask:
-    FILE_PATH = "/root/antenna_deployed"
+    FILE_PATH = os.path.join(os.environ["HOME"], 'antenna_deployed')
 
     def __init__(self):
         self.run = False
