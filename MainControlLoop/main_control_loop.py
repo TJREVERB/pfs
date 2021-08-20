@@ -33,3 +33,7 @@ class MainControlLoop:
         # ACTUATE BLOCK
         self.pi_monitor.actuate()
         self.aprs.actuate()
+
+    def run(self):
+        while True:
+            self.execute()
