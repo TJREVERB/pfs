@@ -11,6 +11,9 @@ class PiMonitorControlTask:
         self.actuate_task: PiMonitorActuateTask = actuate_task
 
     def execute(self, commands):
+        """
+        Checks if the time after boot is longer than the boot interval, and if it is the case, enable boot and antenna 
+        """
         current_time = self.state_field_registry.get(StateField.TIME)
         boot_time = self.state_field_registry.get(StateField.BOOT_TIME)
 
