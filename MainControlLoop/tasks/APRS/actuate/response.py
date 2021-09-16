@@ -1,3 +1,6 @@
+# This file is responsible for writing to the APRS radio
+# this is done by setting the response message via the set_response(response: str) instance method and then calling the execute() instance method
+
 from MainControlLoop.lib.drivers.APRS import APRS
 from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry, ErrorFlag
 

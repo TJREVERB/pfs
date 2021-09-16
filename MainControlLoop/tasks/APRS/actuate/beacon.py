@@ -1,3 +1,6 @@
+# Sends message through APRS radio
+# Set the message using set_beacon(beacon: str) instance method and then calling the instance execute() method
+
 from MainControlLoop.lib.drivers.APRS import APRS
 from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry, StateField, ErrorFlag
 

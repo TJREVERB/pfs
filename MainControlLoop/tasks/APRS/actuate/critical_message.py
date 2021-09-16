@@ -1,3 +1,7 @@
+# This file is used to send critical messages to the groundstation
+# it can send any message listed in the APRSCriticalMessage class
+# To use it, call the instance method set_message(APRSCriticalMessage) with an APRSCriticalMessage object whose .value field is the critical message which you wish to send, then call the .execute() instance method
+
 from MainControlLoop.lib.drivers.APRS import APRS
 from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry, ErrorFlag
 
