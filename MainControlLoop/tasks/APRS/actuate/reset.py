@@ -1,3 +1,5 @@
+# .execute() calls the reset method on the APRS object is was instantiated with
+
 from MainControlLoop.lib.drivers.APRS import APRS
 from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry
 
