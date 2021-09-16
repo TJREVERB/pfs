@@ -1,3 +1,7 @@
+# This file is responsible for sending large volumes of data over the APRS radio
+# call the instance method set_dump(messages: list) with a list of messages and then call the instance method execute() to send them over the APRS radio
+# NOTE: the messages must each be shorter than MAX_DUMP_LEN
+
 from MainControlLoop.lib.drivers.APRS import APRS
 from MainControlLoop.lib.StateFieldRegistry import StateFieldRegistry, ErrorFlag
 
