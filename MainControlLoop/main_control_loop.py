@@ -22,8 +22,9 @@ class MainControlLoop:
         # READ BLOCK
         commands = ['', '', '']  # APRS, Iridium, System
         self.pi_monitor.read()  # updates time, checks if it is the first time it has booted and if antenna is deployed
-        # reads last message from aprs and iridium
-        commands[0] = self.aprs.read()
+        
+        # reads last message from aprs and iridium and updates statefield
+        commands[0] = self.aprs.read()  
         commands[1] = self.iridium.read()
 
         # CONTROL BLOCK

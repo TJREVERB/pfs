@@ -11,6 +11,6 @@ class PiMonitorReadTask:
         self.antenna_deploy_read_task = AntennaDeployReadTask(state_field_registry)
 
     def execute(self):
-        self.sys_time_read_task.execute()
-        self.first_boot_read_task.execute()
+        self.sys_time_read_task.execute()  # updates time
+        self.first_boot_read_task.execute()  # updates state field if this is the first boot by checking if a file exists
         self.antenna_deploy_read_task.execute()

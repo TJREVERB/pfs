@@ -41,37 +41,37 @@ class APRSControlTask:
         # TODO: control task logic HAS NOT been decided for boot/startup/safe mode
 
         current_sys_time: float = self.state_field_registry.get(StateField.TIME)
-        command_joined = ''.join(commands)
+        command_joined = ''.join(commands)  # join all commands from list to single string
 
-        if self.mode == Mode.SAFE:
+        if self.mode == Mode.SAFE:  # switch off beacon if in safe mode
             self.state_field_registry.update(StateField.APRS_BEACON_INTERVAL, BeaconInterval.NEVER.value)
             return
 
-        if self.mode == Mode.STARTUP:
+        if self.mode == Mode.STARTUP: # if in startup mode and antenna has been deployed, enable a critical message that the antenna has been deployed
             if re.search(APRSCommands.ANTENNA_DEPLOY_INITIATED.value, command_joined) is not None:
                 self.actuate_task.set_critical_message(APRSCriticalMessage.ANTS_DEPLOYED)
                 self.actuate_task.enable_critical_message()
 
-        if self.mode == Mode.LOW_POWER:
+        if self.mode == Mode.LOW_POWER:  # set beacon interval to slow if in low power mode
             self.state_field_registry.update(StateField.APRS_BEACON_INTERVAL, BeaconInterval.SLOW.value)
 
-        if self.mode == Mode.COMMS:
+        if self.mode == Mode.COMMS:  # if in comms mode, turn off beacon, enable aprs to dump statefield
             self.state_field_registry.update(StateField.APRS_BEACON_INTERVAL, BeaconInterval.NEVER.value)
 
             dump = self.locker.find(current_sys_time)
             self.actuate_task.set_dump(dump)
             self.actuate_task.enable_dump()
 
-        if self.mode == Mode.NORMAL:
+        if self.mode == Mode.NORMAL:  # if in normal mode, set beacon interval to fast
             self.state_field_registry.update(StateField.APRS_BEACON_INTERVAL, BeaconInterval.FAST.value)
 
-        if re.search(APRSCommands.SFR.value, command_joined) is not None:
+        if re.search(APRSCommands.SFR.value, command_joined) is not None:  # if sfr method is in command_joined, create  adump for the current statefield
             dump = DownLinkProducer.create_dump(self.state_field_registry)
             self.actuate_task.set_dump(dump)
             self.actuate_task.enable_dump()
 
-        match = re.search(APRSCommands.SFR_TIME.value, command_joined)
-        if match is not None:
+        match = re.search(APRSCommands.SFR_TIME.value, command_joined)   
+        if match is not None: # if sfr time in command_joined, find previous dump and enable dunp
             cmd = command_joined[match.start(): match.end()]
             arg = cmd.split(";")[-2]
             timestamp = float('0' + re.sub(r"[^\d.]", '', arg))
@@ -101,7 +101,7 @@ class APRSControlTask:
         last_beacon_time: float = self.state_field_registry.get(StateField.APRS_LAST_BEACON_TIME)
 
         if current_sys_time - last_beacon_time > interval or re.search(APRSCommands.BEACON.value,
-                                                                       command_joined) is not None:
+                                                                       command_joined) is not None:  # create a beacon with state field registry if over time interval or beacon value in command
             beacon = DownLinkProducer.create_beacon(self.state_field_registry)
             self.actuate_task.set_beacon(beacon)
             self.actuate_task.enable_beacon()

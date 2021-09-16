@@ -33,12 +33,12 @@ class APRSReadTask:
 
         self.buffer.append(next_bytes)
 
-        if '\n'.encode('utf-8') in next_bytes:
-            message: str = ""
-            while len(self.buffer) > 0:
+        if '\n'.encode('utf-8') in next_bytes:  # if a message has been fully recieved
+            message: str = "" 
+            while len(self.buffer) > 0:  # get message
                 buffer_byte: bytes = self.buffer.pop(0)
                 message += buffer_byte.decode('utf-8')
 
             self.last_message = message.replace('\n', '')
-            self.state_field_registry.update(StateField.APRS_LAST_MESSAGE_TIME, current_time)
+            self.state_field_registry.update(StateField.APRS_LAST_MESSAGE_TIME, current_time)  # update the message in the state field
             return
